@@ -9,6 +9,7 @@ describe('addNewGame()', ()=>{
         try{
             const game = await new Game();
             const addNewGame = await game.addNewGame('Red', "A simple summary", "Lorem Ipsum and as such this is a game");
+
         }catch(e){
             
         }
@@ -20,6 +21,3 @@ describe('addNewGame()', ()=>{
 	
 })
 
-describe('getGameByTitle()', ()=>{
-
-})
