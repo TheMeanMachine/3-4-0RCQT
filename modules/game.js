@@ -69,22 +69,35 @@ module.exports = class Game {
 
 	async getGameByTitle(title) {
 		try {
-			let sql = `SELECT * from game WHERE title = "${title}" LIMIT 1;`
-			const records = await this.db.get(sql)
-			if(!records.count){
+            if(!this.validator.check_MultipleWordsOnlyAlphaNumberic(title)){
+                    throw new Error(`Must supply a valid title`);
+            }
+			let sql = `SELECT count(ID) AS count FROM game WHERE title = "${title}";`
+            let records = await this.db.get(sql)
+			if(records.count == 0){
                 throw new Error(`Game: "${title}" not found`)
             }
+
+            sql = `SELECT * FROM game WHERE title = "${title}";`
+
+            records = await this.db.get(sql)
             
-            data = {
-                id : record.id,
-                title : title || '',
-                summary : records.summary || '',
-                desc : records.summary || '',
-                setTitle : (title) =>{
-                    this.title = title;
+            let data = {
+                ID: records.ID,
+                title: title || '',
+                summary: records.summary || '',
+                desc: records.desc || '',
+                setTitle (string){
+                    this.title = string || '';
+                },
+                setSummary (string){
+                    this.summary = string || '';
+                },
+                setDesc (string){
+                    this.desc = string || '';
                 }
             }
-
+            
 			return data;
 		} catch(err) {
 			throw err
