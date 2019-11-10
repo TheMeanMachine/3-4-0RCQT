@@ -5,21 +5,28 @@ const Games = require('../modules/game.js');
 
 
 describe('updateGameByID()', () => {
-    test('Update valid game', async done =>{
-        expect.assertions(1);
+    test('Update valid game _ title', async done =>{
+        expect.assertions(2);
 
         const game = await new Games();
         const titleToTest = "Red";
         const summary = "A simple summary";
         const desc = "Lorem Ipsum and as such this is a game";
 
+        const titleToUpdate = "No way! 2";
+
         const newGame = await game.addNewGame(titleToTest, summary, desc);
         const retreiveGame = await game.getGameByTitle(titleToTest);
+        const updateGame = await game.updateGameByID(retreiveGame.ID,
+            {title: titleToUpdate}
+            );
+        expect(updateGame).toBe(true);
+        const retreiveUpdatedGame = await game.getGameByTitle(titleToUpdate);
 
-        expect(retreiveGame).toMatchObject(
+        expect(retreiveUpdatedGame).toMatchObject(
             {
                 ID: 1,
-                title: titleToTest || '',
+                title: titleToUpdate || '',
                 summary: summary || '',
                 desc: desc || ''
             }
