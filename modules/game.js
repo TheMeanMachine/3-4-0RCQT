@@ -31,21 +31,11 @@ module.exports = class Game {
 
     async addNewGame(title, summary, desc){
         try{
-            
-            let checkTitle = this.validator.check_MultipleWordsOnlyAlphaNumberic(title);
-            if(!checkTitle){
-                throw new Error('Must supply title');
+            try{
+                this.checkGameFields(title, summary, desc);
+            }catch(e){
+                throw e;
             }
-            let checkSummary = this.validator.check_MultipleWordsOnlyAlphaNumberic(summary);
-            if(!checkSummary){
-                throw new Error('Must supply summary');
-            }
-            let checkDesc = this.validator.check_MultipleWordsOnlyAlphaNumberic(desc);
-            if(!checkDesc){
-                throw new Error('Must supply description');
-            }
-
-            
 
             let sql = `SELECT COUNT(id) as records FROM game WHERE title="${title}";`;
 			const data = await this.db.get(sql);
@@ -66,6 +56,27 @@ module.exports = class Game {
         }
     }
     
+    checkGameFields(title, summary, desc){
+        if(title != null){
+            let checkTitle = this.validator.check_MultipleWordsOnlyAlphaNumberic(title);
+            if(!checkTitle){
+                throw new Error('Must supply title');
+            }
+        }
+        if(summary != null){
+            let checkSummary = this.validator.check_MultipleWordsOnlyAlphaNumberic(summary);
+            if(!checkSummary){
+                throw new Error('Must supply summary');
+            }
+        }
+        if(desc != null){
+            let checkDesc = this.validator.check_MultipleWordsOnlyAlphaNumberic(desc);
+            if(!checkDesc){
+                throw new Error('Must supply description');
+            }
+        }
+        return true;
+    }
 
 	async getGameByTitle(title) {
 		try {
@@ -84,17 +95,36 @@ module.exports = class Game {
             
             let data = {
                 ID: records.ID,
-                title: title || '',
-                summary: records.summary || '',
-                desc: records.desc || '',
+                title: title,
+                summary: records.summary,
+                desc: records.desc,
+                game: this,
                 setTitle (string){
-                    this.title = string || '';
+                    try{
+                        this.game.checkGameFields(string);
+                        this.title = string;
+                    }catch(e){
+                        throw e;
+                    }
                 },
                 setSummary (string){
-                    this.summary = string || '';
+                    try{
+                        this.game.checkGameFields(null, string);
+                        this.summary = string;
+                    }catch(e){
+                        throw e;
+                    }
+                    
                 },
                 setDesc (string){
-                    this.desc = string || '';
+                    try{
+                        this.game.checkGameFields(null, null, string);
+                        this.desc = string;
+                    }catch(e){
+                        throw e;
+                    }
+                    
+                    
                 }
             }
             
@@ -104,6 +134,8 @@ module.exports = class Game {
 		}
 	}
 
-	
+	async updateGameByID(id, data){
+        
+    }
 
 }
