@@ -4,6 +4,31 @@
 const Games = require('../modules/game.js');
 
 
+describe('updateGameByID()', () => {
+    test('Update valid game', async done =>{
+        expect.assertions(1);
+
+        const game = await new Games();
+        const titleToTest = "Red";
+        const summary = "A simple summary";
+        const desc = "Lorem Ipsum and as such this is a game";
+
+        const newGame = await game.addNewGame(titleToTest, summary, desc);
+        const retreiveGame = await game.getGameByTitle(titleToTest);
+
+        expect(retreiveGame).toMatchObject(
+            {
+                ID: 1,
+                title: titleToTest || '',
+                summary: summary || '',
+                desc: desc || ''
+            }
+        );
+
+        done();
+    })
+})
+
 describe('getGameByTitle()', () => {
     test('Get valid game', async done =>{
         expect.assertions(1);
@@ -28,31 +53,6 @@ describe('getGameByTitle()', () => {
         done();
     })
 
-    test('setTitleWorks', async done=>{
-        expect.assertions(1);
-
-        const game = await new Games();
-
-        const title = "Red";
-        const summary = "A simple summary";
-        const desc = "Lorem Ipsum and as such this is a game";
-
-        const newTitle = "title";
-
-        const newGame = await game.addNewGame(title, summary, desc);
-        let retreiveGame = await game.getGameByTitle(title);
-        
-        let re = retreiveGame.setTitle(newTitle);
-        
-        expect(retreiveGame).toMatchObject(
-            {
-                title: newTitle || '',
-            }
-        );
-
-        done();
-    })
-
     test('Error if game does not exist', async done =>{
         expect.assertions(1);
         const game = await new Games();
@@ -70,6 +70,145 @@ describe('getGameByTitle()', () => {
             .rejects.toEqual(Error("Must supply a valid title"));
 
 
+        done();
+    })
+
+})
+
+describe('getGameByTitle()_returnObject', () => {
+    test('setTitle() valid', async done=>{
+        expect.assertions(1);
+
+        const game = await new Games();
+
+        const title = "Red";
+        const summary = "A simple summary";
+        const desc = "Lorem Ipsum and as such this is a game";
+
+        const new_S = "A new title";
+
+        const newGame = await game.addNewGame(title, summary, desc);
+        let retreiveGame = await game.getGameByTitle(title);
+        
+        let re = retreiveGame.setTitle(new_S);
+        
+        expect(retreiveGame).toMatchObject(
+            {
+                title: new_S,
+            }
+        );
+
+        done();
+    })
+
+    test('setTitle() empty', async done=>{
+        expect.assertions(1);
+
+        const game = await new Games();
+
+        const title = "Red";
+        const summary = "A simple summary";
+        const desc = "Lorem Ipsum and as such this is a game";
+
+        const newGame = await game.addNewGame(title, summary, desc);
+        let retreiveGame = await game.getGameByTitle(title);
+        
+        try{
+            retreiveGame.setTitle("");
+        }catch(e){
+            expect(e.message).toBe("Must supply title");
+        }
+        done();
+    })
+    
+
+    test('setSummary() valid', async done=>{
+        expect.assertions(1);
+
+        const game = await new Games();
+
+        const title = "Red";
+        const summary = "A simple summary";
+        const desc = "Lorem Ipsum and as such this is a game";
+
+        const new_S = "A new summary";
+
+        const newGame = await game.addNewGame(title, summary, desc);
+        let retreiveGame = await game.getGameByTitle(title);
+        
+        let re = retreiveGame.setSummary(new_S);
+        
+        expect(retreiveGame).toMatchObject(
+            {
+                summary: new_S,
+            }
+        );
+
+        done();
+    })
+
+    test('setSummary() empty', async done=>{
+        expect.assertions(1);
+
+        const game = await new Games();
+
+        const title = "Red";
+        const summary = "A simple summary";
+        const desc = "Lorem Ipsum and as such this is a game";
+
+        const newGame = await game.addNewGame(title, summary, desc);
+        let retreiveGame = await game.getGameByTitle(title);
+        
+        try{
+            retreiveGame.setSummary("");
+        }catch(e){
+            expect(e.message).toBe("Must supply summary");
+        }
+        done();
+    })
+
+    test('setDesc() valid', async done=>{
+        expect.assertions(1);
+
+        const game = await new Games();
+
+        const title = "Red";
+        const summary = "A simple summary";
+        const desc = "Lorem Ipsum and as such this is a game";
+
+        const new_S = "A new description";
+
+        const newGame = await game.addNewGame(title, summary, desc);
+        let retreiveGame = await game.getGameByTitle(title);
+        
+        let re = retreiveGame.setDesc(new_S);
+        
+        expect(retreiveGame).toMatchObject(
+            {
+                desc: new_S,
+            }
+        );
+
+        done();
+    })
+
+    test('setDesc() empty', async done=>{
+        expect.assertions(1);
+
+        const game = await new Games();
+
+        const title = "Red";
+        const summary = "A simple summary";
+        const desc = "Lorem Ipsum and as such this is a game";
+
+        const newGame = await game.addNewGame(title, summary, desc);
+        let retreiveGame = await game.getGameByTitle(title);
+        
+        try{
+            retreiveGame.setDesc("");
+        }catch(e){
+            expect(e.message).toBe("Must supply description");
+        }
         done();
     })
 })
