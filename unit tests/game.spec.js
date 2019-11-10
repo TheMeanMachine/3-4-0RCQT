@@ -3,6 +3,77 @@
 
 const Games = require('../modules/game.js');
 
+
+describe('getGameByTitle()', () => {
+    test('Get valid game', async done =>{
+        expect.assertions(1);
+
+        const game = await new Games();
+        const titleToTest = "Red";
+        const summary = "A simple summary";
+        const desc = "Lorem Ipsum and as such this is a game";
+
+        const newGame = await game.addNewGame(titleToTest, summary, desc);
+        const retreiveGame = await game.getGameByTitle(titleToTest);
+
+        expect(retreiveGame).toMatchObject(
+            {
+                ID: 1,
+                title: titleToTest || '',
+                summary: summary || '',
+                desc: desc || ''
+            }
+        );
+
+        done();
+    })
+
+    test('setTitleWorks', async done=>{
+        expect.assertions(1);
+
+        const game = await new Games();
+
+        const title = "Red";
+        const summary = "A simple summary";
+        const desc = "Lorem Ipsum and as such this is a game";
+
+        const newTitle = "title";
+
+        const newGame = await game.addNewGame(title, summary, desc);
+        let retreiveGame = await game.getGameByTitle(title);
+        
+        let re = retreiveGame.setTitle(newTitle);
+        
+        expect(retreiveGame).toMatchObject(
+            {
+                title: newTitle || '',
+            }
+        );
+
+        done();
+    })
+
+    test('Error if game does not exist', async done =>{
+        expect.assertions(1);
+        const game = await new Games();
+        const title = "Red";
+        await expect(game.getGameByTitle(title))
+            .rejects.toEqual(Error('Game: "'+title+'" not found'));
+        done();
+    })
+    
+    test('Error if game is empty', async done =>{
+        expect.assertions(1);
+        const game = await new Games();
+
+        await expect(game.getGameByTitle(''))
+            .rejects.toEqual(Error("Must supply a valid title"));
+
+
+        done();
+    })
+})
+
 describe('addNewGame()', () => {
     test('add a valid game', async done => {
         expect.assertions(1);
