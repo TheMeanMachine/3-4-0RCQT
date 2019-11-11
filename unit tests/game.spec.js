@@ -291,6 +291,28 @@ describe('updateGameByID()', () => {
 
         done();
     })
+
+    test('Error if null ID', async done =>{
+        expect.assertions(1);
+
+        const game = await new Games();
+
+        await expect( game.updateGameByID(null,null))
+            .rejects.toEqual(Error('Must supply ID'));
+
+        done();
+    })
+
+    test('Error if NaN ID', async done =>{
+        expect.assertions(1);
+
+        const game = await new Games();
+        
+        await expect( game.updateGameByID("string",null))
+            .rejects.toEqual(Error('Must supply ID'));
+
+        done();
+    })
 })
 
 describe('getGameByTitle()', () => {
