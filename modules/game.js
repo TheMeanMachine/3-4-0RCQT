@@ -16,21 +16,22 @@ module.exports = class Game {
 		return (async() => {
             this.dbName = dbName || ':memory:';
 			this.db = await sqlite.open(this.dbName);
-			const sql = `
+            const sql = 
+            [`
 			CREATE TABLE IF NOT EXISTS game(
                 ID INTEGER PRIMARY KEY AUTOINCREMENT,
                 title TEXT,
                 summary TEXT,
                 desc TEXT
             );
-            
+            `,`
             CREATE TABLE IF NOT EXISTS gamePhoto(
                 ID INTEGER PRIMARY KEY AUTOINCREMENT,
                 gameID INTEGER,
                 picture TEXT,
                 FOREIGN KEY (gameID) REFERENCES game(ID)
             );
-    
+            `,`
             CREATE TABLE IF NOT EXISTS game_category(
                 ID INTEGER PRIMARY KEY AUTOINCREMENT,
                 gameID INTEGER,
@@ -38,7 +39,7 @@ module.exports = class Game {
                 FOREIGN KEY (gameID) REFERENCES game(ID),
                 FOREIGN KEY (categoryID) REFERENCES category(ID)
             );
-    
+            `,`
             CREATE TABLE IF NOT EXISTS game_publisher(
                 ID INTEGER PRIMARY KEY AUTOINCREMENT,
                 gameID INTEGER,
@@ -46,9 +47,12 @@ module.exports = class Game {
                 FOREIGN KEY (gameID) REFERENCES game(ID),
                 FOREIGN KEY (publisherID) REFERENCES publisher(ID)
             );
-            `
-
-			await this.db.run(sql);
+            `]
+            
+            for(let i = 0; i < sql.length; i++){
+                await this.db.run(sql[i]);
+            }
+			
 			return this;
 		})()
 		
@@ -160,7 +164,7 @@ module.exports = class Game {
 	}
 
 	async updateGameByID(id, data){
-        if(ID == null || isNaN(ID)){
+        if(id == null || isNaN(id)){
             throw new Error('Must supply ID');
         }
 
@@ -242,6 +246,25 @@ module.exports = class Game {
         if(records.count === 0){
             throw new Error(`ID doesn't exist`);
         }
+
+        sql = [`
+            DELETE FROM game_category
+            WHERE gameID = ${ID};
+            `,`
+            DELETE FROM gamePhoto
+            WHERE gameID = ${ID};
+            `,`
+            DELETE FROM game_publisher
+            WHERE gameID = ${ID};
+            `,`
+            DELETE FROM game
+            WHERE ID = ${ID}`
+        ];
+
+        for(let i = 0; i < sql.length; i++){
+            await this.db.run(sql[i]);
+        }
+
         return true;
     }
 
