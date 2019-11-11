@@ -54,7 +54,7 @@ describe('checkGameFields()', ()=>{
 
 describe('deleteGameByID()', ()=>{
     test('Delete valid game', async done =>{
-        expect.assertions(1);
+        expect.assertions(2);
 
         const game = await new Games();
 
@@ -67,6 +67,9 @@ describe('deleteGameByID()', ()=>{
 
         expect(deleteGame).toBe(true);
 
+        await expect(game.getGameByTitle("title"))
+            .rejects.toEqual(new Error('Game: "title" not found'));
+        
         done();
     })
 
