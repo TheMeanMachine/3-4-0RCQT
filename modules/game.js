@@ -22,7 +22,32 @@ module.exports = class Game {
                 title TEXT,
                 summary TEXT,
                 desc TEXT
-            );`;
+            );
+            
+            CREATE TABLE IF NOT EXISTS gamePhoto(
+                ID INTEGER PRIMARY KEY AUTOINCREMENT,
+                gameID INTEGER,
+                picture TEXT,
+                FOREIGN KEY (gameID) REFERENCES game(ID)
+            );
+    
+            CREATE TABLE IF NOT EXISTS game_category(
+                ID INTEGER PRIMARY KEY AUTOINCREMENT,
+                gameID INTEGER,
+                categoryID INTEGER,
+                FOREIGN KEY (gameID) REFERENCES game(ID),
+                FOREIGN KEY (categoryID) REFERENCES category(ID)
+            );
+    
+            CREATE TABLE IF NOT EXISTS game_publisher(
+                ID INTEGER PRIMARY KEY AUTOINCREMENT,
+                gameID INTEGER,
+                publisherID INTEGER,
+                FOREIGN KEY (gameID) REFERENCES game(ID),
+                FOREIGN KEY (publisherID) REFERENCES publisher(ID)
+            );
+            `
+
 			await this.db.run(sql);
 			return this;
 		})()
@@ -135,6 +160,10 @@ module.exports = class Game {
 	}
 
 	async updateGameByID(id, data){
+        if(ID == null || isNaN(ID)){
+            throw new Error('Must supply ID');
+        }
+
         let title = data.title || null;
         let desc = data.desc || null;
         let summary = data.summary || null;
@@ -142,7 +171,8 @@ module.exports = class Game {
         let count = Object.keys(data).length;
         let done = 0;
 
-    
+        
+        
         
         this.checkGameFields(title,summary,desc);
 
@@ -200,6 +230,19 @@ module.exports = class Game {
         }
         throw(new Error('Could not update field(s)'))
         
+    }
+
+    async deleteGameByID(ID){
+        if(ID == null || isNaN(ID)){
+            throw new Error('Must supply ID');
+        }
+
+        let sql = `SELECT count(ID) AS count FROM game WHERE ID = ${ID};`;
+        let records = await this.db.get(sql);
+        if(records.count === 0){
+            throw new Error(`ID doesn't exist`);
+        }
+        return true;
     }
 
 }
