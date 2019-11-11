@@ -3,6 +3,52 @@
 
 const Games = require('../modules/game.js');
 
+describe('checkGameFields()', ()=>{
+    test('Valid fields', async done => {
+        expect.assertions(1);
+        const game = await new Games();
+        let result = await game.checkGameFields('Red Jumper 4','Summary','Description');
+        expect(result).toBe(true);
+        done();
+    })
+
+    test('Error if empty _ title', async done =>{
+        expect.assertions(1);
+        const game = await new Games();
+        try{
+            await game.checkGameFields('');
+        }catch(e){
+            expect(e).toEqual(new Error('Must supply title'));
+        }
+        
+        done();
+    })
+
+    test('Error if empty _ summary', async done =>{
+        expect.assertions(1);
+        const game = await new Games();
+        try{
+            await game.checkGameFields('Red','');
+        }catch(e){
+            expect(e).toEqual(new Error('Must supply summary'));
+        }
+        
+        done();
+    })
+
+    test('Error if empty _ desc', async done =>{
+        expect.assertions(1);
+        const game = await new Games();
+        try{
+            await game.checkGameFields('Red','Summary', '');
+        }catch(e){
+            expect(e).toEqual(new Error('Must supply description'));
+        }
+        
+        done();
+    })
+
+})
 
 describe('updateGameByID()', () => {
     test('Update valid game _ title', async done =>{
