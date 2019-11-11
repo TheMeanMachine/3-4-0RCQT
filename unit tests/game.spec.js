@@ -70,14 +70,35 @@ describe('deleteGameByID()', ()=>{
         done();
     })
 
-    test('Delete invalid ID', async done =>{
+    test('Invalid nonexistant ID', async done =>{
         expect.assertions(1);
 
         const game = await new Games();
 
-        const deleteGame = await game.deleteGameByID(0);
+        await expect(game.deleteGameByID(0))
+            .rejects.toEqual(new Error("ID doesn't exist"));
 
-        expect(deleteGame).rejects.toEqual(new Error("ID doesn't exist"));
+        done();
+    })
+    
+    test('Invalid string ID', async done =>{
+        expect.assertions(1);
+
+        const game = await new Games();
+
+        await expect(game.deleteGameByID("string"))
+            .rejects.toEqual(new Error("Must supply ID"));
+
+        done();
+    })
+
+    test('Invalid null ID', async done =>{
+        expect.assertions(1);
+
+        const game = await new Games();
+
+        await expect(game.deleteGameByID(null))
+            .rejects.toEqual(new Error("Must supply ID"));
 
         done();
     })
