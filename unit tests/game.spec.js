@@ -3,6 +3,8 @@
 
 const Games = require('../modules/game.js');
 
+
+
 describe('checkGameFields()', ()=>{
     test('Valid fields', async done => {
         expect.assertions(1);
@@ -48,6 +50,37 @@ describe('checkGameFields()', ()=>{
         done();
     })
 
+})
+
+describe('deleteGameByID()', ()=>{
+    test('Delete valid game', async done =>{
+        expect.assertions(1);
+
+        const game = await new Games();
+
+        const newGame = await game.addNewGame(
+            "title",
+            "summary",
+            "desc");
+        const retreiveGame = await game.getGameByTitle("title");
+        const deleteGame = await game.deleteGameByID(retreiveGame.ID);
+
+        expect(deleteGame).toBe(true);
+
+        done();
+    })
+
+    test('Delete invalid ID', async done =>{
+        expect.assertions(1);
+
+        const game = await new Games();
+
+        const deleteGame = await game.deleteGameByID(0);
+
+        expect(deleteGame).rejects.toEqual(new Error("ID doesn't exist"));
+
+        done();
+    })
 })
 
 describe('updateGameByID()', () => {
