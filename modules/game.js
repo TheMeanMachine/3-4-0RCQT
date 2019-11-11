@@ -135,6 +135,70 @@ module.exports = class Game {
 	}
 
 	async updateGameByID(id, data){
+        let title = data.title || null;
+        let desc = data.desc || null;
+        let summary = data.summary || null;
+        
+        let count = Object.keys(data).length;
+        let done = 0;
+
+    
+        
+        this.checkGameFields(title,summary,desc);
+
+        
+
+        if(title != null){
+            let sql = `SELECT count(ID) AS count FROM game WHERE title = "${title}";`;
+            let records = await this.db.get(sql);
+            if(records.count != 0){
+                throw new Error(`Game: "${title}" already exists`);
+            }
+
+            sql = `
+            UPDATE game
+            SET title = "${title}"
+            WHERE ID = ${id};
+            `;
+
+            
+            let result = await this.db.get(sql);
+            done++;
+            
+        }
+
+        if(summary != null){
+            let sql = `
+            UPDATE game
+            SET summary = "${summary}"
+            WHERE ID = ${id};
+            `;
+
+        
+            let result = await this.db.get(sql);
+            done++;
+            
+            
+            
+        }
+        
+        if(desc != null){
+            let sql = `
+            UPDATE game
+            SET desc = "${desc}"
+            WHERE ID = ${id};
+            `;
+
+            
+            let result = await this.db.get(sql);
+            done++;
+            
+        }
+
+        if(done === count){
+            return true;
+        }
+        throw(new Error('Could not update field(s)'))
         
     }
 
