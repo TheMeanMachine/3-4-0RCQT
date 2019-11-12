@@ -3,18 +3,44 @@ const sqlite = require('sqlite-async');
 const Reviews = require('../modules/review.js');
 const Games = require('../modules/game.js');
 
+
+describe('getReviewsByGameID()', ()=>{
+    test('Valid game', async done =>{
+        expect.assertions(1);
+
+        const review = await new Reviews();
+        const game = await review.games;
+
+        await game.addNewGame("title", "summary", "desc");
+        const retreiveGame = await game.getGameByTitle("title");
+        await review.addReview(retreiveGame.ID, 
+            {
+            fullText: "fulltext",
+            rating: 3
+            });
+
+
+
+        expect(result).toBe(true);
+
+        done();
+    })
+})
+
 describe('addReview()', ()=>{
     test('Valid review', async done =>{
         expect.assertions(1);
 
-        
-        const review = await new Reviews(null, db);
-        const game = await new Games(null, db);
+        const review = await new Reviews();
+        const game = await review.games;
 
         await game.addNewGame("title", "summary", "desc");
         const retreiveGame = await game.getGameByTitle("title");
-        const result = await review.addReview(retreiveGame.ID, "Full text", 4);
-
+        const result = await review.addReview(retreiveGame.ID, 
+            {
+            fullText: "fulltext",
+            rating: 3
+            });
         expect(result).toBe(true);
 
         done();
@@ -23,11 +49,15 @@ describe('addReview()', ()=>{
     test('Error if: Invalid review _ fullText empty', async done =>{
         expect.assertions(1);
 
-        const game = await new Games();
         const review = await new Reviews();
+        const game = await review.games;
         await game.addNewGame("title", "summary", "desc");
         const retreiveGame = await game.getGameByTitle("title");
-        await expect(review.addReview(retreiveGame.ID, "", 4))
+        await expect(review.addReview(retreiveGame.ID, 
+            {
+            fullText: "",
+            rating: 3
+            }))
             .rejects.toEqual(Error('Must supply fulltext'));
         
         done();
@@ -36,11 +66,16 @@ describe('addReview()', ()=>{
     test('Error if: Invalid review _ rating too high', async done =>{
         expect.assertions(1);
 
-        const game = await new Games();
+        
         const review = await new Reviews();
+        const game = await review.games;
         await game.addNewGame("title", "summary", "desc");
         const retreiveGame = await game.getGameByTitle("title");
-        await expect(review.addReview(retreiveGame.ID, "Full text", 6))
+        await expect(review.addReview(retreiveGame.ID, 
+            {
+            fullText: "fulltext",
+            rating: 6
+            }))
             .rejects.toEqual(Error('Rating must be 1-5'));
         
         done();
@@ -49,11 +84,15 @@ describe('addReview()', ()=>{
     test('Error if: Invalid review _ rating too low', async done =>{
         expect.assertions(1);
 
-        const game = await new Games();
         const review = await new Reviews();
+        const game = await review.games;
         await game.addNewGame("title", "summary", "desc");
         const retreiveGame = await game.getGameByTitle("title");
-        await expect(review.addReview(retreiveGame.ID, "Full text", 0))
+        await expect(review.addReview(retreiveGame.ID, 
+            {
+            fullText: "fulltext",
+            rating: 0
+            }))
             .rejects.toEqual(Error('Rating must be 1-5'));
         
         done();
@@ -62,19 +101,27 @@ describe('addReview()', ()=>{
     test('Error if: Invalid review _ game does not exist', async done =>{
         expect.assertions(1);
        
-        const review = await new Reviews(null);
-        const game = await new Games(null);
-        await expect(review.addReview(0, "Full text", 3))
-            .rejects.toEqual(Error('Game does not exist'));
+        const review = await new Reviews();
+        const game = await review.games;
+        await expect(review.addReview(0, 
+            {
+            fullText: "fulltext",
+            rating: 3
+            }))
+            .rejects.toEqual(Error('Game not found'));
         
         done();
     })
 
-    test('Error if: Invalid review _ Review is NaN', async done =>{
+    test('Error if: Invalid review _ Rating is NaN', async done =>{
         expect.assertions(1);
-        const game = await new Games();
         const review = await new Reviews();
-        await expect(review.addReview(0, "Full text", "string"))
+        const game = await review.games;
+        await expect(review.addReview(0, 
+            {
+            fullText: "fulltext",
+            rating: "string"
+            }))
             .rejects.toEqual(Error('Must supply rating'));
         
         done();
@@ -82,9 +129,12 @@ describe('addReview()', ()=>{
 
     test('Error if: Invalid review _ ID is NaN', async done =>{
         expect.assertions(1);
-        const game = await new Games();
         const review = await new Reviews();
-        await expect(review.addReview("string", "Full text", 3))
+        await expect(review.addReview("string", 
+            {
+            fullText: "fulltext",
+            rating: 3
+            }))
             .rejects.toEqual(Error('Must supply gameID'));
         
         done();
@@ -94,10 +144,17 @@ describe('addReview()', ()=>{
         expect.assertions(1);
         const game = await new Games();
         const review = await new Reviews();
-        await expect(review.addReview(null, "Full text", 3))
+        await expect(review.addReview(null, 
+            {
+            fullText: "fulltext",
+            rating: 3
+            }))
             .rejects.toEqual(Error('Must supply gameID'));
         
         done();
     })
 
+
+
 })
+
