@@ -107,6 +107,63 @@ module.exports = class Game {
         return true;
     }
 
+    async getGameByID(ID) {
+		try {
+            if(ID == null || isNaN(ID)){
+                throw new Error('Must supply ID');
+            }
+			let sql = `SELECT count(ID) AS count FROM game WHERE ID = ${ID};`
+            let records = await this.db.get(sql)
+			if(records.count == 0){
+                throw new Error(`Game not found`);
+            }
+
+            sql = `SELECT * FROM game WHERE ID = ${ID};`;
+
+            records = await this.db.get(sql);
+            
+            let data = {
+                ID: ID,
+                title: records.title,
+                summary: records.summary,
+                desc: records.desc,
+                game: this,
+                setTitle (string){
+                    try{
+                        this.game.checkGameFields(string);
+                        this.title = string;
+                    }catch(e){
+                        throw e;
+                    }
+                },
+                setSummary (string){
+                    try{
+                        this.game.checkGameFields(null, string);
+                        this.summary = string;
+                    }catch(e){
+                        throw e;
+                    }
+                    
+                },
+                setDesc (string){
+                    try{
+                        this.game.checkGameFields(null, null, string);
+                        this.desc = string;
+                    }catch(e){
+                        throw e;
+                    }
+                    
+                    
+                }
+            }
+            
+			return data;
+		} catch(err) {
+			throw err
+		}
+	}
+
+
 	async getGameByTitle(title) {
 		try {
             if(!this.validator.check_MultipleWordsOnlyAlphaNumberic(title)){
