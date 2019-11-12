@@ -17,6 +17,7 @@ const session = require('koa-session')
 /* IMPORT CUSTOM MODULES */
 const User = require('./modules/user')
 const adminDB = require('./modules/adminDB')
+const Review = require('./modules/review');
 
 const app = new Koa()
 const router = new Router()
@@ -43,7 +44,7 @@ router.get('/', async ctx => {
 	try {
 		const admin_db = await new adminDB(dbName);
 		await admin_db.createTables();
-	
+		
 		
 		if(ctx.session.authorised !== true){
 			return ctx.redirect('/login?msg=you need to log in')
