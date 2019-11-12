@@ -18,13 +18,65 @@ describe('getReviewsByGameID()', ()=>{
             fullText: "fulltext",
             rating: 3
             });
+        
+        const result = await review.getReviewsByGameID(retreiveGame.ID);
 
 
-
-        expect(result).toBe(true);
+        expect(result[0]).toMatchObject(
+            {
+                fullText: "fulltext",
+                rating: 3
+            }
+        );
 
         done();
     })
+
+    test('Error if game does not exist', async done =>{
+        expect.assertions(1);
+
+        const review = await new Reviews();
+        const game = await review.games;
+
+        await expect(review.getReviewsByGameID(0, 
+            {
+            fullText: "fulltext",
+            rating: 3
+            })).rejects.toEqual(Error('Game not found'));
+        
+        done();
+    })
+
+    test('Error if gameID is NaN', async done =>{
+        expect.assertions(1);
+
+        const review = await new Reviews();
+            
+        await expect(review.getReviewsByGameID("string", 
+            {
+            fullText: "fulltext",
+            rating: 3
+            })).rejects.toEqual(Error('Must supply gameID'));
+        
+        done();
+    })
+
+    
+
+    test('Error if gameID is null', async done =>{
+        expect.assertions(1);
+        const review = await new Reviews();
+            
+        await expect(review.getReviewsByGameID(null, 
+            {
+            fullText: "fulltext",
+            rating: 3
+            })).rejects.toEqual(Error('Must supply gameID'));
+        
+        done();
+    })
+
+
 })
 
 describe('addReview()', ()=>{
