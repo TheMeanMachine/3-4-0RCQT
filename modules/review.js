@@ -14,7 +14,7 @@ module.exports = class Review {
             
             this.dbName = dbName || ':memory:';
             this.db = await sqlite.open(this.dbName);
-            
+            this.games = await new Games();
             const sql = 
             [`
             CREATE TABLE IF NOT EXISTS reviewScreenshot(
@@ -64,26 +64,33 @@ module.exports = class Review {
                 throw new Error('Rating must be 1-5');
             } 
         }
-    }
 
-    async addReview(gameID, fullText, rating){
+        return true;
+    }
+    
+
+    async addReview(gameID, data){
+        let fullText = data.fullText || '';
+        let rating = data.rating;
         try{
             if(gameID == null || isNaN(gameID)){
                 throw new Error('Must supply gameID');
             }
             
-            this.checkReviewFields(fullText, rating);
+            if(this.checkReviewFields(fullText, rating)){//Check input is sensible
+                console.log(rating);
+                await this.games.getGameByID(gameID);//Checks if game exists
+            };
             
-
-            let sql = `SELECT COUNT(ID) as records FROM game WHERE ID=${gameID};`;
-            const data = await this.db.get(sql);
-            if(data.records === 0){
-                throw new Error(`Game does not exist`);
-            }
+            
+            
+            
         }catch(e){
             throw e;
         }
 
         return true;
     }
+
+    
 }
