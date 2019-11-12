@@ -34,7 +34,7 @@ module.exports = class User {
 		try {
 			if(user.length === 0) throw new Error('missing username')
 			if(pass.length === 0) throw new Error('missing password')
-			let sql = `SELECT COUNT(id) as records FROM user WHERE username="${user}";`
+			let sql = `SELECT COUNT(ID) as records FROM user WHERE username="${user}";`
 			const data = await this.db.get(sql)
 			if(data.records !== 0) throw new Error(`username "${user}" already in use`)
 			pass = await bcrypt.hash(pass, saltRounds)
@@ -55,7 +55,7 @@ module.exports = class User {
 
 	async login(username, password) {
 		try {
-			let sql = `SELECT count(id) AS count FROM user WHERE username="${username}";`
+			let sql = `SELECT count(ID) AS count FROM user WHERE username="${username}";`
 			const records = await this.db.get(sql)
 			if(!records.count) throw new Error(`username "${username}" not found`)
 			sql = `SELECT pass FROM user WHERE username = "${username}";`
