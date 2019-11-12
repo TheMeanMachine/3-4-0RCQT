@@ -16,6 +16,7 @@ const session = require('koa-session')
 
 /* IMPORT CUSTOM MODULES */
 const User = require('./modules/user')
+const adminDB = require('./modules/adminDB')
 
 const app = new Koa()
 const router = new Router()
@@ -29,7 +30,7 @@ app.use(views(`${__dirname}/views`, { extension: 'handlebars' }, {map: { handleb
 
 const defaultPort = 8080
 const port = process.env.PORT || defaultPort
-const dbName = 'website.db'
+const dbName = 'gameReview.db';
 
 /**
  * The secure home page.
@@ -40,9 +41,17 @@ const dbName = 'website.db'
  */
 router.get('/', async ctx => {
 	try {
-		if(ctx.session.authorised !== true) return ctx.redirect('/login?msg=you need to log in')
+		const admin_db = await new adminDB(dbName);
+		await admin_db.createTables();
+	
+		
+		if(ctx.session.authorised !== true){
+			return ctx.redirect('/login?msg=you need to log in')
+		}
 		const data = {}
-		if(ctx.query.msg) data.msg = ctx.query.msg
+		if(ctx.query.msg){
+			data.msg = ctx.query.msg
+		} 
 		await ctx.render('index')
 	} catch(err) {
 		await ctx.render('error', {message: err.message})
@@ -81,8 +90,12 @@ router.post('/register', koaBody, async ctx => {
 
 router.get('/login', async ctx => {
 	const data = {}
-	if(ctx.query.msg) data.msg = ctx.query.msg
-	if(ctx.query.user) data.user = ctx.query.user
+	if(ctx.query.msg){
+		data.msg = ctx.query.msg
+	} 
+	if(ctx.query.user){
+		data.user = ctx.query.user
+	} 
 	await ctx.render('login', data)
 })
 
