@@ -28,9 +28,9 @@ module.exports = class Review {
                 ID INTEGER PRIMARY KEY AUTOINCREMENT,
                 gameID INTEGER,
                 userID INTEGER,
-                fullText,
-                rating,
-                flag,
+                fullText TEXT,
+                rating INTEGER,
+                flag INTEGER,
                 FOREIGN KEY (gameID) REFERENCES game(ID),
                 FOREIGN KEY (userID) REFERENCES user(ID)
             );`]
@@ -69,27 +69,70 @@ module.exports = class Review {
     }
     
 
-    async addReview(gameID, data){
-        let fullText = data.fullText || '';
-        let rating = data.rating;
+    async addReview(gameID, data, userID){
+        const fullText = data.fullText || '';
+        const rating = data.rating;
         try{
+            
             if(gameID == null || isNaN(gameID)){
                 throw new Error('Must supply gameID');
             }
             
             if(this.checkReviewFields(fullText, rating)){//Check input is sensible
-                console.log(rating);
+                
                 await this.games.getGameByID(gameID);//Checks if game exists
-            };
+            }
             
+            const sql = `
+            INSERT INTO review (
+                gameID,
+                userID,
+                fullText,
+                rating,
+                flag) VALUES (
+                    ${gameID},
+                    1,
+                    "${fullText}",
+                    ${rating},
+                    0
+                );`;
+
+            let data = await this.db.run(sql);
             
-            
+            return data.lastID;
             
         }catch(e){
             throw e;
         }
 
-        return true;
+        
+    }
+
+    async getReviewsByGameID(gameID){
+        try{
+            if(gameID == null || isNaN(gameID)){
+                throw new Error('Must supply gameID');
+            }
+        
+            await this.games.getGameByID(gameID);//Checks if game exists
+            
+            const sql = `
+            SELECT * FROM review
+            WHERE gameID = ${gameID}`;
+
+            let data = await this.db.all(sql);
+
+            let result = {reviews:[]};
+            for(let i = 0; i < Object.keys(data).length; i++){
+                result.reviews.push(data[i]);
+            }
+            console.log(result);
+            return result;
+        }catch(e){
+            throw e;
+        }
+
+        
     }
 
     
