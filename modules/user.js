@@ -7,10 +7,13 @@ const mime = require('mime-types')
 const sqlite = require('sqlite-async')
 const saltRounds = 10
 
+//Custom modules
+const valid = require('./validator');
+
 module.exports = class User {
 
 	constructor(dbName) {
-
+		this.validator = new valid();
 		return (async() => {
 			this.dbName = dbName || ':memory:';
 			this.db = await sqlite.open(this.dbName);
@@ -30,10 +33,31 @@ module.exports = class User {
 		
 	}
 
+	checkUserFields(user, pass){
+        if(user != null){
+            let checkUser = this.validator.check_MultipleWordsOnlyAlphaNumberic(user);
+            if(!checkUser){
+                throw new Error('Must supply user');
+            }
+        }
+        if(pass != null){
+            let checkUser = this.validator.check_MultipleWordsOnlyAlphaNumberic(pass);
+            if(!checkUser){
+                throw new Error('Must supply pass');
+            }
+        }
+        
+        return true;
+    }
+
 	async register(user, pass) {
 		try {
-			if(user.length === 0) throw new Error('missing username')
-			if(pass.length === 0) throw new Error('missing password')
+			try{
+				this.checkUserFields(user, pass);
+			}catch(e){
+				throw e;
+			}
+			
 			let sql = `SELECT COUNT(ID) as records FROM user WHERE username="${user}";`
 			const data = await this.db.get(sql)
 			if(data.records !== 0) throw new Error(`username "${user}" already in use`)
