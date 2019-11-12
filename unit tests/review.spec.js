@@ -17,16 +17,34 @@ describe('getReviewsByGameID()', ()=>{
             {
             fullText: "fulltext",
             rating: 3
-            });
+            }
+        );
+
+        await review.addReview(retreiveGame.ID, 
+            {
+            fullText: "fulltext2",
+            rating: 3
+            }
+        );
         
         const result = await review.getReviewsByGameID(retreiveGame.ID);
 
 
-        expect(result[0]).toMatchObject(
-            {
-                fullText: "fulltext",
-                rating: 3
-            }
+        expect(result).toMatchObject(
+            { reviews:
+                [ { ID: 1,
+                    gameID: 1,
+                    userID: 1,
+                    fullText: 'fulltext',
+                    rating: 3,
+                    flag: 0 },
+                  { ID: 2,
+                    gameID: 1,
+                    userID: 1,
+                    fullText: 'fulltext2',
+                    rating: 3,
+                    flag: 0 } ] }
+       
         );
 
         done();
@@ -81,7 +99,7 @@ describe('getReviewsByGameID()', ()=>{
 
 describe('addReview()', ()=>{
     test('Valid review', async done =>{
-        expect.assertions(1);
+        expect.assertions(2);
 
         const review = await new Reviews();
         const game = await review.games;
@@ -93,7 +111,17 @@ describe('addReview()', ()=>{
             fullText: "fulltext",
             rating: 3
             });
-        expect(result).toBe(true);
+        expect(result).toBe(1);
+        const getReview = await review.getReviewsByGameID(retreiveGame.ID);
+
+        expect(getReview.reviews[0]).toEqual({
+            ID: result,
+            gameID: retreiveGame.ID,
+            userID: 1,
+            fullText: "fulltext",
+            rating: 3,
+            flag: 0
+        })
 
         done();
     })
