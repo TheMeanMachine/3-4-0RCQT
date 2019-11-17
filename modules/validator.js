@@ -15,7 +15,5 @@ module.exports = class Validator {
         return regex.test(string);
     }
 
-    check_FirstName(string){
-        let regex = `/^[A-Za-z0-9 ,.'-]+$/i`
-    }
+
 }
