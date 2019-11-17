@@ -4,7 +4,7 @@ const Reviews = require('../modules/review.js');
 const Games = require('../modules/game.js');
 
 
-describe('updateReview()', () => {
+describe('updateReview()', ()=>{
     test('Valid review update', async done => {
         expect.assertions(1);
 
@@ -19,14 +19,14 @@ describe('updateReview()', () => {
             rating: 3
             }
         );
-
-        const result = await updateReview(1, 
+        
+        const result = await review.updateReview(1, 
             {
-                fullText: "THis is changed fulltext",
+                fullText: "This is changed fulltext",
                 rating: 4
             });
-
-        result.toBe(true);
+            console.log("updateReview: End: " + result);
+        expect(result).toBe(true);
 
         done();
     })
@@ -46,12 +46,12 @@ describe('updateReview()', () => {
             }
         );
 
-        const result = await updateReview(1, 
+        const result = await review.updateReview(1, 
             {
-                fullText: "THis is changed fulltext"
+                fullText: "This is changed fulltext"
             });
 
-        result.toBe(true);
+        expect(result).toBe(true);
 
         done();
     })
@@ -71,12 +71,12 @@ describe('updateReview()', () => {
             }
         );
 
-        const result = await updateReview(1, 
+        const result = await review.updateReview(1, 
             {
                 rating: 4
             });
 
-        result.toBe(true);
+        expect(result).toBe(true);
 
         done();
     })
@@ -96,7 +96,7 @@ describe('updateReview()', () => {
             }
         );
 
-        await expect(result = updateReview(1, 
+        await expect(review.updateReview(1, 
             {
                 rating: 4
             })).rejects.toEqual(Error('Review not found'));
@@ -110,7 +110,7 @@ describe('updateReview()', () => {
 
         const review = await new Reviews();
 
-        await expect(result = updateReview(null, 
+        await expect(review.updateReview(null, 
             {
                 rating: 4
             })).rejects.toEqual(Error('Must supply reviewID'));
@@ -124,7 +124,7 @@ describe('updateReview()', () => {
 
         const review = await new Reviews(); 
 
-        await expect(result = updateReview("not a number", 
+        await expect(review.updateReview("not a number", 
             {
                 rating: 4
             })).rejects.toEqual(Error('Must supply reviewID'));
@@ -133,16 +133,15 @@ describe('updateReview()', () => {
         done();
     })
 
-    test('Error if all data is null', async done => {
+    test('Error if all data is null', async done =>{
         expect.assertions(1);
 
         const review = await new Reviews();
-        await expect(result = updateReview(1)).rejects.toEqual(Error('Must supply reviewID'));
+        await expect(review.updateReview(1))
+            .rejects.toEqual(Error('Must supply reviewID'));
 
         done();
     })
-
-    
 })
 
 describe('getReviewsByGameID()', ()=>{
