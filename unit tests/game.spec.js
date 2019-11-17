@@ -52,6 +52,40 @@ describe('checkGameFields()', ()=>{
 
 })
 
+describe('associateToPublisher()', ()=>{
+    test('Valid publisher and game', async done =>{
+        expect.assertions(1);
+
+        const game = await new Games();
+        const publisher = game.publisher;
+
+        const newGame = await game.addNewGame(
+            "title",
+            "summary",
+            "desc");
+        const retreiveGame = await game.getGameByTitle("title");
+
+        const publisherID = await publisher.addPublisher("Rockstar Games");
+
+        expect(game.assocateToPublisher(retreiveGame.ID, publisherID))
+            .toBe(true);
+        
+        expect(game.getPublishers(retreiveGame.ID)).toMatchObject(
+            {
+                publishers:[
+                    {
+                        ID: 1,
+                        name: "Rockstar Games"
+                    }
+                ]
+            }
+        )
+
+        done();
+    })
+
+})
+
 describe('deleteGameByID()', ()=>{
     test('Delete valid game', async done =>{
         expect.assertions(2);
