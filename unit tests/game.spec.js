@@ -3,6 +3,45 @@
 
 const Games = require('../modules/game.js');
 
+const mock = require('mock-fs');
+const fs = require('fs');
+const mime = require('mime-types')
+describe('uploadPicture()', ()=>{
+    beforeEach(function() {
+        console.log("");
+        mock({
+            public: {
+                game:{
+
+                }
+                
+            },
+            'user/images/pictureUpload.png':  Buffer.from([8, 6, 7, 5, 3, 0, 9])
+        });
+    });
+    
+    afterEach(mock.restore);
+    
+    test('Valid game', async done => {
+        expect.assertions(1);
+
+        const game = await new Games();
+
+        const path = 'user/images/pictureUpload.png';
+        const type = ".png";
+
+        const gameID = 1;
+        
+        await game.uploadPicture(path,type,gameID);
+        const extension = await mime.extension(type);
+
+        expect( await fs.existsSync(`public/game/image.${extension}`)).toBe(true);
+        
+        
+
+        done();
+    })
+})
 
 
 describe('checkGameFields()', ()=>{
@@ -253,6 +292,8 @@ describe('getPublishers()', ()=>{
         done();
     })
 })
+
+
 
 describe('deleteGameByID()', ()=>{
     test('Delete valid game', async done =>{
