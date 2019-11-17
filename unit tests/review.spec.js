@@ -6,7 +6,7 @@ const Games = require('../modules/game.js');
 
 describe('updateReview()', ()=>{
     test('Valid review update', async done => {
-        expect.assertions(1);
+        expect.assertions(2);
 
         const review = await new Reviews();
         const game = await review.games;
@@ -19,20 +19,26 @@ describe('updateReview()', ()=>{
             rating: 3
             }
         );
-        
-        const result = await review.updateReview(1, 
-            {
-                fullText: "This is changed fulltext",
-                rating: 4
-            });
+        const changed = {
+            fullText: "This is changed fulltext",
+            rating: 4
+        };
+        const result = await review.updateReview(1, changed);
             console.log("updateReview: End: " + result);
         expect(result).toBe(true);
+
+        expect(await review.getReviewsByGameID(retreiveGame.ID)).toMatchObject(
+            { reviews:
+                [changed] }
+       
+        );
+;
 
         done();
     })
 
     test('Valid review only fulltext', async done => {
-        expect.assertions(1);
+        expect.assertions(2);
 
         const review = await new Reviews();
         const game = await review.games;
@@ -45,19 +51,24 @@ describe('updateReview()', ()=>{
             rating: 3
             }
         );
-
-        const result = await review.updateReview(1, 
-            {
-                fullText: "This is changed fulltext"
-            });
+        const changed = {
+            fullText: "This is changed fulltext"
+        };
+        const result = await review.updateReview(1, changed);
 
         expect(result).toBe(true);
+        
+        expect(await review.getReviewsByGameID(retreiveGame.ID)).toMatchObject(
+            { reviews:
+                [changed] }
+       
+        );
 
         done();
     })
 
     test('Valid review only rating', async done => {
-        expect.assertions(1);
+        expect.assertions(2);
 
         const review = await new Reviews();
         const game = await review.games;
@@ -70,13 +81,19 @@ describe('updateReview()', ()=>{
             rating: 3
             }
         );
-
-        const result = await review.updateReview(1, 
-            {
-                rating: 4
-            });
+        const changed = {
+            rating: 4
+        };
+        const result = await review.updateReview(1, changed
+            );
 
         expect(result).toBe(true);
+
+        expect(await review.getReviewsByGameID(retreiveGame.ID)).toMatchObject(
+            { reviews:
+                [changed] }
+       
+        );
 
         done();
     })
@@ -96,7 +113,7 @@ describe('updateReview()', ()=>{
             }
         );
 
-        await expect(review.updateReview(1, 
+        await expect(review.updateReview(3, 
             {
                 rating: 4
             })).rejects.toEqual(Error('Review not found'));
@@ -129,16 +146,6 @@ describe('updateReview()', ()=>{
                 rating: 4
             })).rejects.toEqual(Error('Must supply reviewID'));
 
-
-        done();
-    })
-
-    test('Error if all data is null', async done =>{
-        expect.assertions(1);
-
-        const review = await new Reviews();
-        await expect(review.updateReview(1))
-            .rejects.toEqual(Error('Must supply reviewID'));
 
         done();
     })
