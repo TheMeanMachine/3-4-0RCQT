@@ -168,8 +168,27 @@ describe('associateToPublisher()', ()=>{
 
         const publisherID = await publisher.addPublisher("Rockstar Games");
 
-        await expect(game.associateToPublisher(retreiveGame.ID, publisherID))
+        await expect(game.associateToPublisher(retreiveGame.ID, 3))
             .rejects.toEqual(Error('Publisher not found'));
+        done();
+    })
+
+    test('Error if game does not exist', async done =>{
+        expect.assertions(1);
+
+        const game = await new Games();
+        const publisher = await game.publisher;
+
+        const newGame = await game.addNewGame(
+            "title",
+            "summary",
+            "desc");
+        const retreiveGame = await game.getGameByTitle("title");
+
+        const publisherID = await publisher.addPublisher("Rockstar Games");
+
+        await expect(game.associateToPublisher(4, publisherID))
+            .rejects.toEqual(Error('Game not found'));
         done();
     })
 })
