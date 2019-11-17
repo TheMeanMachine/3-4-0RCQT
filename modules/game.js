@@ -16,7 +16,7 @@ module.exports = class Game {
 
 		return (async() => {
             this.dbName = dbName || ':memory:';
-            this.publisher = new Publishers(this.dbName);
+            this.publisher = await new Publishers(this.dbName);
             this.db = await sqlite.open(this.dbName);
             
             const sql = 
