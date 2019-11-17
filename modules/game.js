@@ -90,6 +90,7 @@ module.exports = class Game {
             if(gameID === null || isNaN(gameID)){
                 throw new Error('Must supply gameID');
             }
+            await this.getGameByID(gameID);//Make sure game exists
 
             const sql = `SELECT * FROM game_publisher 
             WHERE gameID = ${gameID};`;
