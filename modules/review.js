@@ -65,8 +65,67 @@ module.exports = class Review {
             } 
         }
 
+        if(rating == null && fullText == null){
+            throw new Error('All fields are null');
+        }
+
         return true;
     }
+
+
+
+    async updateReview(reviewID, data){
+        
+        const fullText = data.fullText;
+        const rating = data.rating;
+        try{
+  
+            if(reviewID == null || isNaN(reviewID)){//Check reviewID has been given and is correct
+
+                throw new Error('Must supply reviewID');
+            }
+
+            let sql = `SELECT COUNT(id) as records FROM review WHERE ID="${reviewID}";`;
+			const data = await this.db.get(sql);
+			if(data.records === 0){
+                throw new Error(`Review not found`);
+            }
+
+            this.checkReviewFields(fullText, rating)//Check input is sensible
+
+
+            if(fullText != null){//If fulltext exists
+
+                let sql = `
+                UPDATE review 
+                SET fullText = "${fullText}"
+                WHERE ID = ${reviewID};
+                `;
+    
+                await this.db.run(sql);
+            }
+            
+            if(rating != null){//if rating exists
+
+                let sql = `
+                UPDATE review 
+                SET rating = "${rating}"
+                WHERE ID = ${reviewID};
+                `;
+    
+                await this.db.run(sql);
+            }
+
+            return true;
+            
+        }catch(e){
+            
+            throw e;
+            
+        }
+        
+    }
+
     
 
     async addReview(gameID, data, userID){
@@ -78,10 +137,10 @@ module.exports = class Review {
                 throw new Error('Must supply gameID');
             }
             
-            if(this.checkReviewFields(fullText, rating)){//Check input is sensible
+            this.checkReviewFields(fullText, rating)//Check input is sensible
                 
-                await this.games.getGameByID(gameID);//Checks if game exists
-            }
+            await this.games.getGameByID(gameID);//Checks if game exists
+            
             
             const sql = `
             INSERT INTO review (
@@ -104,8 +163,6 @@ module.exports = class Review {
         }catch(e){
             throw e;
         }
-
-        
     }
 
     async getReviewsByGameID(gameID){
@@ -126,14 +183,13 @@ module.exports = class Review {
             for(let i = 0; i < Object.keys(data).length; i++){
                 result.reviews.push(data[i]);
             }
-            console.log(result);
             return result;
         }catch(e){
             throw e;
-        }
-
-        
+        } 
     }
+
+    
 
     
 }
