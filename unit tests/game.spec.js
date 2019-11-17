@@ -54,10 +54,10 @@ describe('checkGameFields()', ()=>{
 
 describe('associateToPublisher()', ()=>{
     test('Valid publisher and game', async done =>{
-        expect.assertions(1);
+        expect.assertions(2);
 
         const game = await new Games();
-        const publisher = game.publisher;
+        const publisher = await game.publisher;
 
         const newGame = await game.addNewGame(
             "title",
@@ -67,10 +67,10 @@ describe('associateToPublisher()', ()=>{
 
         const publisherID = await publisher.addPublisher("Rockstar Games");
 
-        expect(game.assocateToPublisher(retreiveGame.ID, publisherID))
+        expect(await game.assocateToPublisher(retreiveGame.ID, publisherID))
             .toBe(true);
         
-        expect(game.getPublishers(retreiveGame.ID)).toMatchObject(
+        expect(await game.getPublishers(retreiveGame.ID)).toMatchObject(
             {
                 publishers:[
                     {
@@ -84,6 +84,43 @@ describe('associateToPublisher()', ()=>{
         done();
     })
 
+})
+
+describe('getPublishers()', ()=>{
+    test('Valid gameID', async done =>{
+        expect.assertions(1);
+
+        const game = await new Games();
+        const publisher = await game.publisher;
+
+        const newGame = await game.addNewGame(
+            "title",
+            "summary",
+            "desc");
+        const retreiveGame = await game.getGameByTitle("title");
+        const publisherID = await publisher.addPublisher("Rockstar Games");
+        const publisherIDSecond = await publisher.addPublisher("Microsoft");
+        await game.assocateToPublisher(retreiveGame.ID, publisherID)
+        await game.assocateToPublisher(retreiveGame.ID, publisherIDSecond)
+        
+        expect(await game.getPublishers(retreiveGame.ID)).toMatchObject(
+            {
+                publishers:[
+                    {
+                        ID: 1,
+                        name: "Rockstar Games"
+                    },
+                    {
+                        ID: 2,
+                        name: "Microsoft"
+                    }
+                ]
+            }
+        )
+
+
+        done();
+    })
 })
 
 describe('deleteGameByID()', ()=>{
