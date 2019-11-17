@@ -219,6 +219,28 @@ describe('getPublishers()', ()=>{
 
         done();
     })
+
+    test('Error if gameID NaN', async done =>{
+        expect.assertions(1);
+
+        const game = await new Games();
+        const publisher = await game.publisher;
+
+        await expect(game.getPublishers("Not a number"))
+            .rejects.toEqual(Error('Must supply gameID'));
+        done();
+    })
+
+    test('Error if gameID null', async done =>{
+        expect.assertions(1);
+
+        const game = await new Games();
+        const publisher = await game.publisher;
+
+        await expect(game.getPublishers(null))
+            .rejects.toEqual(Error('Must supply gameID'));
+        done();
+    })
 })
 
 describe('deleteGameByID()', ()=>{
