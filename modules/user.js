@@ -63,8 +63,8 @@ module.exports = class User {
 			if(data.records !== 0) throw new Error(`username "${user}" already in use`)
 			pass = await bcrypt.hash(pass, saltRounds)
 			sql = `INSERT INTO user(username, pass) VALUES("${user}", "${pass}")`
-			await this.db.run(sql)
-			return true
+			const record = await this.db.run(sql)
+			return record.lastID;
 		} catch(err) {
 			throw err
 		}
@@ -82,11 +82,11 @@ module.exports = class User {
 			let sql = `SELECT count(ID) AS count FROM user WHERE username="${username}";`
 			const records = await this.db.get(sql)
 			if(!records.count) throw new Error(`username "${username}" not found`)
-			sql = `SELECT pass FROM user WHERE username = "${username}";`
+			sql = `SELECT pass, ID FROM user WHERE username = "${username}";`
 			const record = await this.db.get(sql)
 			const valid = await bcrypt.compare(password, record.pass)
 			if(valid === false) throw new Error(`invalid password for account "${username}"`)
-			return true
+			return record.ID;
 		} catch(err) {
 			throw err
 		}
