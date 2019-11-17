@@ -63,6 +63,12 @@ module.exports = class Game {
 
     async associateToPublisher(gameID, publisherID){
         try{
+            if(gameID === null || isNaN(gameID)){
+                throw new Error('Must supply gameID');
+            }
+
+            
+
             let sql = `INSERT INTO game_publisher (gameID, publisherID)
             VALUES(
                 ${gameID},
