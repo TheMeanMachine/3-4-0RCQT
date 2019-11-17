@@ -16,17 +16,22 @@ describe('addPublisher()', ()=>{
         done();
     })
 
-    test('Error if name is null', async done =>{
+    test('Error if invalid publisher', async done =>{
         expect.assertions(1);
         
-        const publisher =  await new Publishers();
+        const publisher = await new Publishers();
 
-        await expect(publisher.addPublisher(null))
+        await expect(publisher.addPublisher(""))
             .rejects.toEqual(Error('Must supply name'));
+
 
         done();
     })
+
+    
 })
+
+
 
 describe('checkPublisherFields()', ()=>{
     test('Valid name', async done =>{
