@@ -72,18 +72,30 @@ describe('associateToPublisher()', ()=>{
         
         expect(await game.getPublishers(retreiveGame.ID)).toMatchObject(
             {
-                publishers:[
-                    {
-                        ID: 1,
-                        name: "Rockstar Games"
-                    }
-                ]
+                publishers:[1]
             }
         )
 
         done();
     })
+    test('Error if gameID null', async done =>{
+        expect.assertions(2);
 
+        const game = await new Games();
+        const publisher = await game.publisher;
+
+        const newGame = await game.addNewGame(
+            "title",
+            "summary",
+            "desc");
+        const retreiveGame = await game.getGameByTitle("title");
+
+        const publisherID = await publisher.addPublisher("Rockstar Games");
+
+        expect(await game.associateToPublisher(null, publisherID))
+            .rejects.toEqual(Error('GameID must be supplied'));
+        done();
+    })
 })
 
 describe('getPublishers()', ()=>{
@@ -105,16 +117,7 @@ describe('getPublishers()', ()=>{
         
         expect(await game.getPublishers(retreiveGame.ID)).toMatchObject(
             {
-                publishers:[
-                    {
-                        ID: 1,
-                        name: "Rockstar Games"
-                    },
-                    {
-                        ID: 2,
-                        name: "Microsoft"
-                    }
-                ]
+                publishers:[1,2]
             }
         )
 
