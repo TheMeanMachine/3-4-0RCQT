@@ -2,6 +2,7 @@
 const sqlite = require('sqlite-async');
 const Reviews = require('../modules/review.js');
 const Games = require('../modules/game.js');
+const Users = require('../modules/user');
 
 
 describe('updateReview()', ()=>{
@@ -10,14 +11,15 @@ describe('updateReview()', ()=>{
 
         const review = await new Reviews();
         const game = await review.games;
-
+        const user = await review.users;
+        const userID = await user.register("Samson", "Password");
         await game.addNewGame("title", "summary", "desc");
         const retreiveGame = await game.getGameByTitle("title");
         await review.addReview(retreiveGame.ID, 
             {
             fullText: "fulltext",
             rating: 3
-            }
+            }, userID
         );
         const changed = {
             fullText: "This is changed fulltext",
@@ -42,14 +44,15 @@ describe('updateReview()', ()=>{
 
         const review = await new Reviews();
         const game = await review.games;
-
+        const user = await review.users;
+        const userID = await user.register("Samson", "Password");
         await game.addNewGame("title", "summary", "desc");
         const retreiveGame = await game.getGameByTitle("title");
         await review.addReview(retreiveGame.ID, 
             {
             fullText: "fulltext",
             rating: 3
-            }
+            }, userID
         );
         const changed = {
             fullText: "This is changed fulltext"
@@ -72,14 +75,15 @@ describe('updateReview()', ()=>{
 
         const review = await new Reviews();
         const game = await review.games;
-
+        const user = await review.users;
+        const userID = await user.register("Samson", "Password");
         await game.addNewGame("title", "summary", "desc");
         const retreiveGame = await game.getGameByTitle("title");
         await review.addReview(retreiveGame.ID, 
             {
             fullText: "fulltext",
             rating: 3
-            }
+            }, userID
         );
         const changed = {
             rating: 4
@@ -103,14 +107,15 @@ describe('updateReview()', ()=>{
 
         const review = await new Reviews();
         const game = await review.games;
-
+        const user = await review.users;
+        const userID = await user.register("Samson", "Password");
         await game.addNewGame("title", "summary", "desc");
         const retreiveGame = await game.getGameByTitle("title");
         await review.addReview(retreiveGame.ID, 
             {
             fullText: "fulltext",
             rating: 3
-            }
+            }, userID
         );
 
         await expect(review.updateReview(3, 
@@ -157,21 +162,22 @@ describe('getReviewsByGameID()', ()=>{
 
         const review = await new Reviews();
         const game = await review.games;
-
+        const user = await review.users;
+        const userID = await user.register("Samson", "Password");
         await game.addNewGame("title", "summary", "desc");
         const retreiveGame = await game.getGameByTitle("title");
         await review.addReview(retreiveGame.ID, 
             {
             fullText: "fulltext",
             rating: 3
-            }
+            }, userID
         );
 
         await review.addReview(retreiveGame.ID, 
             {
             fullText: "fulltext2",
             rating: 3
-            }
+            }, userID
         );
         
         const result = await review.getReviewsByGameID(retreiveGame.ID);
@@ -333,29 +339,29 @@ describe('checkReviewFields()', () => {
     })
 });
 
-
-
 describe('addReview()', ()=>{
     test('Valid review', async done =>{
         expect.assertions(2);
 
         const review = await new Reviews();
         const game = await review.games;
-
+        const user = await review.users;
+        const userID = await user.register("Samson", "Password");
         await game.addNewGame("title", "summary", "desc");
         const retreiveGame = await game.getGameByTitle("title");
+    
         const result = await review.addReview(retreiveGame.ID, 
             {
             fullText: "fulltext",
             rating: 3
-            });
+            }, userID);
         expect(result).toBe(1);
         const getReview = await review.getReviewsByGameID(retreiveGame.ID);
 
         expect(getReview.reviews[0]).toEqual({
             ID: result,
             gameID: retreiveGame.ID,
-            userID: 1,
+            userID: userID,
             fullText: "fulltext",
             rating: 3,
             flag: 0
@@ -369,13 +375,15 @@ describe('addReview()', ()=>{
 
         const review = await new Reviews();
         const game = await review.games;
+        const user = await review.users;
+        const userID = await user.register("Samson", "Password");
         await game.addNewGame("title", "summary", "desc");
         const retreiveGame = await game.getGameByTitle("title");
         await expect(review.addReview(retreiveGame.ID, 
             {
             fullText: "",
             rating: 3
-            }))
+            },userID ))
             .rejects.toEqual(Error('Must supply fulltext'));
         
         done();
@@ -387,13 +395,15 @@ describe('addReview()', ()=>{
         
         const review = await new Reviews();
         const game = await review.games;
+        const user = await review.users;
+        const userID = await user.register("Samson", "Password");
         await game.addNewGame("title", "summary", "desc");
         const retreiveGame = await game.getGameByTitle("title");
         await expect(review.addReview(retreiveGame.ID, 
             {
             fullText: "fulltext",
             rating: 6
-            }))
+            },userID))
             .rejects.toEqual(Error('Rating must be 1-5'));
         
         done();
@@ -404,13 +414,15 @@ describe('addReview()', ()=>{
 
         const review = await new Reviews();
         const game = await review.games;
+        const user = await review.users;
+        const userID = await user.register("Samson", "Password");
         await game.addNewGame("title", "summary", "desc");
         const retreiveGame = await game.getGameByTitle("title");
         await expect(review.addReview(retreiveGame.ID, 
             {
             fullText: "fulltext",
             rating: 0
-            }))
+            },userID))
             .rejects.toEqual(Error('Rating must be 1-5'));
         
         done();
@@ -421,11 +433,13 @@ describe('addReview()', ()=>{
        
         const review = await new Reviews();
         const game = await review.games;
+        const user = await review.users;
+        const userID = await user.register("Samson", "Password");
         await expect(review.addReview(0, 
             {
             fullText: "fulltext",
             rating: 3
-            }))
+            },userID))
             .rejects.toEqual(Error('Game not found'));
         
         done();
@@ -435,11 +449,13 @@ describe('addReview()', ()=>{
         expect.assertions(1);
         const review = await new Reviews();
         const game = await review.games;
+        const user = await review.users;
+        const userID = await user.register("Samson", "Password");
         await expect(review.addReview(0, 
             {
             fullText: "fulltext",
             rating: "string"
-            }))
+            },userID))
             .rejects.toEqual(Error('Must supply rating'));
         
         done();
@@ -448,11 +464,13 @@ describe('addReview()', ()=>{
     test('Error if: Invalid review _ ID is NaN', async done =>{
         expect.assertions(1);
         const review = await new Reviews();
+        const user = await review.users;
+        const userID = await user.register("Samson", "Password");
         await expect(review.addReview("string", 
             {
             fullText: "fulltext",
             rating: 3
-            }))
+            },userID))
             .rejects.toEqual(Error('Must supply gameID'));
         
         done();
@@ -462,16 +480,38 @@ describe('addReview()', ()=>{
         expect.assertions(1);
         const game = await new Games();
         const review = await new Reviews();
+        const user = await review.users;
+        const userID = await user.register("Samson", "Password");
         await expect(review.addReview(null, 
             {
             fullText: "fulltext",
             rating: 3
-            }))
+            },userID))
             .rejects.toEqual(Error('Must supply gameID'));
         
         done();
     })
 
+    test('Error if: Invalid review _ userID is null', async done =>{
+        expect.assertions(1);
+
+        const review = await new Reviews();
+        const game = await review.games;
+       
+        await game.addNewGame("title", "summary", "desc");
+        const retreiveGame = await game.getGameByTitle("title");
+    
+        await expect(review.addReview(retreiveGame.ID, 
+            {
+            fullText: "fulltext",
+            rating: 3
+            },null))
+            .rejects.toEqual(Error('Must supply userID'));
+
+        
+
+        done();
+    })
 
 
 })
