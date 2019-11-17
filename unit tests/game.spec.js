@@ -224,7 +224,7 @@ describe('getPublishers()', ()=>{
         expect.assertions(1);
 
         const game = await new Games();
-        const publisher = await game.publisher;
+        
 
         await expect(game.getPublishers("Not a number"))
             .rejects.toEqual(Error('Must supply gameID'));
@@ -235,10 +235,21 @@ describe('getPublishers()', ()=>{
         expect.assertions(1);
 
         const game = await new Games();
-        const publisher = await game.publisher;
+        
 
         await expect(game.getPublishers(null))
             .rejects.toEqual(Error('Must supply gameID'));
+        done();
+    })
+
+    test('Error if game does not exist', async done =>{
+        expect.assertions(1);
+
+        const game = await new Games();
+        
+
+        await expect(game.getPublishers(4))
+            .rejects.toEqual(Error('Game not found'));
         done();
     })
 })
