@@ -6,6 +6,7 @@ const sqlite = require('sqlite-async')
 
 //Custom modules
 const valid = require('./validator');
+const Publishers = require('./publisher');
 
 
 module.exports = class Game {
@@ -15,7 +16,9 @@ module.exports = class Game {
 
 		return (async() => {
             this.dbName = dbName || ':memory:';
-			this.db = await sqlite.open(this.dbName);
+            this.publisher = new Publishers(this.dbName);
+            this.db = await sqlite.open(this.dbName);
+            
             const sql = 
             [`
 			CREATE TABLE IF NOT EXISTS game(
@@ -56,6 +59,38 @@ module.exports = class Game {
 			return this;
 		})()
 		
+    }
+
+    async associateToPublisher(gameID, publisherID){
+        try{
+            let sql = `INSERT INTO game_publisher (gameID, publisherID)
+            VALUES(
+                ${gameID},
+                ${publisherID}
+            );`;
+            await this.db.run(sql);
+            return true;
+        }catch(e){
+            throw e;
+        }  
+    }
+
+    async getPublishers(gameID){
+        try{
+            const sql = `SELECT * FROM game_publisher 
+            WHERE gameID = ${gameID};`;
+
+            const data = await this.db.all(sql);
+
+            let result = {publishers:[]};
+            for(let i = 0; i < Object.keys(data).length; i++){
+                result.publishers.push(data[i].ID);
+            }
+            console.log(result);
+            return result;
+        }catch(e){
+            throw e;
+        }  
     }
 
     async addNewGame(title, summary, desc){
