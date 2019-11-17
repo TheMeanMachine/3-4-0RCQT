@@ -3,6 +3,48 @@
 
 const Publishers = require('../modules/publisher.js');
 
+describe('deletePublisherByID()', ()=>{
+    test('Valid publisher', async done =>{
+        expect.assertions(2);
+
+        const publisher = await new Publishers();
+
+        const id = await publisher.addPublisher("Rockstar Games");
+        
+        const result = await publisher.deletePublisherByID(id);
+        expect(result).toBe(true);
+        await expect(publisher.deletePublisherByID(1))
+            .rejects.toEqual(Error('Publisher not found'));
+            
+
+        done();
+    })
+
+    test('Error if ID is null', async done =>{
+        expect.assertions(1);
+
+        const publisher = await new Publishers();
+
+        const id = await publisher.addPublisher("Rockstar Games");
+        
+        await expect(publisher.deletePublisherByID(null))
+            .rejects.toEqual(Error('Must supply ID'));
+
+        done();
+    })
+    test('Error if ID is NaN', async done =>{
+        expect.assertions(1);
+
+        const publisher = await new Publishers();
+
+        
+        await expect(publisher.deletePublisherByID("Not a number"))
+            .rejects.toEqual(Error('Must supply ID'));
+            
+        done();
+    })
+})
+
 describe('getPublisherByID()', ()=>{
     test('Valid publisher', async done =>{
         expect.assertions(1);
