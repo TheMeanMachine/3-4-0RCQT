@@ -66,8 +66,12 @@ module.exports = class Game {
             if(gameID === null || isNaN(gameID)){
                 throw new Error('Must supply gameID');
             }
+            if(publisherID === null || isNaN(publisherID)){
+                throw new Error('Must supply gameID');
+            }
 
-            
+            await this.getGameByID(gameID);
+            await this.publisher.getPublisherByID(publisherID);
 
             let sql = `INSERT INTO game_publisher (gameID, publisherID)
             VALUES(
@@ -92,7 +96,7 @@ module.exports = class Game {
             for(let i = 0; i < Object.keys(data).length; i++){
                 result.publishers.push(data[i].ID);
             }
-            console.log(result);
+            
             return result;
         }catch(e){
             throw e;
