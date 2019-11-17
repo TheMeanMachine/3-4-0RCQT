@@ -3,6 +3,62 @@
 
 const Publishers = require('../modules/publisher.js');
 
+describe('getPublisherByID()', ()=>{
+    test('Valid publisher', async done =>{
+        expect.assertions(1);
+
+        const publisher = await new Publishers();
+
+        const id = await publisher.addPublisher("Rockstar Games");
+        
+        const result = await publisher.getPublisherByID(id);
+
+        expect(result).toMatchObject(
+            {
+                ID: id,
+                name: "Rockstar Games"
+            }
+        );
+
+        done();
+    })
+
+    test('Error if ID is null', async done =>{
+        expect.assertions(1);
+
+        const publisher = await new Publishers();
+
+        const id = await publisher.addPublisher("Rockstar Games");
+        
+        await expect(publisher.getPublisherByID(null))
+            .rejects.toEqual(Error('Must supply ID'));
+
+        done();
+    })
+
+    test('Error if publisher does not exist', async done =>{
+        expect.assertions(1);
+
+        const publisher = await new Publishers();
+
+        await expect(publisher.getPublisherByID(1))
+            .rejects.toEqual(Error('Publisher not found'));
+            
+        done();
+    })
+
+    test('Error if ID is NaN', async done =>{
+        expect.assertions(1);
+
+        const publisher = await new Publishers();
+
+        
+        await expect(publisher.getPublisherByID("Not a number"))
+            .rejects.toEqual(Error('Must supply ID'));
+            
+        done();
+    })
+})
 
 describe('addPublisher()', ()=>{
     test('Valid publisher', async done =>{
