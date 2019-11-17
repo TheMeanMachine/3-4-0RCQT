@@ -13,7 +13,7 @@ describe('deletePublisherByID()', ()=>{
         
         const result = await publisher.deletePublisherByID(id);
         expect(result).toBe(true);
-        await expect(publisher.deletePublisherByID(1))
+        await expect(publisher.getPublisherByID(1))
             .rejects.toEqual(Error('Publisher not found'));
             
 
