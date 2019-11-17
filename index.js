@@ -80,6 +80,7 @@ router.post('/register', koaBody, async ctx => {
 		// call the functions in the module
 		const user = await new User(dbName)
 		await user.register(body.user, body.pass)
+		
 		// await user.uploadPicture(path, type)
 		// redirect to the home page
 		ctx.redirect(`/?msg=new user "${body.name}" added`)
@@ -101,10 +102,11 @@ router.get('/login', async ctx => {
 
 router.post('/login', async ctx => {
 	try {
-		const body = ctx.request.body
-		const user = await new User(dbName)
-		await user.login(body.user, body.pass)
-		ctx.session.authorised = true
+		const body = ctx.request.body;
+		const user = await new User(dbName);
+		const ID = await user.login(body.user, body.pass);
+		ctx.session.authorised = true;
+		ctx.session.userID = ID;
 		return ctx.redirect('/?msg=you are now logged in...')
 	} catch(err) {
 		await ctx.render('error', {message: err.message})
@@ -112,7 +114,8 @@ router.post('/login', async ctx => {
 })
 
 router.get('/logout', async ctx => {
-	ctx.session.authorised = null
+	ctx.session.authorised = null;
+	ctx.session.userID = null;
 	ctx.redirect('/?msg=you are now logged out')
 })
 
