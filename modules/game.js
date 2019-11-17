@@ -3,7 +3,7 @@
 
 const mime = require('mime-types')
 const sqlite = require('sqlite-async')
-
+const fs = require('fs-extra');
 //Custom modules
 const valid = require('./validator');
 const Publishers = require('./publisher');
@@ -86,27 +86,34 @@ module.exports = class Game {
     }
 
     async getPublishers(gameID){
-        try{
-            if(gameID === null || isNaN(gameID)){
+        try {
+            if(gameID === null || isNaN(gameID)) {
                 throw new Error('Must supply gameID');
             }
             await this.getGameByID(gameID);//Make sure game exists
-
             const sql = `SELECT * FROM game_publisher 
             WHERE gameID = ${gameID};`;
 
             const data = await this.db.all(sql);
-
-            let result = {publishers:[]};
+            let result = { publishers:[] };
             for(let i = 0; i < Object.keys(data).length; i++){
                 result.publishers.push(data[i].ID);
             }
             
             return result;
-        }catch(e){
+        } catch(e) {
             throw e;
         }  
     }
+
+    async uploadPicture(path, mimeType, gameID) {
+		const extension = mime.extension(mimeType)
+		console.log(`path: ${path}`)
+        console.log(`extension: ${extension}`)
+    
+		
+		await fs.copy(path, `public/game/image.${extension}`)
+	}
 
     async addNewGame(title, summary, desc){
         try{
@@ -315,12 +322,9 @@ module.exports = class Game {
             WHERE ID = ${id};
             `;
 
-        
             let result = await this.db.get(sql);
             done++;
-            
-            
-            
+
         }
         
         if(desc != null){
@@ -329,8 +333,7 @@ module.exports = class Game {
             SET desc = "${desc}"
             WHERE ID = ${id};
             `;
-
-            
+ 
             let result = await this.db.get(sql);
             done++;
             
