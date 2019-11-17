@@ -65,6 +65,10 @@ module.exports = class Review {
             } 
         }
 
+        if(rating == null && fullText == null){
+            throw new Error('All fields are null');
+        }
+
         return true;
     }
     
@@ -78,10 +82,10 @@ module.exports = class Review {
                 throw new Error('Must supply gameID');
             }
             
-            if(this.checkReviewFields(fullText, rating)){//Check input is sensible
+            this.checkReviewFields(fullText, rating)//Check input is sensible
                 
-                await this.games.getGameByID(gameID);//Checks if game exists
-            }
+            await this.games.getGameByID(gameID);//Checks if game exists
+            
             
             const sql = `
             INSERT INTO review (
@@ -130,9 +134,11 @@ module.exports = class Review {
             return result;
         }catch(e){
             throw e;
-        }
+        } 
+    }
 
-        
+    async updateReview(){
+
     }
 
     
