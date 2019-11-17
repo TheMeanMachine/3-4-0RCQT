@@ -69,4 +69,26 @@ module.exports = class Game {
 
     } 
 
+    async getPublisherByID(ID){
+        try{
+            if(ID == null || isNaN(ID)){
+                throw new Error('Must supply ID');
+            }
+
+            let sql = `SELECT count(ID) AS count FROM publisher WHERE ID = ${ID};`
+            let records = await this.db.get(sql)
+			if(records.count == 0){
+                throw new Error(`Publisher not found`);
+            }
+
+            sql = `SELECT * FROM publisher WHERE ID = ${ID};`;
+
+            records = await this.db.get(sql);
+            return records;
+
+        }catch(e){
+            throw e;
+        }
+    }
+
 }
