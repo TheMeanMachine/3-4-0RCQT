@@ -91,4 +91,28 @@ module.exports = class Game {
         }
     }
 
+    async deletePublisherByID(ID){
+        try{
+            if(ID == null || isNaN(ID)){
+                throw new Error('Must supply ID');
+            }
+
+            let sql = [`
+            DELETE FROM game_publisher
+            WHERE publisherID = ${ID};
+            `,`
+            DELETE FROM publisher
+            WHERE ID = ${ID}`
+            ];
+
+            for(let i = 0; i < sql.length; i++){
+                await this.db.run(sql[i]);
+            }
+
+            return true;
+        }catch(e){
+            throw e;
+        }
+    }
+
 }
