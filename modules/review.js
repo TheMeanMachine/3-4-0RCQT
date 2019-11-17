@@ -5,6 +5,7 @@ const sqlite = require('sqlite-async');
 //Custom modules
 const valid = require('./validator');
 const Games = require('./game');
+const Users = require('./user');
 
 module.exports = class Review {
     constructor(dbName){
@@ -14,7 +15,8 @@ module.exports = class Review {
             
             this.dbName = dbName || ':memory:';
             this.db = await sqlite.open(this.dbName);
-            this.games = await new Games();
+            this.games = await new Games(this.dbName);
+            this.users = await new Users(this.dbName) 
             const sql = 
             [`
             CREATE TABLE IF NOT EXISTS reviewScreenshot(
@@ -131,16 +133,20 @@ module.exports = class Review {
     async addReview(gameID, data, userID){
         const fullText = data.fullText || '';
         const rating = data.rating;
+        
         try{
+            this.checkReviewFields(fullText, rating)//Check input is sensible 
             
             if(gameID == null || isNaN(gameID)){
                 throw new Error('Must supply gameID');
             }
-            
-            this.checkReviewFields(fullText, rating)//Check input is sensible
-                
             await this.games.getGameByID(gameID);//Checks if game exists
-            
+
+            if(userID == null || isNaN(userID)){
+                throw new Error('Must supply userID');
+            }
+
+           
             
             const sql = `
             INSERT INTO review (
@@ -150,7 +156,7 @@ module.exports = class Review {
                 rating,
                 flag) VALUES (
                     ${gameID},
-                    1,
+                    ${userID},
                     "${fullText}",
                     ${rating},
                     0
