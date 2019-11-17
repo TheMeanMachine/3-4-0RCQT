@@ -29,7 +29,7 @@ module.exports = class Game {
 
         CREATE TABLE IF NOT EXISTS publisher(
             ID INTEGER PRIMARY KEY AUTOINCREMENT,
-            name TITLE
+            name TEXT
         );`
         ];
         for(let i = 0; i < sql.length; i++){
@@ -41,6 +41,32 @@ module.exports = class Game {
 
     }
 
-    
+    checkPublisherFields(name){
+        if(name != null){
+            let checkName = this.validator.check_MultipleWordsOnlyAlphaNumberic(name);
+            if(!checkName){
+                throw new Error('Must supply name');
+            }
+        }else{
+            throw new Error('Must supply name');
+        }
+        return true;
+    }
+
+    async addPublisher(name){
+        try{
+            this.checkPublisherFields(name);
+
+            let sql = `INSERT INTO publisher (name)
+                VALUES(
+                    "${name}"
+                )`;
+            const result = await this.db.run(sql);
+            return result.lastID;
+        }catch(e){
+            throw e;
+        }
+
+    } 
 
 }
