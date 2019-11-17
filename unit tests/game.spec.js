@@ -115,6 +115,63 @@ describe('associateToPublisher()', ()=>{
             .rejects.toEqual(Error('Must supply gameID'));
         done();
     })
+
+    test('Error if publisherID null', async done =>{
+        expect.assertions(1);
+
+        const game = await new Games();
+        const publisher = await game.publisher;
+
+        const newGame = await game.addNewGame(
+            "title",
+            "summary",
+            "desc");
+        const retreiveGame = await game.getGameByTitle("title");
+
+        const publisherID = await publisher.addPublisher("Rockstar Games");
+
+        await expect(game.associateToPublisher(retreiveGame.ID, null))
+            .rejects.toEqual(Error('Must supply gameID'));
+        done();
+    })
+
+    test('Error if publisherID NaN', async done =>{
+        expect.assertions(1);
+
+        const game = await new Games();
+        const publisher = await game.publisher;
+
+        const newGame = await game.addNewGame(
+            "title",
+            "summary",
+            "desc");
+        const retreiveGame = await game.getGameByTitle("title");
+
+        const publisherID = await publisher.addPublisher("Rockstar Games");
+
+        await expect(game.associateToPublisher(retreiveGame.ID, "Not a number"))
+            .rejects.toEqual(Error('Must supply gameID'));
+        done();
+    })
+
+    test('Error if publisher does not exist', async done =>{
+        expect.assertions(1);
+
+        const game = await new Games();
+        const publisher = await game.publisher;
+
+        const newGame = await game.addNewGame(
+            "title",
+            "summary",
+            "desc");
+        const retreiveGame = await game.getGameByTitle("title");
+
+        const publisherID = await publisher.addPublisher("Rockstar Games");
+
+        await expect(game.associateToPublisher(retreiveGame.ID, publisherID))
+            .rejects.toEqual(Error('Publisher not found'));
+        done();
+    })
 })
 
 describe('getPublishers()', ()=>{
