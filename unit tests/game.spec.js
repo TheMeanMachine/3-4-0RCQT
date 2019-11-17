@@ -67,7 +67,7 @@ describe('associateToPublisher()', ()=>{
 
         const publisherID = await publisher.addPublisher("Rockstar Games");
 
-        expect(await game.assocateToPublisher(retreiveGame.ID, publisherID))
+        expect(await game.associateToPublisher(retreiveGame.ID, publisherID))
             .toBe(true);
         
         expect(await game.getPublishers(retreiveGame.ID)).toMatchObject(
@@ -100,8 +100,8 @@ describe('getPublishers()', ()=>{
         const retreiveGame = await game.getGameByTitle("title");
         const publisherID = await publisher.addPublisher("Rockstar Games");
         const publisherIDSecond = await publisher.addPublisher("Microsoft");
-        await game.assocateToPublisher(retreiveGame.ID, publisherID)
-        await game.assocateToPublisher(retreiveGame.ID, publisherIDSecond)
+        await game.associateToPublisher(retreiveGame.ID, publisherID)
+        await game.associateToPublisher(retreiveGame.ID, publisherIDSecond)
         
         expect(await game.getPublishers(retreiveGame.ID)).toMatchObject(
             {
