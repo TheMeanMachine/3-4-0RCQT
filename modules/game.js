@@ -87,6 +87,10 @@ module.exports = class Game {
 
     async getPublishers(gameID){
         try{
+            if(gameID === null || isNaN(gameID)){
+                throw new Error('Must supply gameID');
+            }
+
             const sql = `SELECT * FROM game_publisher 
             WHERE gameID = ${gameID};`;
 
