@@ -27,7 +27,7 @@ describe('register()', () => {
 		expect.assertions(1)
 		const account = await new Accounts()
 		await expect( account.register('', 'password') )
-			.rejects.toEqual( Error('missing username') )
+			.rejects.toEqual( Error('Must supply user') )
 		done()
 	})
 
@@ -35,9 +35,44 @@ describe('register()', () => {
 		expect.assertions(1)
 		const account = await new Accounts()
 		await expect( account.register('doej', '') )
-			.rejects.toEqual( Error('missing password') )
+			.rejects.toEqual( Error('Must supply pass') )
 		done()
 	})
+
+})
+
+describe('checkUserFields()', ()=>{
+    test('Valid fields', async done => {
+        expect.assertions(1);
+        const game = await new Accounts();
+        let result = await game.checkUserFields('Username','Password');
+        expect(result).toBe(true);
+        done();
+    })
+
+    test('Error if empty _ username', async done =>{
+        expect.assertions(1);
+		const game = await new Accounts();
+        try{
+            await game.checkUserFields('');
+        }catch(e){
+            expect(e).toEqual(new Error('Must supply user'));
+        }
+        
+        done();
+    })
+
+    test('Error if empty _ summary', async done =>{
+        expect.assertions(1);
+		const game = await new Accounts();
+        try{
+            await game.checkUserFields('Username','');
+        }catch(e){
+            expect(e).toEqual(new Error('Must supply pass'));
+        }
+        
+        done();
+    })
 
 })
 
