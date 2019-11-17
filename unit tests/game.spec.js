@@ -79,7 +79,7 @@ describe('associateToPublisher()', ()=>{
         done();
     })
     test('Error if gameID null', async done =>{
-        expect.assertions(2);
+        expect.assertions(1);
 
         const game = await new Games();
         const publisher = await game.publisher;
@@ -92,13 +92,13 @@ describe('associateToPublisher()', ()=>{
 
         const publisherID = await publisher.addPublisher("Rockstar Games");
 
-        expect(await game.associateToPublisher(null, publisherID))
+        await expect(game.associateToPublisher(null, publisherID))
             .rejects.toEqual(Error('Must supply gameID'));
         done();
     })
 
     test('Error if gameID NaN', async done =>{
-        expect.assertions(2);
+        expect.assertions(1);
 
         const game = await new Games();
         const publisher = await game.publisher;
@@ -111,7 +111,7 @@ describe('associateToPublisher()', ()=>{
 
         const publisherID = await publisher.addPublisher("Rockstar Games");
 
-        expect(await game.associateToPublisher("Not a number", publisherID))
+        await expect(game.associateToPublisher("Not a number", publisherID))
             .rejects.toEqual(Error('Must supply gameID'));
         done();
     })
