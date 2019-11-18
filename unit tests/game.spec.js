@@ -6,6 +6,9 @@ const Games = require('../modules/game.js');
 const mock = require('mock-fs');
 const fs = require('fs');
 const mime = require('mime-types')
+
+
+
 describe('uploadPicture()', ()=>{
     beforeEach(function() {
         console.log("");
@@ -29,8 +32,12 @@ describe('uploadPicture()', ()=>{
 
         const path = 'user/images/pictureUpload.png';
         const type = ".png";
-
-        const gameID = 1;
+        const newGame = await game.addNewGame(
+            "title",
+            "summary",
+            "desc");
+        const retreiveGame = await game.getGameByTitle("title");
+        const gameID = retreiveGame.ID;
         
         await game.uploadPicture(path,type,gameID);
         const extension = await mime.extension(type);
@@ -39,6 +46,99 @@ describe('uploadPicture()', ()=>{
         
         
 
+        done();
+    })
+
+    test('Error if game does not exist', async done => {
+        expect.assertions(1);
+
+        const game = await new Games();
+
+        const path = 'user/images/pictureUpload.png';
+        const type = ".png";
+
+        const gameID = 2;
+        
+        await expect(game.uploadPicture(path,type,gameID))
+            .rejects.toEqual(Error('Game not found'));
+        done();
+    })
+
+    test('Error if gameID is null', async done => {
+        expect.assertions(1);
+
+        const game = await new Games();
+
+        const path = 'user/images/pictureUpload.png';
+        const type = ".png";
+        
+        await expect(game.uploadPicture(path,type,null))
+            .rejects.toEqual(Error('Must supply gameID'));
+        done();
+    })
+
+    test('Error if gameID is NaN', async done => {
+        expect.assertions(1);
+
+        const game = await new Games();
+
+        const path = 'user/images/pictureUpload.png';
+        const type = ".png";
+        
+        await expect(game.uploadPicture(path,type,"Not a Number"))
+            .rejects.toEqual(Error('Must supply gameID'));
+        done();
+    })
+
+    test('Error if path is null', async done => {
+        expect.assertions(1);
+
+        const game = await new Games();
+
+        const path = 'user/images/pictureUpload.png';
+        const type = ".png";
+        
+        await expect(game.uploadPicture(null,type,1))
+            .rejects.toEqual(Error('Must supply path'));
+        done();
+    })
+
+    test('Error if path is empty', async done => {
+        expect.assertions(1);
+
+        const game = await new Games();
+
+        const path = 'user/images/pictureUpload.png';
+        const type = ".png";
+        
+        await expect(game.uploadPicture('',type,1))
+            .rejects.toEqual(Error('Must supply path'));
+        done();
+    })
+
+    test('Error if type is null', async done => {
+        expect.assertions(1);
+
+        const game = await new Games();
+
+        const path = 'user/images/pictureUpload.png';
+        const type = ".png";
+        
+        await expect(game.uploadPicture(path,null,1))
+            .rejects.toEqual(Error('Must supply type'));
+        done();
+    })
+
+    test('Error if type is empty', async done => {
+        expect.assertions(1);
+
+        const game = await new Games();
+
+        const path = 'user/images/pictureUpload.png';
+        const type = ".png";
+        
+        await expect(game.uploadPicture(path,'',1))
+            .rejects.toEqual(Error('Must supply type'));
         done();
     })
 })
