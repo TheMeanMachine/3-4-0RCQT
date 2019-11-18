@@ -3,6 +3,223 @@
 
 const Games = require('../modules/game.js');
 
+const mock = require('mock-fs');
+const fs = require('fs');
+const mime = require('mime-types')
+
+
+
+describe('getPictures()', () =>{
+    beforeEach(function() {
+        //console.log("");
+        mock({
+            public: {
+                game:{
+
+                }
+                
+            },
+            'user/images/pictureUpload.png':  Buffer.from([8, 6, 7, 5, 3, 0, 9]),
+            'user/images/pictureUpload2.png':  Buffer.from([8, 6, 7, 5, 3, 0, 9])
+        });
+    });
+    afterEach(mock.restore);
+
+    test('Valid game', async done => {
+        expect.assertions(1);
+
+        const game = await new Games();
+
+        await game.addNewGame(
+            "title",
+            "summary",
+            "desc");
+        const retreiveGame = await game.getGameByTitle("title");
+        const gameID = retreiveGame.ID;
+
+        await game.uploadPicture('user/images/pictureUpload.png',"image/png",gameID);
+        await game.uploadPicture('user/images/pictureUpload2.png',"image/png",gameID);
+
+        const extension = await mime.extension("image/png");
+        expect(await game.getPictures(gameID)).toMatchObject(
+            {
+                pictures: [
+                    `public/game/${gameID}/picture_0.${extension}`,
+                    `public/game/${gameID}/picture_1.${extension}`
+                ]
+            }
+        )
+
+        done();
+    })
+
+    test('Error if game does not exist', async done => {
+        expect.assertions(1);
+
+        const game = await new Games();
+        
+        await expect(game.getPictures(1))
+            .rejects.toEqual(Error("Game not found"));
+
+        done();
+    })
+    
+    test('Error if gameID is null', async done => {
+        expect.assertions(1);
+
+        const game = await new Games();
+        
+        await expect(game.getPictures(null))
+            .rejects.toEqual(Error("Must supply gameID"));
+
+        done();
+    })
+
+    test('Error if gameID is NaN', async done => {
+        expect.assertions(1);
+
+        const game = await new Games();
+        
+        await expect(game.getPictures("Not a number"))
+            .rejects.toEqual(Error("Must supply gameID"));
+
+        done();
+    })
+})
+
+describe('uploadPicture()', ()=>{
+    beforeEach(function() {
+        //console.log("");
+        mock({
+            public: {
+                game:{
+
+                }
+                
+            },
+            'user/images/pictureUpload.png':  Buffer.from([8, 6, 7, 5, 3, 0, 9])
+        });
+    });
+    
+    afterEach(mock.restore);
+    
+    test('Valid game', async done => {
+        expect.assertions(2);
+
+        const game = await new Games();
+
+        const path = 'user/images/pictureUpload.png';
+        const type = "image/png";
+        const newGame = await game.addNewGame(
+            "title",
+            "summary",
+            "desc");
+        const retreiveGame = await game.getGameByTitle("title");
+        const gameID = retreiveGame.ID;
+        
+        expect(await game.uploadPicture(path,type,gameID)).toBe(true);
+        const extension = await mime.extension(type);
+
+        expect( await fs.existsSync(`public/game/${gameID}/picture_0.${extension}`)).toBe(true);
+        
+        
+
+        done();
+    })
+
+    test('Error if game does not exist', async done => {
+        expect.assertions(1);
+
+        const game = await new Games();
+
+        const path = 'user/images/pictureUpload.png';
+        const type = ".png";
+
+        const gameID = 2;
+        
+        await expect(game.uploadPicture(path,type,gameID))
+            .rejects.toEqual(Error('Game not found'));
+        done();
+    })
+
+    test('Error if gameID is null', async done => {
+        expect.assertions(1);
+
+        const game = await new Games();
+
+        const path = 'user/images/pictureUpload.png';
+        const type = ".png";
+        
+        await expect(game.uploadPicture(path,type,null))
+            .rejects.toEqual(Error('Must supply gameID'));
+        done();
+    })
+
+    test('Error if gameID is NaN', async done => {
+        expect.assertions(1);
+
+        const game = await new Games();
+
+        const path = 'user/images/pictureUpload.png';
+        const type = ".png";
+        
+        await expect(game.uploadPicture(path,type,"Not a Number"))
+            .rejects.toEqual(Error('Must supply gameID'));
+        done();
+    })
+
+    test('Error if path is null', async done => {
+        expect.assertions(1);
+
+        const game = await new Games();
+
+        const path = 'user/images/pictureUpload.png';
+        const type = ".png";
+        
+        await expect(game.uploadPicture(null,type,1))
+            .rejects.toEqual(Error('Must supply path'));
+        done();
+    })
+
+    test('Error if path is empty', async done => {
+        expect.assertions(1);
+
+        const game = await new Games();
+
+        const path = 'user/images/pictureUpload.png';
+        const type = ".png";
+        
+        await expect(game.uploadPicture('',type,1))
+            .rejects.toEqual(Error('Must supply path'));
+        done();
+    })
+
+    test('Error if type is null', async done => {
+        expect.assertions(1);
+
+        const game = await new Games();
+
+        const path = 'user/images/pictureUpload.png';
+        const type = ".png";
+        
+        await expect(game.uploadPicture(path,null,1))
+            .rejects.toEqual(Error('Must supply type'));
+        done();
+    })
+
+    test('Error if type is empty', async done => {
+        expect.assertions(1);
+
+        const game = await new Games();
+
+        const path = 'user/images/pictureUpload.png';
+        const type = ".png";
+        
+        await expect(game.uploadPicture(path,'',1))
+            .rejects.toEqual(Error('Must supply type'));
+        done();
+    })
+})
 
 
 describe('checkGameFields()', ()=>{
@@ -51,6 +268,210 @@ describe('checkGameFields()', ()=>{
     })
 
 })
+
+describe('associateToPublisher()', ()=>{
+    test('Valid publisher and game', async done =>{
+        expect.assertions(2);
+
+        const game = await new Games();
+        const publisher = await game.publisher;
+
+        const newGame = await game.addNewGame(
+            "title",
+            "summary",
+            "desc");
+        const retreiveGame = await game.getGameByTitle("title");
+
+        const publisherID = await publisher.addPublisher("Rockstar Games");
+
+        expect(await game.associateToPublisher(retreiveGame.ID, publisherID))
+            .toBe(true);
+        
+        expect(await game.getPublishers(retreiveGame.ID)).toMatchObject(
+            {
+                publishers:[1]
+            }
+        )
+
+        done();
+    })
+    test('Error if gameID null', async done =>{
+        expect.assertions(1);
+
+        const game = await new Games();
+        const publisher = await game.publisher;
+
+        const newGame = await game.addNewGame(
+            "title",
+            "summary",
+            "desc");
+        const retreiveGame = await game.getGameByTitle("title");
+
+        const publisherID = await publisher.addPublisher("Rockstar Games");
+
+        await expect(game.associateToPublisher(null, publisherID))
+            .rejects.toEqual(Error('Must supply gameID'));
+        done();
+    })
+
+    test('Error if gameID NaN', async done =>{
+        expect.assertions(1);
+
+        const game = await new Games();
+        const publisher = await game.publisher;
+
+        const newGame = await game.addNewGame(
+            "title",
+            "summary",
+            "desc");
+        const retreiveGame = await game.getGameByTitle("title");
+
+        const publisherID = await publisher.addPublisher("Rockstar Games");
+
+        await expect(game.associateToPublisher("Not a number", publisherID))
+            .rejects.toEqual(Error('Must supply gameID'));
+        done();
+    })
+
+    test('Error if publisherID null', async done =>{
+        expect.assertions(1);
+
+        const game = await new Games();
+        const publisher = await game.publisher;
+
+        const newGame = await game.addNewGame(
+            "title",
+            "summary",
+            "desc");
+        const retreiveGame = await game.getGameByTitle("title");
+
+        const publisherID = await publisher.addPublisher("Rockstar Games");
+
+        await expect(game.associateToPublisher(retreiveGame.ID, null))
+            .rejects.toEqual(Error('Must supply gameID'));
+        done();
+    })
+
+    test('Error if publisherID NaN', async done =>{
+        expect.assertions(1);
+
+        const game = await new Games();
+        const publisher = await game.publisher;
+
+        const newGame = await game.addNewGame(
+            "title",
+            "summary",
+            "desc");
+        const retreiveGame = await game.getGameByTitle("title");
+
+        const publisherID = await publisher.addPublisher("Rockstar Games");
+
+        await expect(game.associateToPublisher(retreiveGame.ID, "Not a number"))
+            .rejects.toEqual(Error('Must supply gameID'));
+        done();
+    })
+
+    test('Error if publisher does not exist', async done =>{
+        expect.assertions(1);
+
+        const game = await new Games();
+        const publisher = await game.publisher;
+
+        const newGame = await game.addNewGame(
+            "title",
+            "summary",
+            "desc");
+        const retreiveGame = await game.getGameByTitle("title");
+
+        const publisherID = await publisher.addPublisher("Rockstar Games");
+
+        await expect(game.associateToPublisher(retreiveGame.ID, 3))
+            .rejects.toEqual(Error('Publisher not found'));
+        done();
+    })
+
+    test('Error if game does not exist', async done =>{
+        expect.assertions(1);
+
+        const game = await new Games();
+        const publisher = await game.publisher;
+
+        const newGame = await game.addNewGame(
+            "title",
+            "summary",
+            "desc");
+        const retreiveGame = await game.getGameByTitle("title");
+
+        const publisherID = await publisher.addPublisher("Rockstar Games");
+
+        await expect(game.associateToPublisher(4, publisherID))
+            .rejects.toEqual(Error('Game not found'));
+        done();
+    })
+})
+
+describe('getPublishers()', ()=>{
+    test('Valid gameID', async done =>{
+        expect.assertions(1);
+
+        const game = await new Games();
+        const publisher = await game.publisher;
+
+        const newGame = await game.addNewGame(
+            "title",
+            "summary",
+            "desc");
+        const retreiveGame = await game.getGameByTitle("title");
+        const publisherID = await publisher.addPublisher("Rockstar Games");
+        const publisherIDSecond = await publisher.addPublisher("Microsoft");
+        await game.associateToPublisher(retreiveGame.ID, publisherID)
+        await game.associateToPublisher(retreiveGame.ID, publisherIDSecond)
+        
+        expect(await game.getPublishers(retreiveGame.ID)).toMatchObject(
+            {
+                publishers:[1,2]
+            }
+        )
+
+
+        done();
+    })
+
+    test('Error if gameID NaN', async done =>{
+        expect.assertions(1);
+
+        const game = await new Games();
+        
+
+        await expect(game.getPublishers("Not a number"))
+            .rejects.toEqual(Error('Must supply gameID'));
+        done();
+    })
+
+    test('Error if gameID null', async done =>{
+        expect.assertions(1);
+
+        const game = await new Games();
+        
+
+        await expect(game.getPublishers(null))
+            .rejects.toEqual(Error('Must supply gameID'));
+        done();
+    })
+
+    test('Error if game does not exist', async done =>{
+        expect.assertions(1);
+
+        const game = await new Games();
+        
+
+        await expect(game.getPublishers(4))
+            .rejects.toEqual(Error('Game not found'));
+        done();
+    })
+})
+
+
 
 describe('deleteGameByID()', ()=>{
     test('Delete valid game', async done =>{
@@ -695,6 +1116,43 @@ describe('getGameByID()_returnObject', () => {
         }catch(e){
             expect(e.message).toBe("Must supply description");
         }
+        done();
+    })
+})
+
+describe('getGames()', () => {
+    test('Valid - retrieves 2 games', async done =>{
+        expect.assertions(1);
+
+        const game = await new Games();
+
+        const title = "Red";
+        const summary = "Summary";
+        const desc = "Desc";
+        await game.addNewGame(title, summary, desc);
+
+        const title2 = "Red2";
+        const summary2 = "Summary2";
+        const desc2 = "Desc2";
+        await game.addNewGame(title2, summary2, desc2);
+        
+        expect(await game.getGames()).toMatchObject(
+            {
+                games: [
+                    {ID: 1,
+                    title: title,
+                    summary: summary,
+                    desc: desc
+                    },
+                    {ID: 2,
+                        title: title2,
+                        summary: summary2,
+                        desc: desc2
+                    }
+                ]
+            }
+        )
+
         done();
     })
 })
