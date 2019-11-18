@@ -270,7 +270,18 @@ module.exports = class Game {
 		} catch(err) {
 			throw err
 		}
-	}
+    }
+    
+    async getGames(){
+        let sql = `
+        SELECT * FROM game;`
+        const data = await this.db.all(sql);
+        let result = { games:[] };
+        for(let i = 0; i < Object.keys(data).length; i++){
+            result.games.push(data[i]);
+        }
+        return result;
+    }
 
 
 	async getGameByTitle(title) {
