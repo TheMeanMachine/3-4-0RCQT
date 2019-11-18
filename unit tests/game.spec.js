@@ -26,12 +26,12 @@ describe('uploadPicture()', ()=>{
     afterEach(mock.restore);
     
     test('Valid game', async done => {
-        expect.assertions(1);
+        expect.assertions(2);
 
         const game = await new Games();
 
         const path = 'user/images/pictureUpload.png';
-        const type = ".png";
+        const type = "image/png";
         const newGame = await game.addNewGame(
             "title",
             "summary",
@@ -39,10 +39,10 @@ describe('uploadPicture()', ()=>{
         const retreiveGame = await game.getGameByTitle("title");
         const gameID = retreiveGame.ID;
         
-        await game.uploadPicture(path,type,gameID);
+        expect(await game.uploadPicture(path,type,gameID)).toBe(true);
         const extension = await mime.extension(type);
 
-        expect( await fs.existsSync(`public/game/image.${extension}`)).toBe(true);
+        expect( await fs.existsSync(`public/game/${gameID}/picture_0.${extension}`)).toBe(true);
         
         
 
