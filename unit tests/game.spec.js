@@ -7,6 +7,8 @@ const mock = require('mock-fs');
 const fs = require('fs');
 const mime = require('mime-types')
 
+
+
 describe('getPictures()', () =>{
     beforeEach(function() {
         //console.log("");
@@ -1114,6 +1116,43 @@ describe('getGameByID()_returnObject', () => {
         }catch(e){
             expect(e.message).toBe("Must supply description");
         }
+        done();
+    })
+})
+
+describe('getGames()', () => {
+    test('Valid - retrieves 2 games', async done =>{
+        expect.assertions(1);
+
+        const game = await new Games();
+
+        const title = "Red";
+        const summary = "Summary";
+        const desc = "Desc";
+        await game.addNewGame(title, summary, desc);
+
+        const title2 = "Red2";
+        const summary2 = "Summary2";
+        const desc2 = "Desc2";
+        await game.addNewGame(title2, summary2, desc2);
+        
+        expect(await game.getGames()).toMatchObject(
+            {
+                games: [
+                    {ID: 1,
+                    title: title,
+                    summary: summary,
+                    desc: desc
+                    },
+                    {ID: 2,
+                        title: title2,
+                        summary: summary2,
+                        desc: desc2
+                    }
+                ]
+            }
+        )
+
         done();
     })
 })
