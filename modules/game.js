@@ -129,7 +129,7 @@ module.exports = class Game {
             
             const picPath = `public/game/${gameID}/picture_${data.records}.${extension}`;
             await fs.copy(path, picPath);
-            
+
             sql = `
             INSERT INTO gamePhoto (gameID, picture)
             VALUES(
@@ -143,15 +143,31 @@ module.exports = class Game {
         }catch(e){
             throw e;
         }
-	}
+    }
+    
+    async getPictures(gameID){
+        try{
+            let sql = `
+            SELECT * FROM gamePhoto
+            WHERE gameID = ${gameID};
+            `
+            const data = await this.db.all(sql);
+            let result = { pictures:[] };
+            for(let i = 0; i < Object.keys(data).length; i++){
+                result.pictures.push(data[i].picture);
+            }
+            return result;
+
+        }catch(e){
+            throw e;
+        }
+    }
 
     async addNewGame(title, summary, desc){
         try{
-            try{
-                this.checkGameFields(title, summary, desc);
-            }catch(e){
-                throw e;
-            }
+            
+            this.checkGameFields(title, summary, desc);
+            
 
             let sql = `SELECT COUNT(id) as records FROM game WHERE title="${title}";`;
 			const data = await this.db.get(sql);

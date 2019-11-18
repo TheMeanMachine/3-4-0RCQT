@@ -39,14 +39,14 @@ describe('getPictures()', () =>{
         await game.uploadPicture('user/images/pictureUpload2.png',"image/png",gameID);
 
         const extension = await mime.extension("image/png");
-        expect(await game.getPictures(gameID).toMatchObject(
+        expect(await game.getPictures(gameID)).toMatchObject(
             {
                 pictures: [
                     `public/game/${gameID}/picture_0.${extension}`,
                     `public/game/${gameID}/picture_1.${extension}`
                 ]
             }
-        ))
+        )
 
         done();
     })
