@@ -50,6 +50,39 @@ describe('getPictures()', () =>{
 
         done();
     })
+
+    test('Error if game does not exist', async done => {
+        expect.assertions(1);
+
+        const game = await new Games();
+        
+        await expect(game.getPictures(1))
+            .rejects.toEqual(Error("Game not found"));
+
+        done();
+    })
+    
+    test('Error if gameID is null', async done => {
+        expect.assertions(1);
+
+        const game = await new Games();
+        
+        await expect(game.getPictures(null))
+            .rejects.toEqual(Error("Must supply gameID"));
+
+        done();
+    })
+
+    test('Error if gameID is NaN', async done => {
+        expect.assertions(1);
+
+        const game = await new Games();
+        
+        await expect(game.getPictures("Not a number"))
+            .rejects.toEqual(Error("Must supply gameID"));
+
+        done();
+    })
 })
 
 describe('uploadPicture()', ()=>{
