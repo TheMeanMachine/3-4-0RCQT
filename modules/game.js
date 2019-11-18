@@ -121,13 +121,25 @@ module.exports = class Game {
             }
     
             const extension = mime.extension(mimeType)
-            console.log(`path: ${path}`)
-            console.log(`extension: ${extension}`)
         
             await this.getGameByID(gameID);
-    
+
+            let sql = `SELECT COUNT(id) as records FROM gamePhoto WHERE gameID="${gameID}";`;
+            const data = await this.db.get(sql);//Set to the amount of pictures saved
             
-            await fs.copy(path, `public/game/image.${extension}`)
+            const picPath = `public/game/${gameID}/picture_${data.records}.${extension}`;
+            await fs.copy(path, picPath);
+            
+            sql = `
+            INSERT INTO gamePhoto (gameID, picture)
+            VALUES(
+                ${gameID},
+                "${picPath}"
+            )`
+            await this.db.run(sql);
+
+            return true;
+            
         }catch(e){
             throw e;
         }
