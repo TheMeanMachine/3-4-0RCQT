@@ -147,6 +147,12 @@ module.exports = class Game {
     
     async getPictures(gameID){
         try{
+            if(gameID == null || isNaN(gameID)){
+                throw new Error('Must supply gameID');
+            }
+
+            await this.getGameByID(gameID);
+
             let sql = `
             SELECT * FROM gamePhoto
             WHERE gameID = ${gameID};

@@ -9,7 +9,7 @@ const mime = require('mime-types')
 
 describe('getPictures()', () =>{
     beforeEach(function() {
-        console.log("");
+        //console.log("");
         mock({
             public: {
                 game:{
@@ -87,7 +87,7 @@ describe('getPictures()', () =>{
 
 describe('uploadPicture()', ()=>{
     beforeEach(function() {
-        console.log("");
+        //console.log("");
         mock({
             public: {
                 game:{
