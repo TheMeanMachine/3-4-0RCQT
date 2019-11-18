@@ -107,12 +107,30 @@ module.exports = class Game {
     }
 
     async uploadPicture(path, mimeType, gameID) {
-		const extension = mime.extension(mimeType)
-		console.log(`path: ${path}`)
-        console.log(`extension: ${extension}`)
+        try{
+            if(gameID == null || isNaN(gameID)){
+                throw new Error('Must supply gameID');
+            }
     
-		
-		await fs.copy(path, `public/game/image.${extension}`)
+            if(path === null || path.length === 0){
+                throw new Error('Must supply path');
+            }
+    
+            if(mimeType === null || mimeType.length === 0){
+                throw new Error('Must supply type');
+            }
+    
+            const extension = mime.extension(mimeType)
+            console.log(`path: ${path}`)
+            console.log(`extension: ${extension}`)
+        
+            await this.getGameByID(gameID);
+    
+            
+            await fs.copy(path, `public/game/image.${extension}`)
+        }catch(e){
+            throw e;
+        }
 	}
 
     async addNewGame(title, summary, desc){
