@@ -7,7 +7,50 @@ const mock = require('mock-fs');
 const fs = require('fs');
 const mime = require('mime-types')
 
+describe('getPictures()', () =>{
+    beforeEach(function() {
+        console.log("");
+        mock({
+            public: {
+                game:{
 
+                }
+                
+            },
+            'user/images/pictureUpload.png':  Buffer.from([8, 6, 7, 5, 3, 0, 9]),
+            'user/images/pictureUpload2.png':  Buffer.from([8, 6, 7, 5, 3, 0, 9])
+        });
+    });
+    afterEach(mock.restore);
+
+    test('Valid game', async done => {
+        expect.assertions(1);
+
+        const game = await new Games();
+
+        await game.addNewGame(
+            "title",
+            "summary",
+            "desc");
+        const retreiveGame = await game.getGameByTitle("title");
+        const gameID = retreiveGame.ID;
+
+        await game.uploadPicture('user/images/pictureUpload.png',"image/png",gameID);
+        await game.uploadPicture('user/images/pictureUpload2.png',"image/png",gameID);
+
+        const extension = await mime.extension("image/png");
+        expect(await game.getPictures(gameID).toMatchObject(
+            {
+                pictures: [
+                    `public/game/${gameID}/picture_0.${extension}`,
+                    `public/game/${gameID}/picture_1.${extension}`
+                ]
+            }
+        ))
+
+        done();
+    })
+})
 
 describe('uploadPicture()', ()=>{
     beforeEach(function() {
