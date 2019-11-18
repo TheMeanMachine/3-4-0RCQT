@@ -18,6 +18,7 @@ const session = require('koa-session')
 const User = require('./modules/user')
 const adminDB = require('./modules/adminDB')
 const Review = require('./modules/review');
+const Games = require('./modules/game');
 
 const app = new Koa()
 const router = new Router()
@@ -42,22 +43,34 @@ const dbName = 'gameReview.db';
  */
 router.get('/', async ctx => {
 	try {
-		const admin_db = await new adminDB(dbName);
-		await admin_db.createTables();
-		
-		
 		if(ctx.session.authorised !== true){
-			return ctx.redirect('/login?msg=you need to log in')
+			return ctx.redirect('/login?msg=you need to log in');
 		}
+		const games = await new Games(dbName);
+		const temp = await games.getGames();
+		const gamesList = temp.games;
+
+		for(let i = 0; i < gamesList.length; i++){
+			const curID = gamesList[i].ID;
+			let pic = await games.getPictures(curID).pictures;
+			if(pic == undefined)pic = ["avatars/avatar.png"];
+			
+			gamesList[i].pictures = pic;
+			
+		}
+		
+		console.log(gamesList);
 		const data = {}
-		if(ctx.query.msg){
+		/*if(ctx.query.msg){
 			data.msg = ctx.query.msg
-		} 
-		await ctx.render('index')
+		} */
+		await ctx.render('index', { games:gamesList});
 	} catch(err) {
 		await ctx.render('error', {message: err.message})
 	}
 })
+
+
 
 /**
  * The user registration page.
