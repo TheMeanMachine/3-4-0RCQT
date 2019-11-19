@@ -42,4 +42,18 @@ module.exports = class Category {
 
 	}
 
+	async addCategory(name) {
+		// eslint-disable-next-line eqeqeq
+		if(name == null || !this.validator.checkMultipleWordsOnlyAlphaNumberic(name)) {
+			throw new Error('Must supply name')
+		}
+
+		const sql = `INSERT INTO category (title)
+                VALUES(
+                    "${name}"
+                )`
+		const result = await this.db.run(sql)
+		return result.lastID
+	}
+
 }
