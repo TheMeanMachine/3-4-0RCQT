@@ -1,184 +1,183 @@
 
 'use strict'
 
-const Publishers = require('../modules/publisher.js');
+const Publishers = require('../modules/publisher.js')
 
-describe('deletePublisherByID()', ()=>{
-    test('Valid publisher', async done =>{
-        expect.assertions(2);
+describe('deletePublisherByID()', () => {
+	test('Valid publisher', async done => {
+		expect.assertions(2)
 
-        const publisher = await new Publishers();
+		const publisher = await new Publishers()
 
-        const id = await publisher.addPublisher("Rockstar Games");
-        
-        const result = await publisher.deletePublisherByID(id);
-        expect(result).toBe(true);
-        await expect(publisher.getPublisherByID(1))
-            .rejects.toEqual(Error('Publisher not found'));
-            
+		const id = await publisher.addPublisher('Rockstar Games')
 
-        done();
-    })
+		const result = await publisher.deletePublisherByID(id)
+		expect(result).toBe(true)
+		await expect(publisher.getPublisherByID(1))
+			.rejects.toEqual(Error('Publisher not found'))
 
-    test('Error if ID is null', async done =>{
-        expect.assertions(1);
 
-        const publisher = await new Publishers();
+		done()
+	})
 
-        const id = await publisher.addPublisher("Rockstar Games");
-        
-        await expect(publisher.deletePublisherByID(null))
-            .rejects.toEqual(Error('Must supply ID'));
+	test('Error if ID is null', async done => {
+		expect.assertions(1)
 
-        done();
-    })
-    test('Error if ID is NaN', async done =>{
-        expect.assertions(1);
+		const publisher = await new Publishers()
 
-        const publisher = await new Publishers();
+		await publisher.addPublisher('Rockstar Games')
 
-        
-        await expect(publisher.deletePublisherByID("Not a number"))
-            .rejects.toEqual(Error('Must supply ID'));
-            
-        done();
-    })
+		await expect(publisher.deletePublisherByID(null))
+			.rejects.toEqual(Error('Must supply ID'))
+
+		done()
+	})
+	test('Error if ID is NaN', async done => {
+		expect.assertions(1)
+
+		const publisher = await new Publishers()
+
+
+		await expect(publisher.deletePublisherByID('Not a number'))
+			.rejects.toEqual(Error('Must supply ID'))
+
+		done()
+	})
 })
 
-describe('getPublisherByID()', ()=>{
-    test('Valid publisher', async done =>{
-        expect.assertions(1);
+describe('getPublisherByID()', () => {
+	test('Valid publisher', async done => {
+		expect.assertions(1)
 
-        const publisher = await new Publishers();
+		const publisher = await new Publishers()
 
-        const id = await publisher.addPublisher("Rockstar Games");
-        
-        const result = await publisher.getPublisherByID(id);
+		const id = await publisher.addPublisher('Rockstar Games')
 
-        expect(result).toMatchObject(
-            {
-                ID: id,
-                name: "Rockstar Games"
-            }
-        );
+		const result = await publisher.getPublisherByID(id)
 
-        done();
-    })
+		expect(result).toMatchObject(
+			{
+				ID: id,
+				name: 'Rockstar Games'
+			}
+		)
 
-    test('Error if ID is null', async done =>{
-        expect.assertions(1);
+		done()
+	})
 
-        const publisher = await new Publishers();
+	test('Error if ID is null', async done => {
+		expect.assertions(1)
 
-        const id = await publisher.addPublisher("Rockstar Games");
-        
-        await expect(publisher.getPublisherByID(null))
-            .rejects.toEqual(Error('Must supply ID'));
+		const publisher = await new Publishers()
 
-        done();
-    })
+		await publisher.addPublisher('Rockstar Games')
 
-    test('Error if publisher does not exist', async done =>{
-        expect.assertions(1);
+		await expect(publisher.getPublisherByID(null))
+			.rejects.toEqual(Error('Must supply ID'))
 
-        const publisher = await new Publishers();
+		done()
+	})
 
-        await expect(publisher.getPublisherByID(1))
-            .rejects.toEqual(Error('Publisher not found'));
-            
-        done();
-    })
+	test('Error if publisher does not exist', async done => {
+		expect.assertions(1)
 
-    test('Error if ID is NaN', async done =>{
-        expect.assertions(1);
+		const publisher = await new Publishers()
 
-        const publisher = await new Publishers();
+		await expect(publisher.getPublisherByID(1))
+			.rejects.toEqual(Error('Publisher not found'))
 
-        
-        await expect(publisher.getPublisherByID("Not a number"))
-            .rejects.toEqual(Error('Must supply ID'));
-            
-        done();
-    })
+		done()
+	})
+
+	test('Error if ID is NaN', async done => {
+		expect.assertions(1)
+
+		const publisher = await new Publishers()
+
+
+		await expect(publisher.getPublisherByID('Not a number'))
+			.rejects.toEqual(Error('Must supply ID'))
+
+		done()
+	})
 })
 
-describe('addPublisher()', ()=>{
-    test('Valid publisher', async done =>{
-        expect.assertions(1);
-        
-        const publisher = await new Publishers();
+describe('addPublisher()', () => {
+	test('Valid publisher', async done => {
+		expect.assertions(1)
 
-        const result = await publisher.addPublisher("Rockstar Games");
-        expect(result).toEqual(1);//Returns ID of publisher
+		const publisher = await new Publishers()
 
-        done();
-    })
+		const result = await publisher.addPublisher('Rockstar Games')
+		expect(result).toEqual(1)//Returns ID of publisher
 
-    test('Error if invalid publisher', async done =>{
-        expect.assertions(1);
-        
-        const publisher = await new Publishers();
+		done()
+	})
 
-        await expect(publisher.addPublisher(""))
-            .rejects.toEqual(Error('Must supply name'));
+	test('Error if invalid publisher', async done => {
+		expect.assertions(1)
+
+		const publisher = await new Publishers()
+
+		await expect(publisher.addPublisher(''))
+			.rejects.toEqual(Error('Must supply name'))
 
 
-        done();
-    })
+		done()
+	})
 
-    
+
 })
 
 
+describe('checkPublisherFields()', () => {
+	test('Valid name', async done => {
+		expect.assertions(1)
 
-describe('checkPublisherFields()', ()=>{
-    test('Valid name', async done =>{
-        expect.assertions(1);
+		const publisher = await new Publishers()
 
-        const publisher = await new Publishers();
+		expect(
+			publisher.checkPublisherFields('Rockstar Games')
+		).toBe(true)
+		done()
+	})
 
-        expect(
-            publisher.checkPublisherFields('Rockstar Games')
-            ).toBe(true);
-        done();
-    })
+	test('Error if: invalid name', async done => {
+		expect.assertions(1)
 
-    test('Error if: invalid name', async done =>{
-        expect.assertions(1);
+		const publisher = await new Publishers()
 
-        const publisher = await new Publishers();
+		try{
+			publisher.checkPublisherFields('R%(*""@#')
+		}catch(e) {
+			expect(e).toEqual(Error('Must supply name'))
+		}
+		done()
+	})
 
-        try{
-            publisher.checkPublisherFields('R%(*""@#');
-        }catch(e){
-            expect(e).toEqual(Error('Must supply name'))
-        }
-        done();
-    })
+	test('Error if: empty name', async done => {
+		expect.assertions(1)
 
-    test('Error if: empty name', async done =>{
-        expect.assertions(1);
+		const publisher = await new Publishers()
 
-        const publisher = await new Publishers();
+		try{
+			publisher.checkPublisherFields('')
+		}catch(e) {
+			expect(e).toEqual(Error('Must supply name'))
+		}
+		done()
+	})
 
-        try{
-            publisher.checkPublisherFields('');
-        }catch(e){
-            expect(e).toEqual(Error('Must supply name'))
-        }
-        done();
-    })
+	test('Error if: null name', async done => {
+		expect.assertions(1)
 
-    test('Error if: null name', async done =>{
-        expect.assertions(1);
+		const publisher = await new Publishers()
 
-        const publisher = await new Publishers();
-
-        try{
-            publisher.checkPublisherFields(null);
-        }catch(e){
-            expect(e).toEqual(Error('Must supply name'))
-        }
-        done();
-    })
+		try{
+			publisher.checkPublisherFields(null)
+		}catch(e) {
+			expect(e).toEqual(Error('Must supply name'))
+		}
+		done()
+	})
 })

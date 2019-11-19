@@ -1,5 +1,11 @@
 #!/usr/bin/env node
 
+/* eslint-disable eqeqeq */
+/* eslint-disable max-statements */
+/* eslint-disable complexity */
+/* eslint-disable max-lines-per-function */
+
+
 //Routes File
 
 'use strict'
@@ -16,9 +22,8 @@ const session = require('koa-session')
 
 /* IMPORT CUSTOM MODULES */
 const User = require('./modules/user')
-const adminDB = require('./modules/adminDB')
-const Review = require('./modules/review');
-const Games = require('./modules/game');
+const Review = require('./modules/review')
+const Games = require('./modules/game')
 
 const app = new Koa()
 const router = new Router()
@@ -31,61 +36,57 @@ app.use(session(app))
 app.use(views(`${__dirname}/views`, { extension: 'handlebars' }, {map: { handlebars: 'handlebars' }}))
 const defaultPort = 8080
 const port = process.env.PORT || defaultPort
-const dbName = 'gameReview.db' || ':memory:';
+const dbName = 'gameReview.db' || ':memory:'
 const helpers ={
-	
-	if_eq : function(a, b, opts) {
-		console.log("ifeq: " + a + b);
-		if(a == b) // Or === depending on your needs
-			return opts.fn(this);
+
+	if_eq: function(a, b, opts) {
+		console.log(`ifeq: ${ a }${b}`)
+		if(a == b)
+			return opts.fn(this)
 		else
-			return opts.inverse(this);
+			return opts.inverse(this)
 	},
 
-	if_Noteq : function(a, b, opts) {
-		if(a != b) // Or === depending on your needs
-			return opts.fn(this);
+	if_Noteq: function(a, b, opts) {
+		if(a != b)
+			return opts.fn(this)
 		else
-			return opts.inverse(this);
+			return opts.inverse(this)
 	},
 
-	
+
 }
 
 /**
  * The secure home page.
  *
- * @name Home Page
+ * @name Home Page - displays the games
  * @route {GET} /
  * @authentication This route requires cookie-based authentication.
  */
 router.get('/', async ctx => {
 	try {
-		if(ctx.session.authorised !== true){
-			return ctx.redirect('/login?msg=you need to log in');
+		if(ctx.session.authorised !== true) {
+			return ctx.redirect('/login?msg=you need to log in')
 		}
-		const user = await new User(dbName);
-		const userInfo = user.getUserByID(ctx.session.userID);
-		const games = await new Games(dbName);
-		const temp = await games.getGames();
-		const gamesList = temp.games;
+		const user = await new User(dbName)
+		const userInfo = user.getUserByID(ctx.session.userID)
+		const games = await new Games(dbName)
+		const temp = await games.getGames()
+		const gamesList = temp.games
 
-		for(let i = 0; i < gamesList.length; i++){
-			const curID = gamesList[i].ID;
-			let tempPic = await games.getPictures(curID);
-			const pic = tempPic.pictures;
-			if(pic == undefined)pic = [];
-			
-			gamesList[i].pictures = pic;
-			
+		for(let i = 0; i < gamesList.length; i++) {
+			const curID = gamesList[i].ID
+			const tempPic = await games.getPictures(curID)
+			const pic = tempPic.pictures
+			if(pic === undefined)pic = []
+
+			gamesList[i].pictures = pic
+
 		}
-		
-		console.log(gamesList);
-		const data = {}
-		/*if(ctx.query.msg){
-			data.msg = ctx.query.msg
-		} */
-		await ctx.render('index', { games:gamesList}, {user:userInfo});
+
+		console.log(gamesList)
+		await ctx.render('index', { games: gamesList}, {user: userInfo})
 	} catch(err) {
 		await ctx.render('error', {message: err.message})
 	}
@@ -101,47 +102,47 @@ router.get('/', async ctx => {
  */
 router.get('/game', async ctx => {
 	try {
-		if(ctx.session.authorised !== true){
-			return ctx.redirect('/login?msg=you need to log in');
+		if(ctx.session.authorised !== true) {
+			return ctx.redirect('/login?msg=you need to log in')
 		}
 		const games = await new Games(dbName)
 		const review = await new Review(dbName)
 
-		if(!ctx.query.gameID) await ctx.render('error', {message: "No game chosen"})
+		if(!ctx.query.gameID) await ctx.render('error', {message: 'No game chosen'})
 
-		const gameID = ctx.query.gameID;
-		let thisGame = await games.getGameByID(gameID);
+		const gameID = ctx.query.gameID
+		const thisGame = await games.getGameByID(gameID)
 
-		let temp= await games.getPictures(gameID);
+		let temp= await games.getPictures(gameID)
 		let pic = temp.pictures
 
-		if(pic == undefined)pic = [];
-		thisGame.pictures = pic;
+		if(pic == undefined)pic = []
+		thisGame.pictures = pic
 
-		temp = await review.getReviewsByGameID(gameID);
-		const reviews = temp.reviews;
-		let uReview;
-		for(let i = 0; i < reviews.length; i++){
-			if(reviews[i].userID == ctx.session.userID){
-				uReview = reviews[i];
+		temp = await review.getReviewsByGameID(gameID)
+		const reviews = temp.reviews
+		let uReview
+		for(let i = 0; i < reviews.length; i++) {
+			if(reviews[i].userID == ctx.session.userID) {
+				uReview = reviews[i]
 				reviews.splice(i,1)//Remove user's review from main list
-				break;
+				break
 			}
 		}
-
-		let ratingsReviews = []
-		for(let i = 1; i <= 5; i++){
+		const ratingsMax = 5
+		const ratingsReviews = []
+		for(let i = 1; i <= ratingsMax; i++) {
 			ratingsReviews[i] ={
-				value:i
+				value: i
 			}
-			if(uReview && i == uReview.rating){
-				ratingsReviews[i].checked = true;
+			if(uReview && i == uReview.rating) {
+				ratingsReviews[i].checked = true
 			}
 		}
 		console.log(ratingsReviews)
-			
-	
-		console.log(uReview);
+
+
+		console.log(uReview)
 		await ctx.render('game', {
 			game: thisGame,
 			admin: ctx.session.admin,
@@ -149,16 +150,16 @@ router.get('/game', async ctx => {
 			allReview: reviews,
 			userReview: uReview,
 			helpers
-		});
+		})
 	} catch(err) {
 		await ctx.render('error', {message: err.message})
 	}
 })
 
 /**
- * Add review page
+ * Script to add a review to a game
  *
- * @name addReview Page
+ * @name addReview script
  * @route {POST} /addReview
  * @authentication This route requires cookie-based authentication.
  *
@@ -167,25 +168,25 @@ router.post('/addReview', async ctx => {
 	try {
 		// extract the data from the request
 		const body = ctx.request.body
-		console.log(body);
-		if(ctx.session.authorised !== true){
-			return ctx.redirect('/login?msg=you need to log in');
+		console.log(body)
+		if(ctx.session.authorised !== true) {
+			return ctx.redirect('/login?msg=you need to log in')
 		}
 		// call the functions in the module
 		const review = await new Review(dbName)
-		const games = await new Games(dbName);
+		const games = await new Games(dbName)
 
-		const gameID = body.gameID;
+		const gameID = body.gameID
 
 		await review.addReview(gameID, {
 			fullText: body.fullText,
 			rating: body.rating
-		}, ctx.session.userID);
-		
-		let thisGame = await games.getGameByID(gameID);
-		let pic = await games.getPictures(gameID).pictures;
-		if(pic == undefined)pic = ["avatars/avatar.png"];
-		thisGame.pictures = pic;
+		}, ctx.session.userID)
+
+		const thisGame = await games.getGameByID(gameID)
+		let pic = await games.getPictures(gameID).pictures
+		if(pic == undefined)pic = ['avatars/avatar.png']
+		thisGame.pictures = pic
 
 		ctx.redirect(`game?gameID=${gameID}`)
 	} catch(err) {
@@ -194,52 +195,52 @@ router.post('/addReview', async ctx => {
 })
 
 /**
- * Add newGame page
+ * Script to add a new game
  *
- * @name newGame Page
+ * @name newGame script
  * @route {POST} /newGame
  * @authentication This route requires cookie-based authentication.
  *
  */
-router.post('/newGame', async ctx =>{
+router.post('/newGame', async ctx => {
 	try {
 		// extract the data from the request
 		const body = ctx.request.body
-		if(ctx.session.authorised !== true){
-			return ctx.redirect('/login?msg=you need to log in');
+		if(ctx.session.authorised !== true) {
+			return ctx.redirect('/login?msg=you need to log in')
 		}
-		
-		const game = await new Games(dbName)
-		await game.addNewGame(body.title, body.summary, body.desc);
 
-		ctx.redirect(`/`)
+		const game = await new Games(dbName)
+		await game.addNewGame(body.title, body.summary, body.desc)
+
+		ctx.redirect('/')
 	} catch(err) {
 		await ctx.render('error', {message: err.message})
 	}
 })
 
 /**
- * Add game photo page
+ * Script to add a game photo
  *
- * @name addGamePhoto Page
+ * @name addGamePhoto script
  * @route {POST} /addGamePhoto
  * @authentication This route requires cookie-based authentication.
  *
  */
-router.post('/addGamePhoto',koaBody,  async ctx =>{
+router.post('/addGamePhoto',koaBody, async ctx => {
 	try {
 		// extract the data from the request
 		const body = ctx.request.body
-		if(ctx.session.authorised !== true){
-			return ctx.redirect('/login?msg=you need to log in');
+		if(ctx.session.authorised !== true) {
+			return ctx.redirect('/login?msg=you need to log in')
 		}
-		
+
 		const game = await new Games(dbName)
 
-		const gameID = body.gameID;
-		var {path, type} = ctx.request.files.pic1;
+		const gameID = body.gameID
+		const {path, type} = ctx.request.files.pic1
 
-		await game.uploadPicture(path, type, gameID);
+		await game.uploadPicture(path, type, gameID)
 
 		ctx.redirect(`/game?gameID=${gameID}`)
 	} catch(err) {
@@ -248,9 +249,9 @@ router.post('/addGamePhoto',koaBody,  async ctx =>{
 })
 
 /**
- * Update review page
+ * Script to update reviews where users have had a review before
  *
- * @name updateReview Page
+ * @name updateReview script
  * @route {POST} /updateReview
  * @authentication This route requires cookie-based authentication.
  *
@@ -259,17 +260,17 @@ router.post('/updateReview', async ctx => {
 	try {
 		// extract the data from the request
 		const body = ctx.request.body
-		console.log(body);
-		if(ctx.session.authorised !== true){
-			return ctx.redirect('/login?msg=you need to log in');
+		console.log(body)
+		if(ctx.session.authorised !== true) {
+			return ctx.redirect('/login?msg=you need to log in')
 		}
 		// call the functions in the module
 		const review = await new Review(dbName)
-		const gameID = body.gameID;
+		const gameID = body.gameID
 		await review.updateReview(ctx.session.userID, {
 			fullText: body.fullText,
 			rating: body.rating
-		});
+		})
 
 		ctx.redirect(`game?gameID=${gameID}`)
 	} catch(err) {
@@ -299,7 +300,7 @@ router.post('/register', koaBody, async ctx => {
 		// call the functions in the module
 		const user = await new User(dbName)
 		await user.register(body.user, body.pass)
-		
+
 		// await user.uploadPicture(path, type)
 		// redirect to the home page
 		ctx.redirect(`/?msg=new user "${body.name}" added`)
@@ -308,33 +309,51 @@ router.post('/register', koaBody, async ctx => {
 	}
 })
 
+/**
+ * The user login page.
+ *
+ * @name login Page
+ * @route {GET} /login
+ */
 router.get('/login', async ctx => {
 	const data = {}
-	if(ctx.query.msg){
+	if(ctx.query.msg) {
 		data.msg = ctx.query.msg
-	} 
-	if(ctx.query.user){
+	}
+	if(ctx.query.user) {
 		data.user = ctx.query.user
-	} 
+	}
 	await ctx.render('login', data)
 })
 
+/**
+ * The script to process logins
+ *
+ * @name login Script
+ * @route {POST} /login
+ */
 router.post('/login', async ctx => {
 	try {
-		const body = ctx.request.body;
-		const user = await new User(dbName);
-		const ID = await user.login(body.user, body.pass);
-		ctx.session.authorised = true;
-		ctx.session.userID = ID;
+		const body = ctx.request.body
+		const user = await new User(dbName)
+		const ID = await user.login(body.user, body.pass)
+		ctx.session.authorised = true
+		ctx.session.userID = ID
 		return ctx.redirect('/?msg=you are now logged in...')
 	} catch(err) {
 		await ctx.render('error', {message: err.message})
 	}
 })
 
+/**
+ * The page to process logouts
+ *
+ * @name logout Script
+ * @route {POST} /logout
+ */
 router.get('/logout', async ctx => {
-	ctx.session.authorised = null;
-	ctx.session.userID = null;
+	ctx.session.authorised = null
+	ctx.session.userID = null
 	ctx.redirect('/?msg=you are now logged out')
 })
 

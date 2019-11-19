@@ -3,222 +3,218 @@
 
 const Accounts = require('../modules/user.js')
 const mime = require('mime-types')
-const mock = require('mock-fs');
-const fs = require('fs');
+const mock = require('mock-fs')
+const fs = require('fs')
 
 describe('getUserbyID()', () => {
-    test('Get valid User', async done =>{
-        expect.assertions(1);
+	test('Get valid User', async done => {
+		expect.assertions(1)
 
-        const user = await new Accounts();
+		const user = await new Accounts()
 
-        const userID = await user.register("Aaron", "passwordIsNotGood")
-        
-        const retreiveUser = await user.getUserByID(userID);
+		const userID = await user.register('Aaron', 'passwordIsNotGood')
 
-        expect(retreiveUser).toMatchObject(
-            {
-                ID: 1,
-                username: "Aaron"
-            }
-        );
+		const retreiveUser = await user.getUserByID(userID)
 
-        done();
+		expect(retreiveUser).toMatchObject(
+			{
+				ID: 1,
+				username: 'Aaron'
+			}
+		)
+
+		done()
 	})
-	
-	test('Get valid user _ with photo', async done =>{
-        expect.assertions(1);
+
+	test('Get valid user _ with photo', async done => {
+		expect.assertions(1)
 
 		//console.log("");
 		mock({
 			public: {
-				users:{
+				users: {
 
 				}
-				
+
 			},
-			'user/images/pictureUpload.png':  Buffer.from([8, 6, 7, 5, 3, 0, 9])
-		});
-		const path = 'user/images/pictureUpload.png';
-		const type = "image/png";
-		
-        const user = await new Accounts();
-        
+			'user/images/pictureUpload.png': Buffer.from([8, 6, 7, 5, 3, 0, 9])
+		})
+		const path = 'user/images/pictureUpload.png'
+		const type = 'image/png'
 
-        const userID = await user.register("Aaron", "passwordIsNotGood")
+		const user = await new Accounts()
+
+
+		const userID = await user.register('Aaron', 'passwordIsNotGood')
 		await user.uploadPicture(path, type, userID)
-        const retreiveUser = await user.getUserByID(userID);
+		const retreiveUser = await user.getUserByID(userID)
 
-        expect(retreiveUser).toMatchObject(
-            {
-                ID: 1,
-				username: "Aaron",
-				avatar: "public/users/1/profile.png"
-            }
-        );
+		expect(retreiveUser).toMatchObject(
+			{
+				ID: 1,
+				username: 'Aaron',
+				avatar: 'users/1/profile.png'
+			}
+		)
 		mock.restore
-        done();
-    })
+		done()
+	})
 
-    test('Error if user does not exist', async done =>{
-        expect.assertions(1);
-        const user = await new Accounts();
-        
-        await expect(user.getUserByID(0))
-            .rejects.toEqual(Error('User not found'));
-        done();
-    })
-    
-    test('Error if userID is null', async done =>{
-        expect.assertions(1);
-        const user = await new Accounts();
-        await expect(user.getUserByID(null))
-            .rejects.toEqual(Error("Must supply userID"));
+	test('Error if user does not exist', async done => {
+		expect.assertions(1)
+		const user = await new Accounts()
 
+		await expect(user.getUserByID(0))
+			.rejects.toEqual(Error('User not found'))
+		done()
+	})
 
-        done();
-    })
-
-    test('Error if userID is NaN', async done =>{
-        expect.assertions(1);
-        const user = await new Accounts();
-        await expect(user.getUserByID("string"))
-            .rejects.toEqual(Error("Must supply userID"));
+	test('Error if userID is null', async done => {
+		expect.assertions(1)
+		const user = await new Accounts()
+		await expect(user.getUserByID(null))
+			.rejects.toEqual(Error('Must supply userID'))
 
 
-        done();
-    })
+		done()
+	})
+
+	test('Error if userID is NaN', async done => {
+		expect.assertions(1)
+		const user = await new Accounts()
+		await expect(user.getUserByID('string'))
+			.rejects.toEqual(Error('Must supply userID'))
+
+
+		done()
+	})
 
 })
 
 
-describe('uploadPicture()', ()=>{
-    beforeEach(function() {
-        //console.log("");
-        mock({
-            public: {
-                game:{
+describe('uploadPicture()', () => {
+	beforeEach(() => {
+		//console.log("");
+		mock({
+			public: {
+				game: {
 
-                }
-                
-            },
-            'user/images/pictureUpload.png':  Buffer.from([8, 6, 7, 5, 3, 0, 9])
-        });
-    });
-    
-    afterEach(mock.restore);
-    
-    test('Valid user', async done => {
-        expect.assertions(2);
+				}
 
-        const user = await new Accounts();
+			},
+			'user/images/pictureUpload.png': Buffer.from([8, 6, 7, 5, 3, 0, 9])
+		})
+	})
 
-        const path = 'user/images/pictureUpload.png';
-        const type = "image/png";
-        const userID = await user.register(
-            "Aaron",
-            "notAGoodPassword");
-        
-        expect(await user.uploadPicture(path,type,userID)).toBe(true);
-        const extension = await mime.extension(type);
+	afterEach(mock.restore)
 
-        expect( await fs.existsSync(`public/users/${userID}/profile.${extension}`)).toBe(true);
-        
-        done();
-    })
+	test('Valid user', async done => {
+		expect.assertions(2)
 
-    test('Error if user does not exist', async done => {
-        expect.assertions(1);
+		const user = await new Accounts()
 
-        const user = await new Accounts();
+		const path = 'user/images/pictureUpload.png'
+		const type = 'image/png'
+		const userID = await user.register(
+			'Aaron',
+			'notAGoodPassword')
 
-        const path = 'user/images/pictureUpload.png';
-        const type = ".png";
+		expect(await user.uploadPicture(path,type,userID)).toBe(true)
+		const extension = await mime.extension(type)
 
-        const userID = 2;
-        
-        await expect(user.uploadPicture(path,type,userID))
-            .rejects.toEqual(Error('User not found'));
-        done();
-    })
+		expect( await fs.existsSync(`public/users/${userID}/profile.${extension}`)).toBe(true)
 
-    test('Error if userID is null', async done => {
-        expect.assertions(1);
+		done()
+	})
 
-        const user = await new Accounts();
+	test('Error if user does not exist', async done => {
+		expect.assertions(1)
 
-        const path = 'user/images/pictureUpload.png';
-        const type = ".png";
-        
-        await expect(user.uploadPicture(path,type,null))
-            .rejects.toEqual(Error('Must supply userID'));
-        done();
-    })
+		const user = await new Accounts()
 
-    test('Error if userID is NaN', async done => {
-        expect.assertions(1);
+		const path = 'user/images/pictureUpload.png'
+		const type = '.png'
 
-        const user = await new Accounts();
+		const userID = 2
 
-        const path = 'user/images/pictureUpload.png';
-        const type = ".png";
-        
-        await expect(user.uploadPicture(path,type,"Not a Number"))
-            .rejects.toEqual(Error('Must supply userID'));
-        done();
-    })
+		await expect(user.uploadPicture(path,type,userID))
+			.rejects.toEqual(Error('User not found'))
+		done()
+	})
 
-    test('Error if path is null', async done => {
-        expect.assertions(1);
+	test('Error if userID is null', async done => {
+		expect.assertions(1)
 
-        const user = await new Accounts();
+		const user = await new Accounts()
 
-        const path = 'user/images/pictureUpload.png';
-        const type = ".png";
-        
-        await expect(user.uploadPicture(null,type,1))
-            .rejects.toEqual(Error('Must supply path'));
-        done();
-    })
+		const path = 'user/images/pictureUpload.png'
+		const type = '.png'
 
-    test('Error if path is empty', async done => {
-        expect.assertions(1);
+		await expect(user.uploadPicture(path,type,null))
+			.rejects.toEqual(Error('Must supply userID'))
+		done()
+	})
 
-        const user = await new Accounts();
+	test('Error if userID is NaN', async done => {
+		expect.assertions(1)
 
-        const path = 'user/images/pictureUpload.png';
-        const type = ".png";
-        
-        await expect(user.uploadPicture('',type,1))
-            .rejects.toEqual(Error('Must supply path'));
-        done();
-    })
+		const user = await new Accounts()
 
-    test('Error if type is null', async done => {
-        expect.assertions(1);
+		const path = 'user/images/pictureUpload.png'
+		const type = '.png'
 
-        const user = await new Accounts();
+		await expect(user.uploadPicture(path,type,'Not a Number'))
+			.rejects.toEqual(Error('Must supply userID'))
+		done()
+	})
 
-        const path = 'user/images/pictureUpload.png';
-        const type = ".png";
-        
-        await expect(user.uploadPicture(path,null,1))
-            .rejects.toEqual(Error('Must supply type'));
-        done();
-    })
+	test('Error if path is null', async done => {
+		expect.assertions(1)
 
-    test('Error if type is empty', async done => {
-        expect.assertions(1);
+		const user = await new Accounts()
 
-        const user = await new Accounts();
+		const type = '.png'
 
-        const path = 'user/images/pictureUpload.png';
-        const type = ".png";
-        
-        await expect(user.uploadPicture(path,'',1))
-            .rejects.toEqual(Error('Must supply type'));
-        done();
-    })
+		await expect(user.uploadPicture(null,type,1))
+			.rejects.toEqual(Error('Must supply path'))
+		done()
+	})
+
+	test('Error if path is empty', async done => {
+		expect.assertions(1)
+
+		const user = await new Accounts()
+
+		const type = '.png'
+
+		await expect(user.uploadPicture('',type,1))
+			.rejects.toEqual(Error('Must supply path'))
+		done()
+	})
+
+	test('Error if type is null', async done => {
+		expect.assertions(1)
+
+		const user = await new Accounts()
+
+		const path = 'user/images/pictureUpload.png'
+
+		await expect(user.uploadPicture(path,null,1))
+			.rejects.toEqual(Error('Must supply type'))
+		done()
+	})
+
+	test('Error if type is empty', async done => {
+		expect.assertions(1)
+
+		const user = await new Accounts()
+
+		const path = 'user/images/pictureUpload.png'
+
+		await expect(user.uploadPicture(path,'',1))
+			.rejects.toEqual(Error('Must supply type'))
+		done()
+	})
 })
 
 describe('register()', () => {
@@ -258,48 +254,48 @@ describe('register()', () => {
 
 })
 
-describe('checkUserFields()', ()=>{
-    test('Valid fields', async done => {
-        expect.assertions(1);
-        const game = await new Accounts();
-        let result = await game.checkUserFields('Username','Password');
-        expect(result).toBe(true);
-        done();
-    })
-
-    test('Error if empty _ username', async done =>{
-        expect.assertions(1);
-		const game = await new Accounts();
-        try{
-            await game.checkUserFields('');
-        }catch(e){
-            expect(e).toEqual(new Error('Must supply user'));
-        }
-        
-        done();
-    })
-
-    test('Error if empty _ summary', async done =>{
-        expect.assertions(1);
-		const game = await new Accounts();
-        try{
-            await game.checkUserFields('Username','');
-        }catch(e){
-            expect(e).toEqual(new Error('Must supply pass'));
-        }
-        
-        done();
+describe('checkUserFields()', () => {
+	test('Valid fields', async done => {
+		expect.assertions(1)
+		const game = await new Accounts()
+		const result = await game.checkUserFields('Username','Password')
+		expect(result).toBe(true)
+		done()
 	})
-	
-	test('Valid if no input', async done =>{
-        expect.assertions(1);
-		const game = await new Accounts();
-        
-            expect(await game.checkUserFields(null,null)).toBe(true);
-        
-        
-        done();
-    })
+
+	test('Error if empty _ username', async done => {
+		expect.assertions(1)
+		const game = await new Accounts()
+		try{
+			await game.checkUserFields('')
+		}catch(e) {
+			expect(e).toEqual(new Error('Must supply user'))
+		}
+
+		done()
+	})
+
+	test('Error if empty _ summary', async done => {
+		expect.assertions(1)
+		const game = await new Accounts()
+		try{
+			await game.checkUserFields('Username','')
+		}catch(e) {
+			expect(e).toEqual(new Error('Must supply pass'))
+		}
+
+		done()
+	})
+
+	test('Valid if no input', async done => {
+		expect.assertions(1)
+		const game = await new Accounts()
+
+		expect(await game.checkUserFields(null,null)).toBe(true)
+
+
+		done()
+	})
 
 })
 
@@ -314,7 +310,7 @@ describe('login()', () => {
 		const account = await new Accounts()
 		await account.register('doej', 'password')
 		const valid = await account.login('doej', 'password')
-		expect(valid).toEqual(1);
+		expect(valid).toEqual(1)
 		done()
 	})
 
