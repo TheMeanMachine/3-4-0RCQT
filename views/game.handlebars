@@ -1,0 +1,118 @@
+
+<!doctype html>
+
+<html lang="en">
+	<head>
+		<meta charset="utf-8">
+		<title>Home Page</title>
+		<meta name="description" content="form to add new books">
+		<meta name="author" content="Aaron Machin">
+		<link href="style.css" type="text/css" rel="stylesheet" />
+	</head>
+	<body>
+        {{#if admin}}
+            <div class="delete">
+                DELETE
+            </div>
+        {{/if}}
+        <div class="backButton" onclick="window.location.href='/'">
+            BACK
+        </div>
+
+		<div class="mainGamePageOuter">
+            <div class="cardImg">
+                {{#if game.pictures}}
+                    <img class="cardImgInner" src="{{game.pictures.[0]}}">
+                {{else}}
+                    <p>No pictures found</p>
+                {{/if}}
+            </div>
+            <div class="card">
+                <h2>{{game.title}}</h2>
+                <p>{{game.summary}}</p>
+                
+                <p>{{game.desc}}</p>
+                <hr>
+            </div>
+            
+            <div class="content">
+                {{#if userReview}}
+                <form action="/updateReview" method="post" id="review"> 
+                    <h4>Your review</h4>
+                    {{#if_eq userReview.flag 0}}
+                        <p>Your review is pending admin approval</p>
+                    {{/if_eq}}
+                    <textarea rows="4" cols="50" name="fullText" form="review" placeholder="Write your review">{{userReview.fullText}}</textarea>
+                    <br>
+                    <div class="rating">
+                        Rating<br>
+                        {{#each ratingsReview}}
+                        <label>
+                            <input type="radio" name="rating" value="{{this.value}}"
+                                {{#if this.checked}} checked="checked" {{/if}}
+                            > {{this.value}}
+                        </label>
+                        {{/each}}
+                        <br>
+                        <input type="text" name="gameID" value="{{game.ID}}" style="display:none">
+
+                    </div>  
+                    <br>
+                    <button type="submit" class="">
+                        UPDATE REVIEW
+                    </button>
+
+
+                </form>
+                
+                {{else}}
+                <form action="/addReview" method="post" id="review"> 
+                    <h4>Your review</h4>
+                    <textarea rows="4" cols="50" name="fullText" form="review" placeholder="Write your review"></textarea>
+                    <br>
+                    <div class="rating">
+                        Rating<br>
+                        {{#each ratingsReview}}
+                        <label>
+                            <input type="radio" name="rating" value="{{this.value}}"
+                                {{#if_eq this.value 1}} checked="checked" {{/if_eq}}> {{this.value}}
+                        </label>
+                        {{/each}}
+                        <br>
+                        <input type="text" name="gameID" value="{{game.ID}}" style="display:none">
+
+                    </div>  
+                    <br>
+                    <button type="submit" class="">
+                        SUBMIT REVIEW
+                    </button>
+
+
+                </form>
+                
+                {{/if}}
+                <hr>
+
+                {{#each allReview}}
+                <div class="reviewCard">
+                    <div class="reviewCardInner">
+                        <div class="images">
+
+                        </div>
+                        <p>Rating: {{this.rating}}</p>
+                        <p>Review: {{this.fullText}}</p>
+                        
+                    </div>
+                </div>
+                    
+                {{/each}}
+            </div>
+            
+            
+        </div>
+        
+		
+        <p><a href="/logout">log out</a></p>
+		<p>{{message}}</p>
+		
+</html>
