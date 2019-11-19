@@ -42,4 +42,69 @@ module.exports = class Category {
 
 	}
 
+	async addCategory(name) {
+		// eslint-disable-next-line eqeqeq
+		if(name == null || !this.validator.checkMultipleWordsOnlyAlphaNumberic(name)) {
+			throw new Error('Must supply name')
+		}
+
+		let sql = `SELECT count(ID) AS count FROM category WHERE title = "${name}";`
+		const records = await this.db.get(sql)
+		if(records.count !== 0) {
+			throw new Error('Category already exists')
+		}
+
+		sql = `INSERT INTO category (title)
+                VALUES(
+                    "${name}"
+                )`
+		const result = await this.db.run(sql)
+		return result.lastID
+	}
+
+	async getCategoryByID(catID) {
+		try{
+			if(catID === null || isNaN(catID)) {
+				throw new Error('Must supply catID')
+			}
+
+			let sql = `SELECT count(ID) AS count FROM category WHERE ID = ${catID};`
+			let records = await this.db.get(sql)
+			if(records.count === 0) {
+				throw new Error('Category not found')
+			}
+
+			sql = `SELECT * FROM category WHERE ID = ${catID};`
+
+			records = await this.db.get(sql)
+			return records
+
+		}catch(e) {
+			throw e
+		}
+	}
+
+	async deleteByID(catID) {
+		try{
+			if(catID === null || isNaN(catID)) {
+				throw new Error('Must supply catID')
+			}
+
+			const sql = [`
+            DELETE FROM game_category
+            WHERE categoryID = ${catID};
+            `,`
+            DELETE FROM category
+            WHERE ID = ${catID}`
+			]
+
+			for(let i = 0; i < sql.length; i++) {
+				await this.db.run(sql[i])
+			}
+
+			return true
+		}catch(e) {
+			throw e
+		}
+	}
 }
