@@ -289,6 +289,16 @@ describe('checkUserFields()', ()=>{
         }
         
         done();
+	})
+	
+	test('Valid if no input', async done =>{
+        expect.assertions(1);
+		const game = await new Accounts();
+        
+            expect(await game.checkUserFields(null,null)).toBe(true);
+        
+        
+        done();
     })
 
 })
