@@ -4,9 +4,11 @@
 const mime = require('mime-types')
 const sqlite = require('sqlite-async')
 const fs = require('fs-extra');
+const sharp = require('sharp');
 //Custom modules
 const valid = require('./validator');
 const Publishers = require('./publisher');
+
 
 
 module.exports = class Game {
@@ -280,6 +282,8 @@ module.exports = class Game {
         for(let i = 0; i < Object.keys(data).length; i++){
             result.games.push(data[i]);
         }
+
+        
         return result;
     }
 
