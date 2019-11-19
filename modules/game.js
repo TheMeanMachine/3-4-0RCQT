@@ -129,6 +129,7 @@ module.exports = class Game {
             let sql = `SELECT COUNT(id) as records FROM gamePhoto WHERE gameID="${gameID}";`;
             const data = await this.db.get(sql);//Set to the amount of pictures saved
             
+            const picPath1 = `game/${gameID}/picture_${data.records}.${extension}`;
             const picPath = `public/game/${gameID}/picture_${data.records}.${extension}`;
             await fs.copy(path, picPath);
 
@@ -136,7 +137,7 @@ module.exports = class Game {
             INSERT INTO gamePhoto (gameID, picture)
             VALUES(
                 ${gameID},
-                "${picPath}"
+                "${picPath1}"
             )`
             await this.db.run(sql);
 

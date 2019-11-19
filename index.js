@@ -72,8 +72,9 @@ router.get('/', async ctx => {
 
 		for(let i = 0; i < gamesList.length; i++){
 			const curID = gamesList[i].ID;
-			let pic = await games.getPictures(curID).pictures;
-			if(pic == undefined)pic = ["avatars/avatar.png"];
+			let tempPic = await games.getPictures(curID);
+			const pic = tempPic.pictures;
+			if(pic == undefined)pic = [];
 			
 			gamesList[i].pictures = pic;
 			
@@ -103,17 +104,19 @@ router.get('/game', async ctx => {
 		const gameID = ctx.query.gameID;
 		let thisGame = await games.getGameByID(gameID);
 
-		let pic = await games.getPictures(gameID).pictures;
-		if(pic == undefined)pic = ["avatars/avatar.png"];
+		let temp= await games.getPictures(gameID);
+		let pic = temp.pictures
+
+		if(pic == undefined)pic = [];
 		thisGame.pictures = pic;
 
-		const temp = await review.getReviewsByGameID(gameID);
+		temp = await review.getReviewsByGameID(gameID);
 		const reviews = temp.reviews;
 		let uReview;
 		for(let i = 0; i < reviews.length; i++){
 			if(reviews[i].userID == ctx.session.userID){
 				uReview = reviews[i];
-				reviews.splice(i,1)
+				reviews.splice(i,1)//Remove user's review from main list
 				break;
 			}
 		}
@@ -168,9 +171,45 @@ router.post('/addReview', async ctx => {
 		if(pic == undefined)pic = ["avatars/avatar.png"];
 		thisGame.pictures = pic;
 
-		// await user.uploadPicture(path, type)
-		// redirect to the home page
 		ctx.redirect(`game?gameID=${gameID}`)
+	} catch(err) {
+		await ctx.render('error', {message: err.message})
+	}
+})
+
+router.post('/newGame', async ctx =>{
+	try {
+		// extract the data from the request
+		const body = ctx.request.body
+		if(ctx.session.authorised !== true){
+			return ctx.redirect('/login?msg=you need to log in');
+		}
+		
+		const game = await new Games(dbName)
+		await game.addNewGame(body.title, body.summary, body.desc);
+
+		ctx.redirect(`/`)
+	} catch(err) {
+		await ctx.render('error', {message: err.message})
+	}
+})
+
+router.post('/addGamePhoto',koaBody,  async ctx =>{
+	try {
+		// extract the data from the request
+		const body = ctx.request.body
+		if(ctx.session.authorised !== true){
+			return ctx.redirect('/login?msg=you need to log in');
+		}
+		
+		const game = await new Games(dbName)
+
+		const gameID = body.gameID;
+		var {path, type} = ctx.request.files.pic1;
+
+		await game.uploadPicture(path, type, gameID);
+
+		ctx.redirect(`/game?gameID=${gameID}`)
 	} catch(err) {
 		await ctx.render('error', {message: err.message})
 	}

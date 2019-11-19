@@ -22,9 +22,19 @@
 		<div class="mainGamePageOuter">
             <div class="cardImg">
                 {{#if game.pictures}}
-                    <img class="cardImgInner" src="{{game.pictures.[0]}}">
+                    {{#each game.pictures}}
+                        <img class="cardImgInner" src="{{this}}">
+                    {{/each}}
                 {{else}}
                     <p>No pictures found</p>
+                {{/if}}
+                
+                {{#if admin}}
+                    <form action="addGamePhoto" method="POST" enctype="multipart/form-data">
+                        <p>Add a game picture:<br /><input type="file" name="pic1"></p>
+                        <input type="text" name="gameID" value="{{game.ID}}" style="display:none">
+                        <p><input type="submit"></p>
+                    </form>
                 {{/if}}
             </div>
             <div class="card">
