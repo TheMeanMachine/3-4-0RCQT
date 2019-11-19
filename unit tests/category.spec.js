@@ -35,3 +35,38 @@ describe('addCategory()', () => {
 		done()
 	})
 })
+
+describe('getCategoryByID()', () => {
+	test('Valid ID', async done => {
+		expect.assertions(1)
+
+		const category = await new Category()
+		const catID = await category.addCategory('Run')
+
+		expect(await category.getCategoryByID(catID)).toBe(true)
+
+		done()
+	})
+
+	test('Error if catID is null', async done => {
+		expect.assertions(1)
+
+		const category = await new Category()
+
+		await expect( category.getCategoryByID(null))
+			.rejects.toEqual(Error('Must supply catID'))
+
+		done()
+	})
+
+	test('Error if catID is NaN', async done => {
+		expect.assertions(1)
+
+		const category = await new Category()
+
+		await expect( category.getCategoryByID('Not a number'))
+			.rejects.toEqual(Error('Must supply catID'))
+
+		done()
+	})
+})
