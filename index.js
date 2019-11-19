@@ -17,6 +17,8 @@ const session = require('koa-session')
 /* IMPORT CUSTOM MODULES */
 const User = require('./modules/user')
 const adminDB = require('./modules/adminDB')
+const Review = require('./modules/review');
+const Games = require('./modules/game');
 
 const app = new Koa()
 const router = new Router()
@@ -27,10 +29,28 @@ app.use(staticDir('public'))
 app.use(bodyParser())
 app.use(session(app))
 app.use(views(`${__dirname}/views`, { extension: 'handlebars' }, {map: { handlebars: 'handlebars' }}))
-
 const defaultPort = 8080
 const port = process.env.PORT || defaultPort
-const dbName = 'gameReview.db';
+const dbName = 'gameReview.db' || ':memory:';
+const helpers ={
+	
+	if_eq : function(a, b, opts) {
+		console.log("ifeq: " + a + b);
+		if(a == b) // Or === depending on your needs
+			return opts.fn(this);
+		else
+			return opts.inverse(this);
+	},
+
+	if_Noteq : function(a, b, opts) {
+		if(a != b) // Or === depending on your needs
+			return opts.fn(this);
+		else
+			return opts.inverse(this);
+	},
+
+	
+}
 
 /**
  * The secure home page.
@@ -41,22 +61,89 @@ const dbName = 'gameReview.db';
  */
 router.get('/', async ctx => {
 	try {
-		const admin_db = await new adminDB(dbName);
-		await admin_db.createTables();
-	
-		
 		if(ctx.session.authorised !== true){
-			return ctx.redirect('/login?msg=you need to log in')
+			return ctx.redirect('/login?msg=you need to log in');
 		}
+		const games = await new Games(dbName);
+		const temp = await games.getGames();
+		const gamesList = temp.games;
+
+		for(let i = 0; i < gamesList.length; i++){
+			const curID = gamesList[i].ID;
+			let pic = await games.getPictures(curID).pictures;
+			if(pic == undefined)pic = ["avatars/avatar.png"];
+			
+			gamesList[i].pictures = pic;
+			
+		}
+		
+		console.log(gamesList);
 		const data = {}
-		if(ctx.query.msg){
+		/*if(ctx.query.msg){
 			data.msg = ctx.query.msg
-		} 
-		await ctx.render('index')
+		} */
+		await ctx.render('index', { games:gamesList});
 	} catch(err) {
 		await ctx.render('error', {message: err.message})
 	}
 })
+
+router.get('/game', async ctx => {
+	try {
+		if(ctx.session.authorised !== true){
+			return ctx.redirect('/login?msg=you need to log in');
+		}
+		const games = await new Games(dbName)
+		const review = await new Review(dbName)
+
+		if(!ctx.query.gameID) await ctx.render('error', {message: "No game chosen"})
+
+		const gameID = ctx.query.gameID;
+		let thisGame = await games.getGameByID(gameID);
+
+		let pic = await games.getPictures(gameID).pictures;
+		if(pic == undefined)pic = ["avatars/avatar.png"];
+		thisGame.pictures = pic;
+
+		const temp = await review.getReviewsByGameID(gameID);
+		const reviews = temp.reviews;
+		let uReview;
+		for(let i = 0; i < reviews.length; i++){
+			if(reviews[i].userID == ctx.session.userID){
+				uReview = reviews[i];
+				reviews.splice(i,1)
+				break;
+			}
+		}
+
+		let ratingsReviews = []
+		for(let i = 1; i <= 5; i++){
+			ratingsReviews[i] ={
+				value:i
+			}
+			if(i == uReview.rating){
+				ratingsReviews[i].checked = true;
+			}
+		}
+		console.log(ratingsReviews)
+			
+	
+		console.log(uReview);
+		await ctx.render('game', {
+			game: thisGame,
+			admin: ctx.session.admin,
+			ratingsReview: ratingsReviews,
+			allReview : reviews,
+			userReview: uReview,
+			helpers
+		});
+	} catch(err) {
+		await ctx.render('error', {message: err.message})
+	}
+})
+
+
+
 
 /**
  * The user registration page.
