@@ -13,6 +13,18 @@ describe('addCategory()', () => {
 		done()
 	})
 
+	test('Error if duplicate', async done => {
+		expect.assertions(1)
+
+		const category = await new Category()
+		await category.addCategory('Horror')
+
+		await expect(category.addCategory('Horror'))
+			.rejects.toEqual(Error('Category already exists'))
+
+		done()
+	})
+
 	test('Error if name null', async done => {
 		expect.assertions(1)
 
@@ -34,6 +46,8 @@ describe('addCategory()', () => {
 
 		done()
 	})
+
+
 })
 
 describe('getCategoryByID()', () => {
@@ -43,7 +57,12 @@ describe('getCategoryByID()', () => {
 		const category = await new Category()
 		const catID = await category.addCategory('Run')
 
-		expect(await category.getCategoryByID(catID)).toBe(true)
+		expect(await category.getCategoryByID(catID)).toMatchObject(
+			{
+				ID: 1,
+				title: 'Run'
+			}
+		)
 
 		done()
 	})
@@ -70,3 +89,5 @@ describe('getCategoryByID()', () => {
 		done()
 	})
 })
+
+
