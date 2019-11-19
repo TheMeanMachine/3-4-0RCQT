@@ -100,7 +100,8 @@ module.exports = class Review {
 
                 let sql = `
                 UPDATE review 
-                SET fullText = "${fullText}"
+                SET fullText = "${fullText}",
+                flag = 0
                 WHERE userID = ${userID};
                 `;
     

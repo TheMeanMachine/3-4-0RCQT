@@ -64,6 +64,8 @@ router.get('/', async ctx => {
 		if(ctx.session.authorised !== true){
 			return ctx.redirect('/login?msg=you need to log in');
 		}
+		const user = await new User(dbName);
+		
 		const games = await new Games(dbName);
 		const temp = await games.getGames();
 		const gamesList = temp.games;
@@ -82,7 +84,7 @@ router.get('/', async ctx => {
 		/*if(ctx.query.msg){
 			data.msg = ctx.query.msg
 		} */
-		await ctx.render('index', { games:gamesList});
+		await ctx.render('index', { games:gamesList}, {user:userInfo});
 	} catch(err) {
 		await ctx.render('error', {message: err.message})
 	}
@@ -121,7 +123,7 @@ router.get('/game', async ctx => {
 			ratingsReviews[i] ={
 				value:i
 			}
-			if(i == uReview.rating){
+			if(uReview && i == uReview.rating){
 				ratingsReviews[i].checked = true;
 			}
 		}
@@ -133,7 +135,7 @@ router.get('/game', async ctx => {
 			game: thisGame,
 			admin: ctx.session.admin,
 			ratingsReview: ratingsReviews,
-			allReview : reviews,
+			allReview: reviews,
 			userReview: uReview,
 			helpers
 		});
@@ -142,8 +144,59 @@ router.get('/game', async ctx => {
 	}
 })
 
+router.post('/addReview', async ctx => {
+	try {
+		// extract the data from the request
+		const body = ctx.request.body
+		console.log(body);
+		if(ctx.session.authorised !== true){
+			return ctx.redirect('/login?msg=you need to log in');
+		}
+		// call the functions in the module
+		const review = await new Review(dbName)
+		const games = await new Games(dbName);
 
+		const gameID = body.gameID;
 
+		await review.addReview(gameID, {
+			fullText: body.fullText,
+			rating: body.rating
+		}, ctx.session.userID);
+		
+		let thisGame = await games.getGameByID(gameID);
+		let pic = await games.getPictures(gameID).pictures;
+		if(pic == undefined)pic = ["avatars/avatar.png"];
+		thisGame.pictures = pic;
+
+		// await user.uploadPicture(path, type)
+		// redirect to the home page
+		ctx.redirect(`game?gameID=${gameID}`)
+	} catch(err) {
+		await ctx.render('error', {message: err.message})
+	}
+})
+
+router.post('/updateReview', async ctx => {
+	try {
+		// extract the data from the request
+		const body = ctx.request.body
+		console.log(body);
+		if(ctx.session.authorised !== true){
+			return ctx.redirect('/login?msg=you need to log in');
+		}
+		// call the functions in the module
+		const review = await new Review(dbName)
+		const gameID = body.gameID;
+		await review.updateReview(ctx.session.userID, {
+			fullText: body.fullText,
+			rating: body.rating
+		});
+
+		ctx.redirect(`game?gameID=${gameID}`)
+	} catch(err) {
+		await ctx.render('error', {message: err.message})
+	}
+})
 
 /**
  * The user registration page.

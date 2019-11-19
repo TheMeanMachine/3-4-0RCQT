@@ -39,9 +39,7 @@
                 {{#if userReview}}
                 <form action="/updateReview" method="post" id="review"> 
                     <h4>Your review</h4>
-                    {{#if_eq userReview.flag 0}}
-                        <p>Your review is pending admin approval</p>
-                    {{/if_eq}}
+                    
                     <textarea rows="4" cols="50" name="fullText" form="review" placeholder="Write your review">{{userReview.fullText}}</textarea>
                     <br>
                     <div class="rating">
@@ -93,6 +91,7 @@
                 {{/if}}
                 <hr>
 
+                {{#if allReview}}
                 {{#each allReview}}
                 <div class="reviewCard">
                     <div class="reviewCardInner">
@@ -106,6 +105,7 @@
                 </div>
                     
                 {{/each}}
+                {{/if}}
             </div>
             
             
