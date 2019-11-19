@@ -65,7 +65,7 @@ router.get('/', async ctx => {
 			return ctx.redirect('/login?msg=you need to log in');
 		}
 		const user = await new User(dbName);
-		
+		const userInfo = user.getUserByID(ctx.session.userID);
 		const games = await new Games(dbName);
 		const temp = await games.getGames();
 		const gamesList = temp.games;
