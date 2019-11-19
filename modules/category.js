@@ -84,4 +84,27 @@ module.exports = class Category {
 		}
 	}
 
+	async deleteByID(catID) {
+		try{
+			if(catID === null || isNaN(catID)) {
+				throw new Error('Must supply catID')
+			}
+
+			const sql = [`
+            DELETE FROM game_category
+            WHERE categoryID = ${catID};
+            `,`
+            DELETE FROM category
+            WHERE ID = ${catID}`
+			]
+
+			for(let i = 0; i < sql.length; i++) {
+				await this.db.run(sql[i])
+			}
+
+			return true
+		}catch(e) {
+			throw e
+		}
+	}
 }
