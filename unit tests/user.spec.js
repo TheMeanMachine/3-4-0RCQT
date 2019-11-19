@@ -11,9 +11,6 @@ describe('getUserbyID()', () => {
         expect.assertions(1);
 
         const user = await new Accounts();
-        const titleToTest = "Red";
-        const summary = "A simple summary";
-        const desc = "Lorem Ipsum and as such this is a game";
 
         const userID = await user.register("Aaron", "passwordIsNotGood")
         
@@ -26,6 +23,40 @@ describe('getUserbyID()', () => {
             }
         );
 
+        done();
+	})
+	
+	test('Get valid user _ with photo', async done =>{
+        expect.assertions(1);
+
+		//console.log("");
+		mock({
+			public: {
+				users:{
+
+				}
+				
+			},
+			'user/images/pictureUpload.png':  Buffer.from([8, 6, 7, 5, 3, 0, 9])
+		});
+		const path = 'user/images/pictureUpload.png';
+		const type = "image/png";
+		
+        const user = await new Accounts();
+        
+
+        const userID = await user.register("Aaron", "passwordIsNotGood")
+		await user.uploadPicture(path, type, userID)
+        const retreiveUser = await user.getUserByID(userID);
+
+        expect(retreiveUser).toMatchObject(
+            {
+                ID: 1,
+				username: "Aaron",
+				avatar: "public/users/1/profile.png"
+            }
+        );
+		mock.restore
         done();
     })
 
