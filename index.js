@@ -29,10 +29,28 @@ app.use(staticDir('public'))
 app.use(bodyParser())
 app.use(session(app))
 app.use(views(`${__dirname}/views`, { extension: 'handlebars' }, {map: { handlebars: 'handlebars' }}))
-
 const defaultPort = 8080
 const port = process.env.PORT || defaultPort
-const dbName = 'gameReview.db';
+const dbName = 'gameReview.db' || ':memory:';
+const helpers ={
+	
+	if_eq : function(a, b, opts) {
+		console.log("ifeq: " + a + b);
+		if(a == b) // Or === depending on your needs
+			return opts.fn(this);
+		else
+			return opts.inverse(this);
+	},
+
+	if_Noteq : function(a, b, opts) {
+		if(a != b) // Or === depending on your needs
+			return opts.fn(this);
+		else
+			return opts.inverse(this);
+	},
+
+	
+}
 
 /**
  * The secure home page.
@@ -69,6 +87,61 @@ router.get('/', async ctx => {
 		await ctx.render('error', {message: err.message})
 	}
 })
+
+router.get('/game', async ctx => {
+	try {
+		if(ctx.session.authorised !== true){
+			return ctx.redirect('/login?msg=you need to log in');
+		}
+		const games = await new Games(dbName)
+		const review = await new Review(dbName)
+
+		if(!ctx.query.gameID) await ctx.render('error', {message: "No game chosen"})
+
+		const gameID = ctx.query.gameID;
+		let thisGame = await games.getGameByID(gameID);
+
+		let pic = await games.getPictures(gameID).pictures;
+		if(pic == undefined)pic = ["avatars/avatar.png"];
+		thisGame.pictures = pic;
+
+		const temp = await review.getReviewsByGameID(gameID);
+		const reviews = temp.reviews;
+		let uReview;
+		for(let i = 0; i < reviews.length; i++){
+			if(reviews[i].userID == ctx.session.userID){
+				uReview = reviews[i];
+				reviews.splice(i,1)
+				break;
+			}
+		}
+
+		let ratingsReviews = []
+		for(let i = 1; i <= 5; i++){
+			ratingsReviews[i] ={
+				value:i
+			}
+			if(i == uReview.rating){
+				ratingsReviews[i].checked = true;
+			}
+		}
+		console.log(ratingsReviews)
+			
+	
+		console.log(uReview);
+		await ctx.render('game', {
+			game: thisGame,
+			admin: ctx.session.admin,
+			ratingsReview: ratingsReviews,
+			allReview : reviews,
+			userReview: uReview,
+			helpers
+		});
+	} catch(err) {
+		await ctx.render('error', {message: err.message})
+	}
+})
+
 
 
 
