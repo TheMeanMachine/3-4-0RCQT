@@ -50,6 +50,18 @@ module.exports = class Review {
 		})()
 	}
 
+	/**
+     * Function to check fields associated with reviews
+     *
+     * @name checkReviewFields
+     * @param fullText The body of text for the review
+	 * @param rating The rating of the review
+	 * @throws If fulltext doesn't match requirements
+	 * @throws If rating is less than 1 or greater than 5
+	 * @throws If all params are null
+     * @returns true if successful
+     *
+     */
 	checkReviewFields(fullText, rating) {
 		// eslint-disable-next-line eqeqeq
 		if(fullText != null) {
@@ -80,7 +92,19 @@ module.exports = class Review {
 		return true
 	}
 
-
+	/**
+     * Function to update a review
+     *
+     * @name updateReview
+     * @param userID The userID of the review
+	 * @param gameID The gameID of the review
+	 * @param data Object which contains fullText & rating for example: {fulltext: 'sometext', rating: 4}
+	 * @throws If userID is not supplied
+	 * @throws If gameID is not supplied
+	 * @throws If review not found
+     * @returns true if successful
+     *
+     */
 	async updateReview(userID, gameID, data) {
 
 		const fullText = data.fullText || null
@@ -144,7 +168,18 @@ module.exports = class Review {
 
 	}
 
-
+	/**
+     * Function to add a review
+     *
+     * @name addReview
+     * @param userID The userID of the review
+	 * @param gameID The gameID of the review
+	 * @param data Object which contains fullText & rating for example: {fulltext: 'sometext', rating: 4}
+	 * @throws If userID is not supplied
+	 * @throws If gameID is not supplied
+     * @returns id of new review if successful
+     *
+     */
 	async addReview(gameID, data, userID) {
 		const fullText = data.fullText || ''
 		const rating = data.rating
@@ -184,7 +219,16 @@ module.exports = class Review {
 			throw e
 		}
 	}
-
+	/**
+     * Function to get all of a game's reviews
+     *
+     * @name getReviewsByGameID
+     * @param gameID The gameID to find the reviews based on
+	 * @throws If gameID is not supplied
+	 * @throws If game not found
+     * @returns array of objects if successful
+     *
+     */
 	async getReviewsByGameID(gameID) {
 		try{
 			if(gameID === null || isNaN(gameID)) {

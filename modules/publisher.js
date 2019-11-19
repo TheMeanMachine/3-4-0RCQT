@@ -44,7 +44,15 @@ module.exports = class Publisher {
 		})()
 
 	}
-
+	/**
+     * Function to check fields associated with publisher
+     *
+     * @name checkPublisherFields
+     * @param name name to check against
+     * @throws Error if name is not given or doesn't satify checks
+     * @returns true if no problems
+     *
+     */
 	checkPublisherFields(name) {
 		if(name !== null) {
 			const checkName = this.validator.checkMultipleWordsOnlyAlphaNumberic(name)
@@ -57,6 +65,14 @@ module.exports = class Publisher {
 		return true
 	}
 
+	/**
+     * Function to addPublisher
+     *
+     * @name addPublisher
+     * @param name name of publisher to add
+     * @returns ID of new publisher
+     *
+     */
 	async addPublisher(name) {
 		try{
 			this.checkPublisherFields(name)
@@ -73,6 +89,14 @@ module.exports = class Publisher {
 
 	}
 
+	/**
+     * Function to get publisher by ID
+     *
+     * @name getPublisherByID
+     * @param ID ID of publisher to get
+     * @returns Name of publisher
+     *
+     */
 	async getPublisherByID(ID) {
 		try{
 			if(ID === null || isNaN(ID)) {
@@ -94,7 +118,14 @@ module.exports = class Publisher {
 			throw e
 		}
 	}
-
+	/**
+     * Function to delete publisher by ID
+     *
+     * @name deletePublisherByID
+     * @param ID ID of publisher to delete
+     * @returns true if successful
+     *
+     */
 	async deletePublisherByID(ID) {
 		try{
 			if(ID === null || isNaN(ID)) {

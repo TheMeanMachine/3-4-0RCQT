@@ -34,7 +34,17 @@ module.exports = class User {
 		})()
 
 	}
-
+	/**
+     * Function to check fields associated with users
+     *
+     * @name checkUserFields
+     * @param user The username for the user
+	 * @param pass The password for the user
+	 * @throws If username is empty or doesn't match validator
+	 * @throws If password is empty or doesn't match validator
+     * @returns true if successful
+     *
+     */
 	checkUserFields(user, pass) {
 		if(user !== null) {
 			const checkUser = this.validator.checkMultipleWordsOnlyAlphaNumberic(user)
@@ -51,7 +61,16 @@ module.exports = class User {
 
 		return true
 	}
-
+	/**
+     * Function to register a new user
+     *
+     * @name register
+     * @param user The username for the user
+	 * @param pass The password for the user
+	 * @throws If username is already in use
+     * @returns true if successful
+     *
+     */
 	async register(user, pass) {
 		try {
 			try{
@@ -71,7 +90,17 @@ module.exports = class User {
 			throw err
 		}
 	}
-
+	/**
+     * Function to upload a picture and associate it to a user
+     *
+     * @name uploadPicture
+     * @param path path is the input path
+     * @param mimeType is the type of the picture
+     * @param userID userID refers to the ID in the database
+     * @throws error if params are not given
+     * @returns true if no problems
+     *
+     */
 	async uploadPicture(path, mimeType, userID) {
 
 		if(userID === null || isNaN(userID)) {
@@ -102,6 +131,16 @@ module.exports = class User {
 		return true
 	}
 
+	/**
+     * Function to get a user's data based on ID
+     *
+     * @name getUserByID
+     * @param userID userID to find data
+	 * @throws If userID not given
+	 * @throws If user doesn't exist
+     * @returns user's data if successful
+     *
+     */
 	async getUserByID(userID) {
 		try {
 			if(userID === null || isNaN(userID)) {
@@ -128,7 +167,17 @@ module.exports = class User {
 			throw err
 		}
 	}
-
+	/**
+     * Function to login user
+     *
+     * @name login
+     * @param username The username for the user
+	 * @param password The password for the user
+	 * @throws If user not found
+	 * @throws If password incorrect
+     * @returns ID of logged-in user
+     *
+     */
 	async login(username, password) {
 		try {
 			let sql = `SELECT count(ID) AS count FROM user WHERE username="${username}";`
