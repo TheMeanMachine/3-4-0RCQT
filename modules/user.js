@@ -2,7 +2,7 @@
 'use strict'
 
 const bcrypt = require('bcrypt-promise')
-// const fs = require('fs-extra')
+const fs = require('fs-extra')
 const mime = require('mime-types')
 const sqlite = require('sqlite-async')
 const saltRounds = 10
@@ -22,7 +22,7 @@ module.exports = class User {
                 ID INTEGER PRIMARY KEY AUTOINCREMENT,
                 username TEXT,
                 pass TEXT,
-                avatar TEXT,
+				avatar TEXT,
                 roleID INTEGER,
                 FOREIGN KEY (roleID) REFERENCES role(ID)
 			);`
@@ -70,11 +70,52 @@ module.exports = class User {
 		}
 	}
 
-	async uploadPicture(path, mimeType) {
+	async uploadPicture(path, mimeType, userID) {
+
+		if(userID == null || isNaN(userID)){
+			throw new Error('Must supply userID');
+		}
+
+		if(path === null || path.length === 0){
+			throw new Error('Must supply path');
+		}
+
+		if(mimeType === null || mimeType.length === 0){
+			throw new Error('Must supply type');
+		}
+
 		const extension = mime.extension(mimeType)
-		console.log(`path: ${path}`)
-		console.log(`extension: ${extension}`)
-		await fs.copy(path, `public/avatars/${username}.${fileExtension}`)
+		await this.getUserByID(userID);
+
+		await fs.copy(path, `public/users/${userID}/profile.${extension}`)
+		return true;
+	}
+
+	async getUserByID(userID){
+		try {
+            if(userID == null || isNaN(userID)){
+                throw new Error('Must supply userID');
+            }
+			let sql = `SELECT count(ID) AS count FROM user WHERE ID = ${userID};`
+            let records = await this.db.get(sql)
+			if(records.count == 0){
+                throw new Error(`User not found`);
+            }
+
+            sql = `SELECT * FROM user WHERE ID = ${userID};`;
+
+            records = await this.db.get(sql);
+            
+            let data = {
+                ID: userID,
+				username: records.username,
+				avatar: records.avatar
+            }
+            
+			return data;
+		} catch(err) {
+			throw err
+		}
 	}
 
 	async login(username, password) {
