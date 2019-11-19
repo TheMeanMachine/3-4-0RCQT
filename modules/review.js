@@ -81,7 +81,7 @@ module.exports = class Review {
 	}
 
 
-	async updateReview(userID, data) {
+	async updateReview(userID, gameID, data) {
 
 		const fullText = data.fullText || null
 		const rating = data.rating || null
@@ -92,7 +92,15 @@ module.exports = class Review {
 				throw new Error('Must supply userID')
 			}
 
-			const sql = `SELECT COUNT(ID) as records FROM review WHERE userID=${userID};`
+			if(gameID === null || isNaN(gameID)) {//Check gameID has been given and is correct
+
+				throw new Error('Must supply gameID')
+			}
+
+			const sql = `
+				SELECT COUNT(ID) as records FROM review
+				WHERE userID=${userID}
+				AND gameID=${gameID};`//Make sure user has a review for this game
 			const data = await this.db.get(sql)
 			if(data.records === 0) {
 				throw new Error('Review not found')
@@ -101,24 +109,26 @@ module.exports = class Review {
 			this.checkReviewFields(fullText, rating)//Check input is sensible
 
 
-			if(fullText !== null) {//If fulltext exists
+			if(fullText !== null) {//If fulltext is to be updated
 
 				const sql = `
                 UPDATE review 
                 SET fullText = "${fullText}",
                 flag = 0
-                WHERE userID = ${userID};
+				WHERE userID = ${userID}
+				AND gameID = ${gameID};
                 `
 
 				await this.db.run(sql)
 			}
 
-			if(rating !== null) {//if rating exists
+			if(rating !== null) {//if rating is to be updated
 
 				const sql = `
                 UPDATE review 
                 SET rating = "${rating}"
-                WHERE userID = ${userID};
+				WHERE userID = ${userID}
+				AND gameID = ${gameID};
                 `
 
 				await this.db.run(sql)

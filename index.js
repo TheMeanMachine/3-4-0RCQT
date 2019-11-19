@@ -131,18 +131,15 @@ router.get('/game', async ctx => {
 		}
 		const ratingsMax = 5
 		const ratingsReviews = []
+		//Set ratings, an array of objs with value and checked
 		for(let i = 1; i <= ratingsMax; i++) {
 			ratingsReviews[i] ={
 				value: i
 			}
 			if(uReview && i == uReview.rating) {
-				ratingsReviews[i].checked = true
+				ratingsReviews[i].checked = true//set to true if user picked this rating
 			}
 		}
-		console.log(ratingsReviews)
-
-
-		console.log(uReview)
 		await ctx.render('game', {
 			game: thisGame,
 			admin: ctx.session.admin,
@@ -267,7 +264,7 @@ router.post('/updateReview', async ctx => {
 		// call the functions in the module
 		const review = await new Review(dbName)
 		const gameID = body.gameID
-		await review.updateReview(ctx.session.userID, {
+		await review.updateReview(ctx.session.userID, gameID, {
 			fullText: body.fullText,
 			rating: body.rating
 		})

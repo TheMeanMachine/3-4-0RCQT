@@ -21,7 +21,7 @@ describe('updateReview()', () => {
 			fullText: 'This is changed fulltext',
 			rating: 4
 		}
-		const result = await review.updateReview(userID, changed)
+		const result = await review.updateReview(userID, retreiveGame.ID, changed)
 		expect(result).toBe(true)
 
 		expect(await review.getReviewsByGameID(retreiveGame.ID)).toMatchObject(
@@ -52,7 +52,7 @@ describe('updateReview()', () => {
 		const changed = {
 			fullText: 'This is changed fulltext'
 		}
-		const result = await review.updateReview(userID, changed)
+		const result = await review.updateReview(userID, retreiveGame.ID, changed)
 
 		expect(result).toBe(true)
 
@@ -83,7 +83,7 @@ describe('updateReview()', () => {
 		const changed = {
 			rating: 4
 		}
-		const result = await review.updateReview(userID, changed
+		const result = await review.updateReview(userID,retreiveGame.ID, changed
 		)
 
 		expect(result).toBe(true)
@@ -113,7 +113,7 @@ describe('updateReview()', () => {
 			}, userID
 		)
 
-		await expect(review.updateReview(3,
+		await expect(review.updateReview(3,retreiveGame.ID,
 			{
 				rating: 4
 			})).rejects.toEqual(Error('Review not found'))
@@ -127,7 +127,7 @@ describe('updateReview()', () => {
 
 		const review = await new Reviews()
 
-		await expect(review.updateReview(null,
+		await expect(review.updateReview(null,1,
 			{
 				rating: 4
 			})).rejects.toEqual(Error('Must supply userID'))
@@ -141,10 +141,38 @@ describe('updateReview()', () => {
 
 		const review = await new Reviews()
 
-		await expect(review.updateReview('not a number',
+		await expect(review.updateReview('not a number',1,
 			{
 				rating: 4
 			})).rejects.toEqual(Error('Must supply userID'))
+
+
+		done()
+	})
+
+	test('Error if gameID is null', async done => {
+		expect.assertions(1)
+
+		const review = await new Reviews()
+
+		await expect(review.updateReview(1,null,
+			{
+				rating: 4
+			})).rejects.toEqual(Error('Must supply gameID'))
+
+
+		done()
+	})
+
+	test('Error if gameID is NaN', async done => {
+		expect.assertions(1)
+
+		const review = await new Reviews()
+
+		await expect(review.updateReview(1,'not a number',
+			{
+				rating: 4
+			})).rejects.toEqual(Error('Must supply gameID'))
 
 
 		done()
