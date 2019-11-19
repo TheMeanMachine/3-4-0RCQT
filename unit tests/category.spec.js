@@ -67,6 +67,17 @@ describe('getCategoryByID()', () => {
 		done()
 	})
 
+	test('Error if category does not exist', async done => {
+		expect.assertions(1)
+
+		const category = await new Category()
+
+		await expect( category.getCategoryByID(2))
+			.rejects.toEqual(Error('Category not found'))
+
+		done()
+	})
+
 	test('Error if catID is null', async done => {
 		expect.assertions(1)
 
@@ -99,28 +110,28 @@ describe('deleteByID()', () => {
 		expect(await category.deleteByID(catID)).toBe(true)
 
 		done()
-    })
-    
-    test('Error if catID is null', async done => {
+	})
+
+	test('Error if catID is null', async done => {
 		expect.assertions(1)
 
 		const category = await new Category()
-		
-        await expect(category.deleteByID(null))
-            .rejects.toEqual(Error('Must supply catID'))
+
+		await expect(category.deleteByID(null))
+			.rejects.toEqual(Error('Must supply catID'))
 
 		done()
-    })
+	})
 
-    test('Error if catID is NaN', async done => {
+	test('Error if catID is NaN', async done => {
 		expect.assertions(1)
 
 		const category = await new Category()
-		
-        await expect(category.deleteByID("Not a number"))
-            .rejects.toEqual(Error('Must supply catID'))
+
+		await expect(category.deleteByID('Not a number'))
+			.rejects.toEqual(Error('Must supply catID'))
 
 		done()
-    })
-    
+	})
+
 })
