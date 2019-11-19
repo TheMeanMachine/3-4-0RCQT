@@ -3,13 +3,11 @@
 const Category = require('../modules/category.js')
 
 describe('addCategory()', () => {
-	test('Valid category', async done => {
 	test('Valid name', async done => {
 		expect.assertions(1)
 
 		const category = await new Category()
 
-		expect(await category.addCategory('Horror')).toBe(true)
 		expect(await category.addCategory('Horror')).toBe(1)
 
 		done()
@@ -21,7 +19,10 @@ describe('addCategory()', () => {
 		const category = await new Category()
 
 		await expect( category.addCategory(null))
-			.rejects(Error('Must supply category'))
+			.rejects.toEqual(Error('Must supply name'))
+		done()
+	})
+
 	test('Error if duplicate', async done => {
 		expect.assertions(1)
 
@@ -34,7 +35,6 @@ describe('addCategory()', () => {
 		done()
 	})
 
-	test('Error if category invalid', async done => {
 	test('Error if name null', async done => {
 		expect.assertions(1)
 
@@ -52,15 +52,10 @@ describe('addCategory()', () => {
 		const category = await new Category()
 
 		await expect( category.addCategory('~~@{}__)+'))
-			.rejects(Error('Must supply category'))
-
-		done()
-	})
 			.rejects.toEqual(Error('Must supply name'))
 
 		done()
 	})
-
 
 })
 
@@ -147,5 +142,4 @@ describe('deleteByID()', () => {
 
 		done()
 	})
-
 })
