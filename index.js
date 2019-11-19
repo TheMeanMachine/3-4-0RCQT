@@ -114,7 +114,7 @@ router.get('/game', async ctx => {
 		for(let i = 0; i < reviews.length; i++){
 			if(reviews[i].userID == ctx.session.userID){
 				uReview = reviews[i];
-				reviews.splice(i,1)
+				reviews.splice(i,1)//Remove user's review from main list
 				break;
 			}
 		}
