@@ -76,18 +76,18 @@ module.exports = class Review {
 
 
 
-    async updateReview(reviewID, data){
+    async updateReview(userID, data){
         
         const fullText = data.fullText;
         const rating = data.rating;
         try{
   
-            if(reviewID == null || isNaN(reviewID)){//Check reviewID has been given and is correct
+            if(userID == null || isNaN(userID)){//Check reviewID has been given and is correct
 
-                throw new Error('Must supply reviewID');
+                throw new Error('Must supply userID');
             }
 
-            let sql = `SELECT COUNT(id) as records FROM review WHERE ID="${reviewID}";`;
+            let sql = `SELECT COUNT(ID) as records FROM review WHERE userID=${userID};`;
 			const data = await this.db.get(sql);
 			if(data.records === 0){
                 throw new Error(`Review not found`);
@@ -101,7 +101,7 @@ module.exports = class Review {
                 let sql = `
                 UPDATE review 
                 SET fullText = "${fullText}"
-                WHERE ID = ${reviewID};
+                WHERE userID = ${userID};
                 `;
     
                 await this.db.run(sql);
@@ -112,7 +112,7 @@ module.exports = class Review {
                 let sql = `
                 UPDATE review 
                 SET rating = "${rating}"
-                WHERE ID = ${reviewID};
+                WHERE userID = ${userID};
                 `;
     
                 await this.db.run(sql);
