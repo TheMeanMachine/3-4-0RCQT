@@ -48,12 +48,40 @@ module.exports = class Category {
 			throw new Error('Must supply name')
 		}
 
-		const sql = `INSERT INTO category (title)
+		let sql = `SELECT count(ID) AS count FROM category WHERE title = "${name}";`
+		const records = await this.db.get(sql)
+		if(records.count !== 0) {
+			throw new Error('Category already exists')
+		}
+
+		sql = `INSERT INTO category (title)
                 VALUES(
                     "${name}"
                 )`
 		const result = await this.db.run(sql)
 		return result.lastID
+	}
+
+	async getCategoryByID(catID) {
+		try{
+			if(catID === null || isNaN(catID)) {
+				throw new Error('Must supply catID')
+			}
+
+			let sql = `SELECT count(ID) AS count FROM category WHERE ID = ${catID};`
+			let records = await this.db.get(sql)
+			if(records.count === 0) {
+				throw new Error('Category not found')
+			}
+
+			sql = `SELECT * FROM category WHERE ID = ${catID};`
+
+			records = await this.db.get(sql)
+			return records
+
+		}catch(e) {
+			throw e
+		}
 	}
 
 }
