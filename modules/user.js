@@ -87,7 +87,16 @@ module.exports = class User {
 		const extension = mime.extension(mimeType)
 		await this.getUserByID(userID);
 
-		await fs.copy(path, `public/users/${userID}/profile.${extension}`)
+		const picPath = `public/users/${userID}/profile.${extension}`;
+		await fs.copy(path, picPath)
+
+		let sql = `
+		UPDATE user
+		SET avatar = "${picPath}"
+		WHERE ID = ${userID};`
+		await this.db.run(sql);
+
+		
 		return true;
 	}
 
