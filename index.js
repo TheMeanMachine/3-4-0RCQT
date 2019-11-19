@@ -91,6 +91,14 @@ router.get('/', async ctx => {
 	}
 })
 
+/**
+ * The game main page
+ *
+ * @name game Page
+ * @route {GET} /game
+ * @authentication This route requires cookie-based authentication.
+ *
+ */
 router.get('/game', async ctx => {
 	try {
 		if(ctx.session.authorised !== true){
@@ -147,6 +155,14 @@ router.get('/game', async ctx => {
 	}
 })
 
+/**
+ * Add review page
+ *
+ * @name addReview Page
+ * @route {POST} /addReview
+ * @authentication This route requires cookie-based authentication.
+ *
+ */
 router.post('/addReview', async ctx => {
 	try {
 		// extract the data from the request
@@ -177,6 +193,14 @@ router.post('/addReview', async ctx => {
 	}
 })
 
+/**
+ * Add newGame page
+ *
+ * @name newGame Page
+ * @route {POST} /newGame
+ * @authentication This route requires cookie-based authentication.
+ *
+ */
 router.post('/newGame', async ctx =>{
 	try {
 		// extract the data from the request
@@ -194,6 +218,14 @@ router.post('/newGame', async ctx =>{
 	}
 })
 
+/**
+ * Add game photo page
+ *
+ * @name addGamePhoto Page
+ * @route {POST} /addGamePhoto
+ * @authentication This route requires cookie-based authentication.
+ *
+ */
 router.post('/addGamePhoto',koaBody,  async ctx =>{
 	try {
 		// extract the data from the request
@@ -215,6 +247,14 @@ router.post('/addGamePhoto',koaBody,  async ctx =>{
 	}
 })
 
+/**
+ * Update review page
+ *
+ * @name updateReview Page
+ * @route {POST} /updateReview
+ * @authentication This route requires cookie-based authentication.
+ *
+ */
 router.post('/updateReview', async ctx => {
 	try {
 		// extract the data from the request
