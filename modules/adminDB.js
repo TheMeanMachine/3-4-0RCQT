@@ -1,25 +1,25 @@
+/* eslint-disable max-lines-per-function */
 
 'use strict'
 
-const sqlite = require('sqlite-async');
-const mime = require('mime-types');
+const sqlite = require('sqlite-async')
 module.exports = class adminDB {
-    constructor(dbName) {
+	constructor(dbName) {
 
-        
-        return (async() => {
-			this.db = await sqlite.open(dbName);
+
+		return (async() => {
+			this.db = await sqlite.open(dbName)
 			// we need this table to store the user accounts
-            
-            return this
-        })()
-    }
 
-    async createTables(){
-        try{
-            console.log("Creating tables");
-            
-            const tablesSQL = [`
+			return this
+		})()
+	}
+
+	async createTables() {
+		try{
+			console.log('Creating tables')
+
+			const tablesSQL = [`
             CREATE TABLE IF NOT EXISTS user(
                 ID INTEGER PRIMARY KEY AUTOINCREMENT,
                 username TEXT,
@@ -100,19 +100,19 @@ module.exports = class adminDB {
                 FOREIGN KEY (userID) REFERENCES user(ID),
                 FOREIGN KEY (reviewID) REFERENCES review(ID)
             );`]
-            
-            for(let i = 0; i < tablesSQL.length; i++){
-                await this.db.run(tablesSQL[i]);
-            }
-            
-            console.log("DB Finished")
-        } catch(err) {
-            console.log(err);
-            console.log("Unable to create tables or constraints");
+
+			for(let i = 0; i < tablesSQL.length; i++) {
+				await this.db.run(tablesSQL[i])
+			}
+
+			console.log('DB Finished')
+		} catch(err) {
+			console.log(err)
+			console.log('Unable to create tables or constraints')
 			throw err
 		}
-        
-        
-    }
-        
+
+
+	}
+
 }

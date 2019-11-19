@@ -1,23 +1,27 @@
+/* eslint-disable max-lines */
+/* eslint-disable max-statements */
+/* eslint-disable complexity */
+/* eslint-disable max-lines-per-function */
 
-'use string'
+'use strict'
 
-const sqlite = require('sqlite-async');
+const sqlite = require('sqlite-async')
 //Custom modules
-const valid = require('./validator');
-const Games = require('./game');
-const Users = require('./user');
+const valid = require('./validator')
+const Games = require('./game')
+const Users = require('./user')
 
 module.exports = class Review {
-    constructor(dbName){
-        this.validator = new valid();
-        
+	constructor(dbName) {
+		this.validator = new valid()
+
 		return (async() => {
-            
-            this.dbName = dbName || ':memory:';
-            this.db = await sqlite.open(this.dbName);
-            this.games = await new Games(this.dbName);
-            this.users = await new Users(this.dbName) 
-            const sql = 
+
+			this.dbName = dbName || ':memory:'
+			this.db = await sqlite.open(this.dbName)
+			this.games = await new Games(this.dbName)
+			this.users = await new Users(this.dbName)
+			const sql =
             [`
             CREATE TABLE IF NOT EXISTS reviewScreenshot(
                 ID INTEGER PRIMARY KEY AUTOINCREMENT,
@@ -37,119 +41,163 @@ module.exports = class Review {
                 FOREIGN KEY (userID) REFERENCES user(ID)
             );`]
 
-            
-            for(let i = 0; i < sql.length; i++){
-                await this.db.run(sql[i]);
-            }
-			
-			return this;
+
+			for(let i = 0; i < sql.length; i++) {
+				await this.db.run(sql[i])
+			}
+
+			return this
 		})()
-    }
+	}
 
-    checkReviewFields(fullText, rating){
-        if(fullText != null){
-            let checkFullText = this.validator.check_MultipleWordsOnlyAlphaNumberic(fullText);
-            if(!checkFullText){
-                throw new Error('Must supply fulltext');
-            }
-        }
-        if(rating != null){
-            
-            if(isNaN(rating)){
-                throw new Error('Must supply rating')
-            
-            }
-            let greater = rating > 0;
-            let lesser = rating <= 5;
-            if(!greater || !lesser){
-                
-                throw new Error('Rating must be 1-5');
-            } 
-        }
+	/**
+     * Function to check fields associated with reviews
+     *
+     * @name checkReviewFields
+     * @param fullText The body of text for the review
+	 * @param rating The rating of the review
+	 * @throws If fulltext doesn't match requirements
+	 * @throws If rating is less than 1 or greater than 5
+	 * @throws If all params are null
+     * @returns true if successful
+     *
+     */
+	checkReviewFields(fullText, rating) {
+		// eslint-disable-next-line eqeqeq
+		if(fullText != null) {
+			const checkFullText = this.validator.checkMultipleWordsOnlyAlphaNumberic(fullText)
+			if(!checkFullText) {
+				throw new Error('Must supply fulltext')
+			}
+		}
+		// eslint-disable-next-line eqeqeq
+		if(rating != null) {
 
-        if(rating == null && fullText == null){
-            throw new Error('All fields are null');
-        }
+			if(isNaN(rating)) {
+				throw new Error('Must supply rating')
 
-        return true;
-    }
+			}
+			const maxRating = 5
+			const greater = rating > 0
+			const lesser = rating <= maxRating
+			if(!greater || !lesser) {
+				throw new Error('Rating must be 1-5')
+			}
+		}
+
+		if(rating === null && fullText === null) {
+			throw new Error('All fields are null')
+		}
+
+		return true
+	}
+
+	/**
+     * Function to update a review
+     *
+     * @name updateReview
+     * @param userID The userID of the review
+	 * @param gameID The gameID of the review
+	 * @param data Object which contains fullText & rating for example: {fulltext: 'sometext', rating: 4}
+	 * @throws If userID is not supplied
+	 * @throws If gameID is not supplied
+	 * @throws If review not found
+     * @returns true if successful
+     *
+     */
+	async updateReview(userID, gameID, data) {
+
+		const fullText = data.fullText || null
+		const rating = data.rating || null
+		try{
+
+			if(userID === null || isNaN(userID)) {//Check reviewID has been given and is correct
+
+				throw new Error('Must supply userID')
+			}
+
+			if(gameID === null || isNaN(gameID)) {//Check gameID has been given and is correct
+
+				throw new Error('Must supply gameID')
+			}
+
+			const sql = `
+				SELECT COUNT(ID) as records FROM review
+				WHERE userID=${userID}
+				AND gameID=${gameID};`//Make sure user has a review for this game
+			const data = await this.db.get(sql)
+			if(data.records === 0) {
+				throw new Error('Review not found')
+			}
+
+			this.checkReviewFields(fullText, rating)//Check input is sensible
 
 
+			if(fullText !== null) {//If fulltext is to be updated
 
-    async updateReview(userID, data){
-        
-        const fullText = data.fullText;
-        const rating = data.rating;
-        try{
-  
-            if(userID == null || isNaN(userID)){//Check reviewID has been given and is correct
-
-                throw new Error('Must supply userID');
-            }
-
-            let sql = `SELECT COUNT(ID) as records FROM review WHERE userID=${userID};`;
-			const data = await this.db.get(sql);
-			if(data.records === 0){
-                throw new Error(`Review not found`);
-            }
-
-            this.checkReviewFields(fullText, rating)//Check input is sensible
-
-
-            if(fullText != null){//If fulltext exists
-
-                let sql = `
+				const sql = `
                 UPDATE review 
                 SET fullText = "${fullText}",
                 flag = 0
-                WHERE userID = ${userID};
-                `;
-    
-                await this.db.run(sql);
-            }
-            
-            if(rating != null){//if rating exists
+				WHERE userID = ${userID}
+				AND gameID = ${gameID};
+                `
 
-                let sql = `
+				await this.db.run(sql)
+			}
+
+			if(rating !== null) {//if rating is to be updated
+
+				const sql = `
                 UPDATE review 
                 SET rating = "${rating}"
-                WHERE userID = ${userID};
-                `;
-    
-                await this.db.run(sql);
-            }
+				WHERE userID = ${userID}
+				AND gameID = ${gameID};
+                `
 
-            return true;
-            
-        }catch(e){
-            
-            throw e;
-            
-        }
-        
-    }
+				await this.db.run(sql)
+			}
 
-    
+			return true
 
-    async addReview(gameID, data, userID){
-        const fullText = data.fullText || '';
-        const rating = data.rating;
-        
-        try{
-            this.checkReviewFields(fullText, rating)//Check input is sensible 
-            
-            if(gameID == null || isNaN(gameID)){
-                throw new Error('Must supply gameID');
-            }
-            await this.games.getGameByID(gameID);//Checks if game exists
+		}catch(e) {
 
-            if(userID == null || isNaN(userID)){
-                throw new Error('Must supply userID');
-            }
+			throw e
 
-           
-            
-            const sql = `
+		}
+
+	}
+
+	/**
+     * Function to add a review
+     *
+     * @name addReview
+     * @param userID The userID of the review
+	 * @param gameID The gameID of the review
+	 * @param data Object which contains fullText & rating for example: {fulltext: 'sometext', rating: 4}
+	 * @throws If userID is not supplied
+	 * @throws If gameID is not supplied
+     * @returns id of new review if successful
+     *
+     */
+	async addReview(gameID, data, userID) {
+		const fullText = data.fullText || ''
+		const rating = data.rating
+
+		try{
+			this.checkReviewFields(fullText, rating)//Check input is sensible
+
+			if(gameID === null || isNaN(gameID)) {
+				throw new Error('Must supply gameID')
+			}
+			await this.games.getGameByID(gameID)//Checks if game exists
+
+			if(userID === null || isNaN(userID)) {
+				throw new Error('Must supply userID')
+			}
+
+
+			const sql = `
             INSERT INTO review (
                 gameID,
                 userID,
@@ -161,42 +209,47 @@ module.exports = class Review {
                     "${fullText}",
                     ${rating},
                     0
-                );`;
+                );`
 
-            let data = await this.db.run(sql);
-            
-            return data.lastID;
-            
-        }catch(e){
-            throw e;
-        }
-    }
+			const data = await this.db.run(sql)
 
-    async getReviewsByGameID(gameID){
-        try{
-            if(gameID == null || isNaN(gameID)){
-                throw new Error('Must supply gameID');
-            }
-        
-            await this.games.getGameByID(gameID);//Checks if game exists
-            
-            const sql = `
+			return data.lastID
+
+		}catch(e) {
+			throw e
+		}
+	}
+	/**
+     * Function to get all of a game's reviews
+     *
+     * @name getReviewsByGameID
+     * @param gameID The gameID to find the reviews based on
+	 * @throws If gameID is not supplied
+	 * @throws If game not found
+     * @returns array of objects if successful
+     *
+     */
+	async getReviewsByGameID(gameID) {
+		try{
+			if(gameID === null || isNaN(gameID)) {
+				throw new Error('Must supply gameID')
+			}
+
+			await this.games.getGameByID(gameID)//Checks if game exists
+
+			const sql = `
             SELECT * FROM review
-            WHERE gameID = ${gameID}`;
+            WHERE gameID = ${gameID}`
 
-            let data = await this.db.all(sql);
+			const data = await this.db.all(sql)
 
-            let result = {reviews:[]};
-            for(let i = 0; i < Object.keys(data).length; i++){
-                result.reviews.push(data[i]);
-            }
-            return result;
-        }catch(e){
-            throw e;
-        } 
-    }
-
-    
-
-    
+			const result = {reviews: []}
+			for(let i = 0; i < Object.keys(data).length; i++) {
+				result.reviews.push(data[i])
+			}
+			return result
+		}catch(e) {
+			throw e
+		}
+	}
 }

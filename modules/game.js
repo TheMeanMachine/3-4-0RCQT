@@ -1,27 +1,30 @@
+/* eslint-disable max-lines */
+/* eslint-disable max-statements */
+/* eslint-disable complexity */
+/* eslint-disable max-lines-per-function */
 
 'use strict'
 
 const mime = require('mime-types')
 const sqlite = require('sqlite-async')
-const fs = require('fs-extra');
-const sharp = require('sharp');
+const fs = require('fs-extra')
+//const sharp = require('sharp')
 //Custom modules
-const valid = require('./validator');
-const Publishers = require('./publisher');
-
+const valid = require('./validator')
+const Publishers = require('./publisher')
 
 
 module.exports = class Game {
 
 	constructor(dbName) {
-        this.validator = new valid();
+		this.validator = new valid()
 
 		return (async() => {
-            this.dbName = dbName || ':memory:';
-            this.publisher = await new Publishers(this.dbName);
-            this.db = await sqlite.open(this.dbName);
-            
-            const sql = 
+			this.dbName = dbName || ':memory:'
+			this.publisher = await new Publishers(this.dbName)
+			this.db = await sqlite.open(this.dbName)
+
+			const sql =
             [`
 			CREATE TABLE IF NOT EXISTS game(
                 ID INTEGER PRIMARY KEY AUTOINCREMENT,
@@ -53,379 +56,384 @@ module.exports = class Game {
                 FOREIGN KEY (publisherID) REFERENCES publisher(ID)
             );
             `]
-            
-            for(let i = 0; i < sql.length; i++){
-                await this.db.run(sql[i]);
-            }
-			
-			return this;
+
+			for(let i = 0; i < sql.length; i++) {
+				await this.db.run(sql[i])
+			}
+
+			return this
 		})()
-		
-    }
 
-    async associateToPublisher(gameID, publisherID){
-        try{
-            if(gameID === null || isNaN(gameID)){
-                throw new Error('Must supply gameID');
-            }
-            if(publisherID === null || isNaN(publisherID)){
-                throw new Error('Must supply gameID');
-            }
+	}
+	/**
+     * Function to associate a publisher to a game
+     *
+     * @name associateToPublisher
+     * @param gameID gameID refers to the ID in the database
+     * @param publisherID publisherID refers to the publisher being associated to the game
+     * @throws if params not supplied
+     * @returns true if successful
+     */
+	async associateToPublisher(gameID, publisherID) {
+		try{
+			if(gameID === null || isNaN(gameID)) {
+				throw new Error('Must supply gameID')
+			}
+			if(publisherID === null || isNaN(publisherID)) {
+				throw new Error('Must supply gameID')
+			}
 
-            await this.getGameByID(gameID);
-            await this.publisher.getPublisherByID(publisherID);
+			await this.getGameByID(gameID)
+			await this.publisher.getPublisherByID(publisherID)
 
-            let sql = `INSERT INTO game_publisher (gameID, publisherID)
+			const sql = `INSERT INTO game_publisher (gameID, publisherID)
             VALUES(
                 ${gameID},
                 ${publisherID}
-            );`;
-            await this.db.run(sql);
-            return true;
-        }catch(e){
-            throw e;
-        }  
-    }
+            );`
+			await this.db.run(sql)
+			return true
+		}catch(e) {
+			throw e
+		}
+	}
+	/**
+     * Function to get publishers associated to a game
+     *
+     * @name getPublishers
+     * @param gameID gameID refers to the ID in the database
+     * @throws if gameID not supplied
+     * @returns object containing publishers of game
+     */
+	async getPublishers(gameID) {
+		try {
+			if(gameID === null || isNaN(gameID)) {
+				throw new Error('Must supply gameID')
+			}
+			await this.getGameByID(gameID)//Make sure game exists
+			const sql = `SELECT * FROM game_publisher 
+            WHERE gameID = ${gameID};`
 
-    async getPublishers(gameID){
-        try {
-            if(gameID === null || isNaN(gameID)) {
-                throw new Error('Must supply gameID');
-            }
-            await this.getGameByID(gameID);//Make sure game exists
-            const sql = `SELECT * FROM game_publisher 
-            WHERE gameID = ${gameID};`;
+			const data = await this.db.all(sql)
+			const result = { publishers: [] }
+			for(let i = 0; i < Object.keys(data).length; i++) {
+				result.publishers.push(data[i].ID)
+			}
 
-            const data = await this.db.all(sql);
-            let result = { publishers:[] };
-            for(let i = 0; i < Object.keys(data).length; i++){
-                result.publishers.push(data[i].ID);
-            }
-            
-            return result;
-        } catch(e) {
-            throw e;
-        }  
-    }
+			return result
+		} catch(e) {
+			throw e
+		}
+	}
 
-    async uploadPicture(path, mimeType, gameID) {
-        try{
-            if(gameID == null || isNaN(gameID)){
-                throw new Error('Must supply gameID');
-            }
-    
-            if(path === null || path.length === 0){
-                throw new Error('Must supply path');
-            }
-    
-            if(mimeType === null || mimeType.length === 0){
-                throw new Error('Must supply type');
-            }
-    
-            const extension = mime.extension(mimeType)
-        
-            await this.getGameByID(gameID);
+	/**
+     * Function to upload a picture and associate it to a game
+     *
+     * @name uploadPicture
+     * @param path path is the input path
+     * @param mimeType is the type of the picture
+     * @param gameID gameID refers to the ID in the database
+     * @throws error if params are not given
+     * @returns true if no problems
+     *
+     */
+	async uploadPicture(path, mimeType, gameID) {
+		try{
+			if(gameID === null || isNaN(gameID)) {
+				throw new Error('Must supply gameID')
+			}
 
-            let sql = `SELECT COUNT(id) as records FROM gamePhoto WHERE gameID="${gameID}";`;
-            const data = await this.db.get(sql);//Set to the amount of pictures saved
-            
-            const picPath1 = `game/${gameID}/picture_${data.records}.${extension}`;
-            const picPath = `public/game/${gameID}/picture_${data.records}.${extension}`;
-            await fs.copy(path, picPath);
+			if(path === null || path.length === 0) {
+				throw new Error('Must supply path')
+			}
 
-            sql = `
+			if(mimeType === null || mimeType.length === 0) {
+				throw new Error('Must supply type')
+			}
+
+			const extension = mime.extension(mimeType)
+
+			await this.getGameByID(gameID)
+
+			let sql = `SELECT COUNT(id) as records FROM gamePhoto WHERE gameID="${gameID}";`
+			const data = await this.db.get(sql)//Set to the amount of pictures saved
+
+			const picPath1 = `game/${gameID}/picture_${data.records}.${extension}`
+			const picPath = `public/game/${gameID}/picture_${data.records}.${extension}`
+			await fs.copy(path, picPath)
+
+			sql = `
             INSERT INTO gamePhoto (gameID, picture)
             VALUES(
                 ${gameID},
                 "${picPath1}"
             )`
-            await this.db.run(sql);
+			await this.db.run(sql)
 
-            return true;
-            
-        }catch(e){
-            throw e;
-        }
-    }
-    
-    async getPictures(gameID){
-        try{
-            if(gameID == null || isNaN(gameID)){
-                throw new Error('Must supply gameID');
-            }
+			return true
 
-            await this.getGameByID(gameID);
+		}catch(e) {
+			throw e
+		}
+	}
 
-            let sql = `
+	/**
+     * Function to get pictures associated with a game
+     *
+     * @name getPictures
+     * @param gameID gameID refers to the ID in the database
+     * @throws error if gameID is not supplied
+     * @returns object containing picture urls
+     */
+	async getPictures(gameID) {
+		try{
+			if(gameID === null || isNaN(gameID)) {
+				throw new Error('Must supply gameID')
+			}
+
+			await this.getGameByID(gameID)
+
+			const sql = `
             SELECT * FROM gamePhoto
             WHERE gameID = ${gameID};
             `
-            const data = await this.db.all(sql);
-            let result = { pictures:[] };
-            for(let i = 0; i < Object.keys(data).length; i++){
-                result.pictures.push(data[i].picture);
-            }
-            return result;
+			const data = await this.db.all(sql)
+			const result = { pictures: [] }
+			for(let i = 0; i < Object.keys(data).length; i++) {
+				result.pictures.push(data[i].picture)
+			}
+			return result
 
-        }catch(e){
-            throw e;
-        }
-    }
+		}catch(e) {
+			throw e
+		}
+	}
 
-    async addNewGame(title, summary, desc){
-        try{
-            
-            this.checkGameFields(title, summary, desc);
-            
+	/**
+     * Function to add a new game
+     *
+     * @name addNewGame
+     * @param title The title of the new game
+     * @param summary The summary of the new game
+     * @desc The description of the new game
+     * @throws error if game already exists
+     *
+     * @returns true if no problems
+     */
+	async addNewGame(title, summary, desc) {
+		try{
 
-            let sql = `SELECT COUNT(id) as records FROM game WHERE title="${title}";`;
-			const data = await this.db.get(sql);
-			if(data.records !== 0){
-                throw new Error(`Game "${title}" already exists`);
-            }
+			this.checkGameFields(title, summary, desc)
 
-            sql = `INSERT INTO game (title, summary, desc)
+
+			let sql = `SELECT COUNT(id) as records FROM game WHERE title="${title}";`
+			const data = await this.db.get(sql)
+			if(data.records !== 0) {
+				throw new Error(`Game "${title}" already exists`)
+			}
+
+			sql = `INSERT INTO game (title, summary, desc)
             VALUES(
                 "${title}",
                 "${summary}",
                 "${desc}"
-            )`;
-            await this.db.run(sql);
-			return true;
-        }catch(err){
-            throw err;
-        }
-    }
-    
-    checkGameFields(title, summary, desc){
-        if(title != null){
-            let checkTitle = this.validator.check_MultipleWordsOnlyAlphaNumberic(title);
-            if(!checkTitle){
-                throw new Error('Must supply title');
-            }
-        }
-        if(summary != null){
-            let checkSummary = this.validator.check_MultipleWordsOnlyAlphaNumberic(summary);
-            if(!checkSummary){
-                throw new Error('Must supply summary');
-            }
-        }
-        if(desc != null){
-            let checkDesc = this.validator.check_MultipleWordsOnlyAlphaNumberic(desc);
-            if(!checkDesc){
-                throw new Error('Must supply description');
-            }
-        }
-        return true;
-    }
-
-    async getGameByID(ID) {
+            )`
+			await this.db.run(sql)
+			return true
+		}catch(err) {
+			throw err
+		}
+	}
+	/**
+     * Function to do validation checks on title, summary and description
+     *
+     * @name checkGameFields
+     * @param title The title to check
+     * @param summary Summary to check
+     * @param desc Description to check
+     * @throws error if any params do not suit checks
+     * @returns true if all fields are either null or have no problems
+     */
+	checkGameFields(title, summary, desc) {
+		if(title !== null) {
+			const checkTitle = this.validator.checkMultipleWordsOnlyAlphaNumberic(title)
+			if(!checkTitle) {
+				throw new Error('Must supply title')
+			}
+		}
+		if(summary !== null) {
+			const checkSummary = this.validator.checkMultipleWordsOnlyAlphaNumberic(summary)
+			if(!checkSummary) {
+				throw new Error('Must supply summary')
+			}
+		}
+		if(desc !== null) {
+			const checkDesc = this.validator.checkMultipleWordsOnlyAlphaNumberic(desc)
+			if(!checkDesc) {
+				throw new Error('Must supply description')
+			}
+		}
+		return true
+	}
+	/**
+     * Function to get game information based on ID
+     *
+     * @name getGameByID
+     * @param ID the gameID to get game information from
+     * @returns object containing game information
+     */
+	async getGameByID(ID) {
 		try {
-            if(ID == null || isNaN(ID)){
-                throw new Error('Must supply ID');
-            }
+			if(ID === null || isNaN(ID)) {
+				throw new Error('Must supply ID')
+			}
 			let sql = `SELECT count(ID) AS count FROM game WHERE ID = ${ID};`
-            let records = await this.db.get(sql)
-			if(records.count == 0){
-                throw new Error(`Game not found`);
-            }
+			let records = await this.db.get(sql)
+			if(records.count === 0) {
+				throw new Error('Game not found')
+			}
 
-            sql = `SELECT * FROM game WHERE ID = ${ID};`;
+			sql = `SELECT * FROM game WHERE ID = ${ID};`
 
-            records = await this.db.get(sql);
-            
-            let data = {
-                ID: ID,
-                title: records.title,
-                summary: records.summary,
-                desc: records.desc,
-                game: this,
-                setTitle (string){
-                    try{
-                        this.game.checkGameFields(string);
-                        this.title = string;
-                    }catch(e){
-                        throw e;
-                    }
-                },
-                setSummary (string){
-                    try{
-                        this.game.checkGameFields(null, string);
-                        this.summary = string;
-                    }catch(e){
-                        throw e;
-                    }
-                    
-                },
-                setDesc (string){
-                    try{
-                        this.game.checkGameFields(null, null, string);
-                        this.desc = string;
-                    }catch(e){
-                        throw e;
-                    }
-                    
-                    
-                }
-            }
-            
-			return data;
+			records = await this.db.get(sql)
+
+			const data = {
+				ID: ID,
+				title: records.title,
+				summary: records.summary,
+				desc: records.desc
+			}
+
+			return data
 		} catch(err) {
 			throw err
 		}
-    }
-    
-    async getGames(){
-        let sql = `
+	}
+	/**
+     * Function to get all games
+     *
+     * @name getGameByID
+     * @returns object containing all games
+     */
+	async getGames() {
+		const sql = `
         SELECT * FROM game;`
-        const data = await this.db.all(sql);
-        let result = { games:[] };
-        for(let i = 0; i < Object.keys(data).length; i++){
-            result.games.push(data[i]);
-        }
-
-        
-        return result;
-    }
+		const data = await this.db.all(sql)
+		const result = { games: [] }
+		for(let i = 0; i < Object.keys(data).length; i++) {
+			result.games.push(data[i])
+		}
 
 
+		return result
+	}
+
+	/**
+     * Function to get game information based on title
+     *
+     * @name getGameByTitle
+     * @param title the title to get game information from
+     * @returns object containing game information
+     */
 	async getGameByTitle(title) {
 		try {
-            if(!this.validator.check_MultipleWordsOnlyAlphaNumberic(title)){
-                    throw new Error(`Must supply a valid title`);
-            }
+			if(!this.validator.checkMultipleWordsOnlyAlphaNumberic(title)) {
+				throw new Error('Must supply a valid title')
+			}
 			let sql = `SELECT count(ID) AS count FROM game WHERE title = "${title}";`
-            let records = await this.db.get(sql)
-			if(records.count == 0){
-                throw new Error(`Game: "${title}" not found`)
-            }
+			let records = await this.db.get(sql)
+			if(records.count === 0) {
+				throw new Error(`Game: "${title}" not found`)
+			}
 
-            sql = `SELECT * FROM game WHERE title = "${title}";`
+			sql = `SELECT * FROM game WHERE title = "${title}";`
 
-            records = await this.db.get(sql)
-            
-            let data = {
-                ID: records.ID,
-                title: title,
-                summary: records.summary,
-                desc: records.desc,
-                game: this,
-                setTitle (string){
-                    try{
-                        this.game.checkGameFields(string);
-                        this.title = string;
-                    }catch(e){
-                        throw e;
-                    }
-                },
-                setSummary (string){
-                    try{
-                        this.game.checkGameFields(null, string);
-                        this.summary = string;
-                    }catch(e){
-                        throw e;
-                    }
-                    
-                },
-                setDesc (string){
-                    try{
-                        this.game.checkGameFields(null, null, string);
-                        this.desc = string;
-                    }catch(e){
-                        throw e;
-                    }
-                    
-                    
-                }
-            }
-            
-			return data;
+			records = await this.db.get(sql)
+
+			const data = {
+				ID: records.ID,
+				title: title,
+				summary: records.summary,
+				desc: records.desc
+			}
+
+			return data
 		} catch(err) {
 			throw err
 		}
 	}
 
-	async updateGameByID(id, data){
-        if(id == null || isNaN(id)){
-            throw new Error('Must supply ID');
-        }
+	async updateGameByID(id, data) {
+		if(id === null || isNaN(id)) {
+			throw new Error('Must supply ID')
+		}
 
-        let title = data.title || null;
-        let desc = data.desc || null;
-        let summary = data.summary || null;
-        
-        let count = Object.keys(data).length;
-        let done = 0;
+		const title = data.title || null
+		const desc = data.desc || null
+		const summary = data.summary || null
 
-        
-        
-        
-        this.checkGameFields(title,summary,desc);
+		const count = Object.keys(data).length
+		let done = 0
 
-        
 
-        if(title != null){
-            let sql = `SELECT count(ID) AS count FROM game WHERE title = "${title}";`;
-            let records = await this.db.get(sql);
-            if(records.count != 0){
-                throw new Error(`Game: "${title}" already exists`);
-            }
+		this.checkGameFields(title,summary,desc)
 
-            sql = `
+
+		if(title !== null) {
+			let sql = `SELECT count(ID) AS count FROM game WHERE title = "${title}";`
+			const records = await this.db.get(sql)
+			if(records.count !== 0) {
+				throw new Error(`Game: "${title}" already exists`)
+			}
+
+			sql = `
             UPDATE game
             SET title = "${title}"
             WHERE ID = ${id};
-            `;
+            `
+			await this.db.get(sql)
+			done++
+		}
 
-            
-            let result = await this.db.get(sql);
-            done++;
-            
-        }
-
-        if(summary != null){
-            let sql = `
+		if(summary !== null) {
+			const sql = `
             UPDATE game
             SET summary = "${summary}"
             WHERE ID = ${id};
-            `;
+            `
+			await this.db.get(sql)
+			done++
+		}
 
-            let result = await this.db.get(sql);
-            done++;
-
-        }
-        
-        if(desc != null){
-            let sql = `
+		if(desc !== null) {
+			const sql = `
             UPDATE game
             SET desc = "${desc}"
             WHERE ID = ${id};
-            `;
- 
-            let result = await this.db.get(sql);
-            done++;
-            
-        }
+            `
+			await this.db.get(sql)
+			done++
+		}
 
-        if(done === count){
-            return true;
-        }
-        throw(new Error('Could not update field(s)'))
-        
-    }
+		if(done === count) {
+			return true
+		}
+		throw new Error('Could not update field(s)')
 
-    async deleteGameByID(ID){
-        if(ID == null || isNaN(ID)){
-            throw new Error('Must supply ID');
-        }
+	}
 
-        let sql = `SELECT count(ID) AS count FROM game WHERE ID = ${ID};`;
-        let records = await this.db.get(sql);
-        if(records.count === 0){
-            throw new Error(`ID doesn't exist`);
-        }
+	async deleteGameByID(ID) {
+		if(ID === null || isNaN(ID)) {
+			throw new Error('Must supply ID')
+		}
 
-        sql = [`
+		let sql = `SELECT count(ID) AS count FROM game WHERE ID = ${ID};`
+		const records = await this.db.get(sql)
+		if(records.count === 0) {
+			throw new Error('ID doesn\'t exist')
+		}
+
+		sql = [`
             DELETE FROM game_category
             WHERE gameID = ${ID};
             `,`
@@ -437,13 +445,13 @@ module.exports = class Game {
             `,`
             DELETE FROM game
             WHERE ID = ${ID}`
-        ];
+		]
 
-        for(let i = 0; i < sql.length; i++){
-            await this.db.run(sql[i]);
-        }
+		for(let i = 0; i < sql.length; i++) {
+			await this.db.run(sql[i])
+		}
 
-        return true;
-    }
+		return true
+	}
 
 }
