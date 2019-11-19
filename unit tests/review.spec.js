@@ -25,8 +25,7 @@ describe('updateReview()', ()=>{
             fullText: "This is changed fulltext",
             rating: 4
         };
-        const result = await review.updateReview(1, changed);
-            console.log("updateReview: End: " + result);
+        const result = await review.updateReview(userID, changed);
         expect(result).toBe(true);
 
         expect(await review.getReviewsByGameID(retreiveGame.ID)).toMatchObject(
@@ -57,7 +56,7 @@ describe('updateReview()', ()=>{
         const changed = {
             fullText: "This is changed fulltext"
         };
-        const result = await review.updateReview(1, changed);
+        const result = await review.updateReview(userID, changed);
 
         expect(result).toBe(true);
         
@@ -88,7 +87,7 @@ describe('updateReview()', ()=>{
         const changed = {
             rating: 4
         };
-        const result = await review.updateReview(1, changed
+        const result = await review.updateReview(userID, changed
             );
 
         expect(result).toBe(true);
@@ -127,7 +126,7 @@ describe('updateReview()', ()=>{
         done();
     })
 
-    test('Error if reviewID is null', async done => {
+    test('Error if userID is null', async done => {
         expect.assertions(1);
 
         const review = await new Reviews();
@@ -135,13 +134,13 @@ describe('updateReview()', ()=>{
         await expect(review.updateReview(null, 
             {
                 rating: 4
-            })).rejects.toEqual(Error('Must supply reviewID'));
+            })).rejects.toEqual(Error('Must supply userID'));
 
 
         done();
     })
 
-    test('Error if reviewID is NaN', async done => {
+    test('Error if userID is NaN', async done => {
         expect.assertions(1);
 
         const review = await new Reviews(); 
@@ -149,7 +148,7 @@ describe('updateReview()', ()=>{
         await expect(review.updateReview("not a number", 
             {
                 rating: 4
-            })).rejects.toEqual(Error('Must supply reviewID'));
+            })).rejects.toEqual(Error('Must supply userID'));
 
 
         done();
