@@ -112,17 +112,6 @@ router.get('/game', async ctx => {
 		thisGame.pictures = pic
 
 
-		const ratingsMax = 5
-		const ratingsReviews = []
-		//Set ratings, an array of objs with value and checked
-		for(let i = 1; i <= ratingsMax; i++) {
-			ratingsReviews[i] ={
-				value: i
-			}
-			if(uReview && i == uReview.rating) {
-				ratingsReviews[i].checked = true//set to true if user picked this rating
-			}
-		}
 		const avgRating = await review.getAverageRating(gameID)
 
 		temp = await review.getReviewsByGameID(gameID)//Get all reviews
@@ -135,6 +124,18 @@ router.get('/game', async ctx => {
 				break
 			}
 
+		}
+
+		const ratingsMax = 5
+		const ratingsReviews = []
+		//Set ratings, an array of objs with value and checked
+		for(let i = 1; i <= ratingsMax; i++) {
+			ratingsReviews[i] ={
+				value: i
+			}
+			if(uReview && i == uReview.rating) {
+				ratingsReviews[i].checked = true//set to true if user picked this rating
+			}
 		}
 
 		//Render game main page
