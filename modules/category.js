@@ -9,6 +9,7 @@ const sqlite = require('sqlite-async')
 
 //Custom modules
 const valid = require('./validator')
+const Games = require('./game')
 
 
 module.exports = class Category {
@@ -18,7 +19,7 @@ module.exports = class Category {
 		return (async() => {
 			this.dbName = dbName || ':memory:'
 			this.db = await sqlite.open(this.dbName)
-
+			this.game = await new Games(this.dbName)
 			const sql =
             [`
             CREATE TABLE IF NOT EXISTS game_category(
@@ -40,6 +41,26 @@ module.exports = class Category {
 			return this
 		})()
 
+	}
+
+	async associateToCategory(gameID, categoryID) {
+		try{
+			this.validator.checkID(gameID, 'gameID')
+			this.validator.checkID(categoryID, 'categoryID')
+
+			await this.game.getGameByID(gameID)
+			await this.getCategoryByID(categoryID)
+
+			const sql = `INSERT INTO game_category (gameID, categoryID)
+            VALUES(
+                ${gameID},
+                ${categoryID}
+            );`
+			await this.db.run(sql)
+			return true
+		}catch(e) {
+			throw e
+		}
 	}
 
 	async addCategory(name) {
