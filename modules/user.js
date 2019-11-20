@@ -17,7 +17,7 @@ module.exports = class User {
 		return (async() => {
 			this.dbName = dbName || ':memory:'
 			this.db = await sqlite.open(this.dbName)
-			this.role = new Role(this.dbName)
+			this.roles = await new Role(this.dbName)
 			const sql = `
 			CREATE TABLE IF NOT EXISTS user(
                 ID INTEGER PRIMARY KEY AUTOINCREMENT,
@@ -40,7 +40,7 @@ module.exports = class User {
 			this.validator.checkID(roleID, 'roleID')
 
 			await this.getUserByID(userID)
-			await this.role.getRoleByID(roleID)
+			await this.roles.getRoleByID(roleID)
 
 			const sql = `
 			UPDATE user
@@ -88,27 +88,25 @@ module.exports = class User {
      * @param user The username for the user
 	 * @param pass The password for the user
 	 * @throws If username is already in use
-     * @returns true if successful
+     * @returns ID of new user
      *
      */
 	async register(user, pass) {
-		try {
-			try{
-				this.checkUserFields(user, pass)
-			}catch(e) {
-				throw e
-			}
+		this.checkUserFields(user, pass)
+		const roleID = 1
 
-			let sql = `SELECT COUNT(ID) as records FROM user WHERE username="${user}";`
-			const data = await this.db.get(sql)
-			if(data.records !== 0) throw new Error(`username "${user}" already in use`)
-			pass = await bcrypt.hash(pass, saltRounds)
-			sql = `INSERT INTO user(username, pass) VALUES("${user}", "${pass}")`
-			const record = await this.db.run(sql)
-			return record.lastID
-		} catch(err) {
-			throw err
+		let sql = `SELECT COUNT(ID) as records FROM user WHERE username="${user}";`
+		const data = await this.db.get(sql)
+		if(data.records !== 0) {
+			throw new Error(`username "${user}" already in use`)
 		}
+		pass = await bcrypt.hash(pass, saltRounds)
+
+		sql = `INSERT INTO user(username, pass, roleID) VALUES("${user}", "${pass}", ${roleID})`
+		const record = await this.db.run(sql)
+
+		return record.lastID//Return ID of new user
+
 	}
 	/**
      * Function to upload a picture and associate it to a user
@@ -123,9 +121,7 @@ module.exports = class User {
      */
 	async uploadPicture(path, mimeType, userID) {
 
-		if(userID === null || isNaN(userID)) {
-			throw new Error('Must supply userID')
-		}
+		this.validator.checkID(userID, 'userID')
 
 		if(path === null || path.length === 0) {
 			throw new Error('Must supply path')
@@ -162,30 +158,28 @@ module.exports = class User {
      *
      */
 	async getUserByID(userID) {
-		try {
-			if(userID === null || isNaN(userID)) {
-				throw new Error('Must supply userID')
-			}
-			let sql = `SELECT count(ID) AS count FROM user WHERE ID = ${userID};`
-			let records = await this.db.get(sql)
-			if(records.count === 0) {
-				throw new Error('User not found')
-			}
 
-			sql = `SELECT * FROM user WHERE ID = ${userID};`
-
-			records = await this.db.get(sql)
-
-			const data = {
-				ID: userID,
-				username: records.username,
-				avatar: records.avatar
-			}
-
-			return data
-		} catch(err) {
-			throw err
+		this.validator.checkID(userID, 'userID')
+		let sql = `SELECT count(ID) AS count FROM user WHERE ID = ${userID};`
+		let records = await this.db.get(sql)
+		if(records.count === 0) {
+			throw new Error('User not found')
 		}
+
+		sql = `SELECT * FROM user WHERE ID = ${userID};`
+
+		records = await this.db.get(sql)
+
+		await this.roles.getRoleByID(records.roleID)
+
+		const data = {
+			ID: userID,
+			username: records.username,
+			avatar: records.avatar,
+			roleID: records.roleID,
+		}
+
+		return data
 	}
 	/**
      * Function to login user
