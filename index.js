@@ -126,6 +126,7 @@ router.get('/game', async ctx => {
 				reviews.splice(i,1)
 				break
 			}
+
 		}
 
 		//Render game main page
