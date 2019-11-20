@@ -111,6 +111,24 @@ module.exports = class Review {
 		return true
 
 	}
+
+	async publishReview(reviewID, boolean) {
+		this.validator.checkID(reviewID)
+
+		let publish = 0
+		if(boolean) publish = 1
+
+		const sql = `
+		UPDATE review 
+		SET flag = ${publish}
+		WHERE ID = ${reviewID};
+		`
+
+		await this.db.run(sql)
+
+		return true
+	}
+
 	/**
      * Function to update a review
      *
