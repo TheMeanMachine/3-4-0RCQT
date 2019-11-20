@@ -136,6 +136,7 @@ router.get('/game', async ctx => {
 				ratingsReviews[i].checked = true//set to true if user picked this rating
 			}
 		}
+		const avgRating = await review.getAverageRating(gameID)
 
 		//Render game main page
 		await ctx.render('game', {
@@ -144,6 +145,7 @@ router.get('/game', async ctx => {
 			ratingsReview: ratingsReviews,
 			allReview: reviews,
 			userReview: uReview,
+			averageRating: Math.round(avgRating),
 			helpers
 		})
 	} catch(err) {
