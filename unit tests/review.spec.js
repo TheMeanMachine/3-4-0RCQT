@@ -112,7 +112,7 @@ describe('deleteReviewByID()', () => {
 	})
 })
 
-describe('publishReview()', ()=>{
+describe('publishReview()', () => {
 	test('Publish valid review', async done => {
 		expect.assertions(2)
 
@@ -134,16 +134,16 @@ describe('publishReview()', ()=>{
 
 		expect(await review.getReviewsByGameID(retreiveGame.ID))
 			.toMatchObject(
-			{ reviews:
+				{ reviews:
                 [{
-					flag: 1
-				}] }
+                	flag: 1
+                }] }
 
 			)
 
 		expect(publishResult).toBe(true)
 
-		done();
+		done()
 	})
 
 	test('Unpublish valid review', async done => {
@@ -167,16 +167,16 @@ describe('publishReview()', ()=>{
 
 		expect(await review.getReviewsByGameID(retreiveGame.ID))
 			.toMatchObject(
-			{ reviews:
+				{ reviews:
                 [{
-					flag: 0
-				}] }
+                	flag: 0
+                }] }
 
 			)
 
 		expect(publishResult).toBe(true)
 
-		done();
+		done()
 	})
 })
 
