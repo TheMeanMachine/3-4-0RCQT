@@ -1,5 +1,4 @@
-/* eslint-disable max-lines */
-/* eslint-disable max-statements */
+
 /* eslint-disable complexity */
 /* eslint-disable max-lines-per-function */
 
@@ -196,7 +195,6 @@ module.exports = class Review {
 				throw new Error('Must supply userID')
 			}
 
-
 			const sql = `
             INSERT INTO review (
                 gameID,
@@ -242,12 +240,31 @@ module.exports = class Review {
             WHERE gameID = ${gameID}`
 
 			const data = await this.db.all(sql)
-
-			const result = {reviews: []}
-			for(let i = 0; i < Object.keys(data).length; i++) {
+			const amtReviews = Object.keys(data).length
+			const result = {reviews: [], count: amtReviews}
+			for(let i = 0; i < amtReviews; i++) {
 				result.reviews.push(data[i])
 			}
 			return result
+		}catch(e) {
+			throw e
+		}
+	}
+
+	async getAverageRating(gameID) {
+		try{
+			if(gameID === null || isNaN(gameID)) {
+				throw new Error('Must supply gameID')
+			}
+
+			await this.games.getGameByID(gameID)//Checks if game exists
+
+			const sql = `
+			SELECT AVG(rating) as average FROM review
+			WHERE gameID = ${gameID}`
+			const data = await this.db.get(sql)
+
+			return data.average
 		}catch(e) {
 			throw e
 		}

@@ -1,6 +1,58 @@
 'use strict'
 const Reviews = require('../modules/review.js')
 
+describe('getAverageRating()', () => {
+	test('Valid gameID', async done => {
+		expect.assertions(1)
+
+		const review = await new Reviews()
+		const game = await review.games
+		const user = await review.users
+		const userID = await user.register('Samson', 'Password')
+
+		await game.addNewGame('title', 'summary', 'desc')
+		const retreiveGame = await game.getGameByTitle('title')
+
+		const ratings = [2,1,5,3,3,2]
+		let average = 0
+		for(let i = 0; i < ratings.length; i++) {
+			await review.addReview(retreiveGame.ID,
+				{
+					fullText: 'fulltext',
+					rating: ratings[i]
+				}, userID
+			)
+			average += ratings[i]
+		}
+		average = average / ratings.length
+
+		expect(await review.getAverageRating(retreiveGame.ID)).toEqual(average)
+
+		done()
+	})
+
+	test('Error if gameID is null', async done => {
+		expect.assertions(1)
+
+		const review = await new Reviews()
+
+		await expect( review.getAverageRating(null))
+			.rejects.toEqual(Error('Must supply gameID'))
+
+		done()
+	})
+
+	test('Error if gameID is NaN', async done => {
+		expect.assertions(1)
+
+		const review = await new Reviews()
+		await expect( review.getAverageRating('Not a number'))
+			.rejects.toEqual(Error('Must supply gameID'))
+
+		done()
+	})
+})
+
 describe('updateReview()', () => {
 	test('Valid review update', async done => {
 		expect.assertions(2)
