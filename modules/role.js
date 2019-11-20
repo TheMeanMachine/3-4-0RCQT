@@ -28,14 +28,31 @@ module.exports = class role {
 	}
 
 	async generateRoles(...roles) {
-		for(let i = 0; i < roles.length; i++) {
+		for(let i = 1; i < roles.length+1; i++) {
 			const sql = `
             INSERT OR IGNORE INTO role (ID, role)
-            VALUES(${i}, '${roles[i]}');
+            VALUES(${i}, '${roles[i-1]}');
             `
 			await this.db.run(sql)
 		}
 		return true
+
+	}
+
+	async getRoleByID(roleID) {
+		this.validator.checkID(roleID, 'roleID')
+
+		let sql = `SELECT count(ID) AS count FROM role WHERE ID = ${roleID};`
+		let records = await this.db.get(sql)
+		if(records.count === 0) {
+			throw new Error('Role not found')
+		}
+
+		sql = `SELECT * FROM role WHERE ID = ${roleID};`
+
+		records = await this.db.get(sql)
+
+		return records
 	}
 
 }

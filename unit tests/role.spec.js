@@ -38,10 +38,10 @@ describe('getRoleByID()', () => {
 
 		const role = await new Role()
 
-		expect(await role.getRoleByID(1).toMatchObject({
+		expect(await role.getRoleByID(1)).toMatchObject({
 			ID: 1,
 			role: 'user'
-		}))
+		})
 		done()
 	})
 
