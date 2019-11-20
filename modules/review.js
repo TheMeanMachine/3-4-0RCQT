@@ -117,13 +117,11 @@ module.exports = class Review {
 
 		let publish = 0
 		if(boolean) publish = 1
-
 		const sql = `
 		UPDATE review 
 		SET flag = ${publish}
-		WHERE ID = ${reviewID};
-		`
-
+		WHERE ID = ${reviewID};`
+		console.log(sql)
 		await this.db.run(sql)
 
 		return true
@@ -273,7 +271,7 @@ module.exports = class Review {
 
 			const sql = `
             SELECT * FROM review
-            WHERE gameID = ${gameID}`
+            WHERE gameID = ${gameID};`
 
 			const data = await this.db.all(sql)
 			const amtReviews = Object.keys(data).length

@@ -46,6 +46,12 @@ const helpers ={
 			return opts.fn(this)
 		else
 			return opts.inverse(this)
+	},
+	if_EqOREq: function(a, b, c, opts) {
+		if(a || b == c)
+			return opts.fn(this)
+		else
+			return opts.inverse(this)
 	}
 }
 
@@ -160,6 +166,34 @@ router.get('/game', async ctx => {
 	}
 })
 
+router.post('/reviewAdminUpdate', async ctx => {
+	try{
+		// extract the data from the request
+		const body = ctx.request.body
+		if(ctx.session.authorised !== true || !ctx.session.admin)return ctx.redirect('/login?msg=you need to log in')
+		// call the functions in the module
+		const review = await new Review(dbName)
+
+		const gameID = body.gameID
+		const reviewID = body.reviewID
+		console.log(reviewID)
+
+		const flag = body.flag ? true : false
+		const del = body.delete ? true : false
+
+		console.log(del)
+		console.log(flag)
+
+
+		if(!del) await review.publishReview(reviewID, flag)
+		if(del) await review.deleteReviewByID(reviewID)
+
+		ctx.redirect(`game?gameID=${gameID}`)
+	} catch(err) {
+		await ctx.render('error', {message: err.message})
+	}
+})
+
 /**
  * Script to add a review to a game
  *
@@ -226,7 +260,7 @@ router.post('/addGamePhoto',koaBody, async ctx => {
 	try {
 		// extract the data from the request
 		const body = ctx.request.body
-		if(ctx.session.authorised !== true || ctx.session.role !== adminRoleID)return ctx.redirect('/login?msg=you need to log in')
+		if(ctx.session.authorised !== true || !ctx.session.admin)return ctx.redirect('/login?msg=you need to log in')
 
 		const game = await new Games(dbName)
 
