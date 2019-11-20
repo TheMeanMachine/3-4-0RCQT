@@ -108,16 +108,16 @@ describe('getCategories()', () => {
 
 		await category.associateToCategory(retGame.ID, catID1)
 		await category.associateToCategory(retGame.ID, catID2)
-		expect(await category.getCategories(gameID))
+		expect(await category.getCategories(retGame.ID))
 			.toMatchObject({
 				categories: [
 					{
 						ID: catID1,
-						name: 'Cats'
+						title: 'Cats'
 					},
 					{
 						ID: catID2,
-						name: 'Runner'
+						title: 'Runner'
 					}
 				]
 			})
@@ -160,7 +160,7 @@ describe('getCategories()', () => {
 		const category = await new Category()
 
 		await expect(category.getCategories(1))
-			.rejects.toEqual(Error('Must supply gameID'))
+			.rejects.toEqual(Error('Game not found'))
 		done()
 	})
 

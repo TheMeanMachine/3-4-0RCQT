@@ -1,6 +1,5 @@
 /* eslint-disable max-lines */
 /* eslint-disable max-statements */
-/* eslint-disable complexity */
 /* eslint-disable max-lines-per-function */
 
 'use strict'
@@ -58,6 +57,29 @@ module.exports = class Category {
             );`
 			await this.db.run(sql)
 			return true
+		}catch(e) {
+			throw e
+		}
+	}
+
+	async getCategories(gameID) {
+		try{
+			this.validator.checkID(gameID, 'gameID')//Check gameID is valid
+
+			await this.game.getGameByID(gameID)//Check game exists
+
+			const sql = `
+			SELECT * FROM game_category
+			WHERE gameID = ${gameID};`
+
+			const data = await this.db.all(sql)
+			const result = { categories: [] }
+			for(let i = 0; i < Object.keys(data).length; i++) {
+				const curCat = await this.getCategoryByID(data[i].ID)//Retrieve full information
+				data[i].title = curCat.title//Add title to data
+				result.categories.push(data[i])
+			}
+			return result
 		}catch(e) {
 			throw e
 		}
