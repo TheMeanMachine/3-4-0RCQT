@@ -32,5 +32,23 @@ module.exports = class role {
 		})()
 	}
 
+	async associateRole(roleID, userID) {
+		try{
+			this.validator.checkID(userID, 'userID')
+			this.validator.checkID(roleID, 'roleID')
+
+			await this.user.getUserByID(userID)
+			//await this.getRoleByID(roleID)
+
+			await this.user.updateUser(userID, {
+				roleID: roleID
+			})
+
+			return true
+		}catch(e) {
+			throw e
+		}
+	}
+
 
 }
