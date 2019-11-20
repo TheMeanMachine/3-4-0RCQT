@@ -5,7 +5,6 @@ const sqlite = require('sqlite-async')
 
 //Custom modules
 const valid = require('./validator')
-const User = require('./user')
 
 module.exports = class role {
 
@@ -14,41 +13,29 @@ module.exports = class role {
 		return (async() => {
 			this.dbName = dbName || ':memory:'
 			this.db = await sqlite.open(this.dbName)
-			this.user = await new User(this.dbName)
-			const sql =
-            [`CREATE TABLE IF NOT EXISTS role(
-                ID INTEGER PRIMARY KEY AUTOINCREMENT,
-                role TEXT
-            );`,
-            `INSERT INTO role (role)
-            VALUES ("user"),
-            ("admin")`]
 
-			for(let i = 0; i < sql.length; i++) {
-				await this.db.run(sql[i])
-			}
+			const sql =`CREATE TABLE IF NOT EXISTS role(
+                ID INTEGER PRIMARY KEY AUTOINCREMENT,
+                role TEXT,
+                UNIQUE(ID, role)
+            );`
+			await this.db.run(sql)
+			await this.generateRoles('user', 'admin')
+
 
 			return this
 		})()
 	}
 
-	async associateRole(roleID, userID) {
-		try{
-			this.validator.checkID(userID, 'userID')
-			this.validator.checkID(roleID, 'roleID')
-
-			await this.user.getUserByID(userID)
-			//await this.getRoleByID(roleID)
-
-			await this.user.updateUser(userID, {
-				roleID: roleID
-			})
-
-			return true
-		}catch(e) {
-			throw e
+	async generateRoles(...roles) {
+		for(let i = 0; i < roles.length; i++) {
+			const sql = `
+            INSERT OR IGNORE INTO role (ID, role)
+            VALUES(${i}, '${roles[i]}');
+            `
+			await this.db.run(sql)
 		}
+		return true
 	}
-
 
 }
