@@ -112,17 +112,24 @@ router.get('/game', async ctx => {
 		thisGame.pictures = pic
 
 
-		const avgRating = await review.getAverageRating(gameID)
-
 		temp = await review.getReviewsByGameID(gameID)//Get all reviews
 		const reviews = temp.reviews
 		let uReview
 		for(let i = 0; i < reviews.length; i++) {//Remove user's review from main list
-			if(reviews[i].userID == ctx.session.userID) {
+			if(reviews[i].userID === ctx.session.userID) {
 				uReview = reviews[i]
 				reviews.splice(i,1)
 				break
 			}
+
+		}
+
+		for(let i = 0; i < reviews.length; i++) {//Remove user's review from main list
+
+			if(ctx.session.admin === false && reviews[i].flag === 0) {
+				reviews.splice(i,1)
+			}
+
 
 		}
 
@@ -137,7 +144,7 @@ router.get('/game', async ctx => {
 				ratingsReviews[i].checked = true//set to true if user picked this rating
 			}
 		}
-
+		const avgRating = await review.getAverageRating(gameID)
 		//Render game main page
 		await ctx.render('game', {
 			game: thisGame,

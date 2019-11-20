@@ -115,10 +115,45 @@
                         <p>Rating: {{this.rating}}</p>
                         <p>Review: {{this.fullText}}</p>
                         
+                        {{#if @root.admin}}
+                            <form action="/reviewAdminUpdate" method="POST">
+
+                                <table class="adminReviewPanel">
+                                    <tr>
+                                        <th>Published
+                                            {{#if this.flag}}
+                                                (true)
+                                            {{else}}
+                                                (false)
+                                            {{/if}}
+                                        </th>
+                                        <th>Delete?</th>
+                                    </tr>
+                                    <tr>
+                                        <th>
+                                            <input type="checkbox" name="flag" value="true"
+                                            {{#if this.flag}}
+                                                checked="checked"
+                                            {{/if}}>
+                                        </th>
+                                        <th>
+                                            <input type="checkbox" name="delete" value="true">
+                                        </th>
+                                    </tr>
+                                    <tr>
+                                        <th colspan="2">
+                                            <button type="submit">SUBMIT</button>
+                                        </th>
+                                    </tr>
+                                    
+                                </table>
+                            </form>
+                        {{/if}}
                     </div>
                 </div>
                     
                 {{/each}}
+                
                 {{/if}}
             </div>
             
