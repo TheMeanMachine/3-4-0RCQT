@@ -15,7 +15,9 @@ describe('associateRole()', () => {
 
 		const userID = await user.register('Aaron', 'passwordIsNotGood')
 
-		expect(await user.associateRole(1, userID)).toBe(true)
+		const result = await user.associateRole(1, userID)
+
+		expect(result).toBe(true)
 
 		done()
 	})
@@ -28,7 +30,9 @@ describe('associateRole()', () => {
 
 		const userID = await user.register('Aaron', 'passwordIsNotGood')
 
-		expect(await user.associateRole(2, userID)).toBe(true)
+		const result = await user.associateRole(2, userID)
+
+		expect(result).toBe(true)
 
 		done()
 	})
@@ -213,9 +217,11 @@ describe('uploadPicture()', () => {
 			'Aaron',
 			'notAGoodPassword')
 
-		expect(await user.uploadPicture(path,type,userID)).toBe(true)
+		const uploadPhoto = await user.uploadPicture(path,type,userID)
+
 		const extension = await mime.extension(type)
 
+		expect(uploadPhoto).toBe(true)
 		expect( await fs.existsSync(`public/users/${userID}/profile.${extension}`)).toBe(true)
 
 		done()
@@ -391,11 +397,6 @@ describe('checkUserFields()', () => {
 		done()
 	})
 
-})
-
-describe('uploadPicture()', () => {
-	// this would have to be done by mocking the file system
-	// perhaps using mock-fs?
 })
 
 describe('login()', () => {
