@@ -1,6 +1,5 @@
 /* eslint-disable max-lines */
 /* eslint-disable max-statements */
-/* eslint-disable complexity */
 /* eslint-disable max-lines-per-function */
 
 'use strict'
@@ -9,6 +8,7 @@ const sqlite = require('sqlite-async')
 
 //Custom modules
 const valid = require('./validator')
+const Games = require('./game')
 
 
 module.exports = class Category {
@@ -18,7 +18,7 @@ module.exports = class Category {
 		return (async() => {
 			this.dbName = dbName || ':memory:'
 			this.db = await sqlite.open(this.dbName)
-
+			this.game = await new Games(this.dbName)
 			const sql =
             [`
             CREATE TABLE IF NOT EXISTS game_category(
@@ -40,6 +40,49 @@ module.exports = class Category {
 			return this
 		})()
 
+	}
+
+	async associateToCategory(gameID, categoryID) {
+		try{
+			this.validator.checkID(gameID, 'gameID')
+			this.validator.checkID(categoryID, 'categoryID')
+
+			await this.game.getGameByID(gameID)
+			await this.getCategoryByID(categoryID)
+
+			const sql = `INSERT INTO game_category (gameID, categoryID)
+            VALUES(
+                ${gameID},
+                ${categoryID}
+            );`
+			await this.db.run(sql)
+			return true
+		}catch(e) {
+			throw e
+		}
+	}
+
+	async getCategories(gameID) {
+		try{
+			this.validator.checkID(gameID, 'gameID')//Check gameID is valid
+
+			await this.game.getGameByID(gameID)//Check game exists
+
+			const sql = `
+			SELECT * FROM game_category
+			WHERE gameID = ${gameID};`
+
+			const data = await this.db.all(sql)
+			const result = { categories: [] }
+			for(let i = 0; i < Object.keys(data).length; i++) {
+				const curCat = await this.getCategoryByID(data[i].ID)//Retrieve full information
+				data[i].title = curCat.title//Add title to data
+				result.categories.push(data[i])
+			}
+			return result
+		}catch(e) {
+			throw e
+		}
 	}
 
 	async addCategory(name) {
