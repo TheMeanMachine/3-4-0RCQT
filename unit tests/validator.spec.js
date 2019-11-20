@@ -76,5 +76,16 @@ describe('checkID()', () => {
 			expect(e).toEqual(Error(`Must supply ${name}`))
 		}
 	})
+
+	test('Error if ID is undefined', () => {
+		expect.assertions(1)
+		const validator = new valid()
+		const name = 'gameID'
+		try{
+			validator.checkID(undefined, name)
+		}catch(e) {
+			expect(e).toEqual(Error(`Must supply ${name}`))
+		}
+	})
 })
 
