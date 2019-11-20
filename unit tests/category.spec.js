@@ -13,6 +13,16 @@ describe('addCategory()', () => {
 		done()
 	})
 
+	test('Error if category null', async done => {
+		expect.assertions(1)
+
+		const category = await new Category()
+
+		await expect( category.addCategory(null))
+			.rejects.toEqual(Error('Must supply name'))
+		done()
+	})
+
 	test('Error if duplicate', async done => {
 		expect.assertions(1)
 
@@ -46,7 +56,6 @@ describe('addCategory()', () => {
 
 		done()
 	})
-
 
 })
 
@@ -133,5 +142,4 @@ describe('deleteByID()', () => {
 
 		done()
 	})
-
 })
