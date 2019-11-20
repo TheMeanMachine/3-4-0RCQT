@@ -1,11 +1,7 @@
 #!/usr/bin/env node
-
-/* eslint-disable eqeqeq */
-/* eslint-disable max-statements */
 /* eslint-disable complexity */
+/* eslint-disable max-statements */
 /* eslint-disable max-lines-per-function */
-
-
 //Routes File
 
 'use strict'
@@ -45,15 +41,12 @@ const helpers ={
 		else
 			return opts.inverse(this)
 	},
-
 	if_Noteq: function(a, b, opts) {
 		if(a != b)
 			return opts.fn(this)
 		else
 			return opts.inverse(this)
-	},
-
-
+	}
 }
 
 /**
@@ -65,14 +58,11 @@ const helpers ={
  */
 router.get('/', async ctx => {
 	try {
-		if(ctx.session.authorised !== true) {//Ensure authorised access
-			return ctx.redirect('/login?msg=you need to log in')
-		}
+		if(ctx.session.authorised !== true)return ctx.redirect('/login?msg=you need to log in')
 		const user = await new User(dbName)
 		const userInfo = user.getUserByID(ctx.session.userID)
 		const games = await new Games(dbName)
-		const temp = await games.getGames()
-		const gamesList = temp.games
+		const gamesList = (await games.getGames()).games
 
 		for(let i = 0; i < gamesList.length; i++) {//Set the list of games with their pictures
 			const curID = gamesList[i].ID
@@ -97,11 +87,10 @@ router.get('/', async ctx => {
  * @authentication This route requires cookie-based authentication.
  *
  */
+
 router.get('/game', async ctx => {
 	try {
-		if(ctx.session.authorised !== true) {//Ensure authorised access
-			return ctx.redirect('/login?msg=you need to log in')
-		}
+		if(ctx.session.authorised !== true)return ctx.redirect('/login?msg=you need to log in')
 		const games = await new Games(dbName)
 		const review = await new Review(dbName)
 
@@ -115,16 +104,7 @@ router.get('/game', async ctx => {
 		if(pic == undefined)pic = []
 		thisGame.pictures = pic
 
-		temp = await review.getReviewsByGameID(gameID)//Get all reviews
-		const reviews = temp.reviews
-		let uReview
-		for(let i = 0; i < reviews.length; i++) {//Remove user's review from main list
-			if(reviews[i].userID == ctx.session.userID) {
-				uReview = reviews[i]
-				reviews.splice(i,1)
-				break
-			}
-		}
+
 		const ratingsMax = 5
 		const ratingsReviews = []
 		//Set ratings, an array of objs with value and checked
@@ -134,6 +114,17 @@ router.get('/game', async ctx => {
 			}
 			if(uReview && i == uReview.rating) {
 				ratingsReviews[i].checked = true//set to true if user picked this rating
+			}
+		}
+
+		temp = await review.getReviewsByGameID(gameID)//Get all reviews
+		const reviews = temp.reviews
+		let uReview
+		for(let i = 0; i < reviews.length; i++) {//Remove user's review from main list
+			if(reviews[i].userID == ctx.session.userID) {
+				uReview = reviews[i]
+				reviews.splice(i,1)
+				break
 			}
 		}
 
@@ -163,9 +154,7 @@ router.post('/addReview', async ctx => {
 	try {
 		// extract the data from the request
 		const body = ctx.request.body
-		if(ctx.session.authorised !== true) {//Ensure authorised access
-			return ctx.redirect('/login?msg=you need to log in')
-		}
+		if(ctx.session.authorised !== true)return ctx.redirect('/login?msg=you need to log in')
 		// call the functions in the module
 		const review = await new Review(dbName)
 
@@ -194,9 +183,7 @@ router.post('/newGame', async ctx => {
 	try {
 		// extract the data from the request
 		const body = ctx.request.body
-		if(ctx.session.authorised !== true) {//Ensure authorised access
-			return ctx.redirect('/login?msg=you need to log in')
-		}
+		if(ctx.session.authorised !== true)return ctx.redirect('/login?msg=you need to log in')
 		const game = await new Games(dbName)
 
 		//Add the new game
@@ -221,9 +208,7 @@ router.post('/addGamePhoto',koaBody, async ctx => {
 	try {
 		// extract the data from the request
 		const body = ctx.request.body
-		if(ctx.session.authorised !== true) {//Ensure authorised access
-			return ctx.redirect('/login?msg=you need to log in')
-		}
+		if(ctx.session.authorised !== true || ctx.session.role !== adminRoleID)return ctx.redirect('/login?msg=you need to log in')
 
 		const game = await new Games(dbName)
 
@@ -252,9 +237,7 @@ router.post('/updateReview', async ctx => {
 		// extract the data from the request
 		const body = ctx.request.body
 		console.log(body)
-		if(ctx.session.authorised !== true) {//Ensure authorised access
-			return ctx.redirect('/login?msg=you need to log in')
-		}
+		if(ctx.session.authorised !== true)return ctx.redirect('/login?msg=you need to log in')
 		// call the functions in the module
 		const review = await new Review(dbName)
 		const gameID = body.gameID
@@ -329,8 +312,12 @@ router.post('/login', async ctx => {
 		const body = ctx.request.body
 		const user = await new User(dbName)
 		const ID = await user.login(body.user, body.pass)
+		const authUser = await user.getUserByID(ID)
 		ctx.session.authorised = true
 		ctx.session.userID = ID
+		ctx.session.admin = false
+		if(authUser.roleID == 2)ctx.session.admin = true
+
 		return ctx.redirect('/?msg=you are now logged in...')
 	} catch(err) {
 		await ctx.render('error', {message: err.message})
@@ -348,6 +335,7 @@ router.get('/logout', async ctx => {
 	//Remove authorisation
 	ctx.session.authorised = null
 	ctx.session.userID = null
+	ctx.session.admin = null
 	ctx.redirect('/?msg=you are now logged out')
 })
 

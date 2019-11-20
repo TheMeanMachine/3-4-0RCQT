@@ -170,13 +170,11 @@ module.exports = class User {
 
 		records = await this.db.get(sql)
 
-		await this.roles.getRoleByID(records.roleID)
-
 		const data = {
 			ID: userID,
 			username: records.username,
 			avatar: records.avatar,
-			roleID: records.roleID,
+			roleID: records.roleID
 		}
 
 		return data
