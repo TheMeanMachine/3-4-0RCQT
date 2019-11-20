@@ -23,5 +23,10 @@ module.exports = class Validator {
 		return regex.test(test)
 	}
 
-
+	checkID(ID, name) {
+		if(ID === undefined || ID === null || isNaN(ID)) {
+			throw new Error(`Must supply ${name}`)
+		}
+		return true
+	}
 }
