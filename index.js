@@ -73,15 +73,21 @@ router.get('/', async ctx => {
 		const games = await new Games(dbName)
 		const temp = await games.getGames()
 		const gamesList = temp.games
+		const review = await new Review(dbName)
 
 		for(let i = 0; i < gamesList.length; i++) {//Set the list of games with their pictures
 			const curID = gamesList[i].ID
+			console.log(curID)
 			const tempPic = await games.getPictures(curID)
 			const pic = tempPic.pictures
 			if(pic === undefined)pic = []
 
 			gamesList[i].pictures = pic
+
+			gamesList[i].avgRating = Math.round(await review.getAverageRating(curID))
 		}
+
+
 		//Render the home page
 		await ctx.render('index', { games: gamesList}, {user: userInfo})
 	} catch(err) {
