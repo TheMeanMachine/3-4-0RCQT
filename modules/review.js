@@ -91,6 +91,26 @@ module.exports = class Review {
 		return true
 	}
 
+	async deleteReviewByID(reviewID) {
+
+		this.validator.checkID(reviewID, 'reviewID')
+
+		const sql = [`
+			DELETE FROM reviewScreenshot
+			WHERE reviewID = ${reviewID};
+			`,`
+			DELETE FROM review
+			WHERE ID = ${reviewID};
+			`
+		]
+
+		for(let i = 0; i < sql.length; i++) {
+			await this.db.run(sql[i])
+		}
+
+		return true
+
+	}
 	/**
      * Function to update a review
      *
@@ -229,9 +249,7 @@ module.exports = class Review {
      */
 	async getReviewsByGameID(gameID) {
 		try{
-			if(gameID === null || isNaN(gameID)) {
-				throw new Error('Must supply gameID')
-			}
+			this.validator.checkID(gameID, 'gameID')
 
 			await this.games.getGameByID(gameID)//Checks if game exists
 
@@ -244,6 +262,9 @@ module.exports = class Review {
 			const result = {reviews: [], count: amtReviews}
 			for(let i = 0; i < amtReviews; i++) {
 				result.reviews.push(data[i])
+			}
+			if(amtReviews === 0) {
+				throw new Error('No reviews found')
 			}
 			return result
 		}catch(e) {
