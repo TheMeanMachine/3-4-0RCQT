@@ -1,5 +1,4 @@
-/* eslint-disable complexity */
-/* eslint-disable max-lines-per-function */
+
 
 'use strict'
 
@@ -34,6 +33,21 @@ module.exports = class User {
 		})()
 
 	}
+	async associateRole(roleID, userID) {
+		try{
+			this.validator.checkID(userID, 'userID')
+			this.validator.checkID(roleID, 'roleID')
+
+			await this.getUserByID(userID)
+			//await this.getRoleByID(roleID)
+
+
+			return true
+		}catch(e) {
+			throw e
+		}
+	}
+
 	/**
      * Function to check fields associated with users
      *
