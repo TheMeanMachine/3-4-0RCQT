@@ -1,5 +1,3 @@
-
-
 'use strict'
 
 const bcrypt = require('bcrypt-promise')
@@ -10,6 +8,7 @@ const saltRounds = 10
 
 //Custom modules
 const valid = require('./validator')
+const Role = require('./role')
 
 module.exports = class User {
 
@@ -18,6 +17,7 @@ module.exports = class User {
 		return (async() => {
 			this.dbName = dbName || ':memory:'
 			this.db = await sqlite.open(this.dbName)
+			this.role = new Role(this.dbName)
 			const sql = `
 			CREATE TABLE IF NOT EXISTS user(
                 ID INTEGER PRIMARY KEY AUTOINCREMENT,
@@ -33,14 +33,20 @@ module.exports = class User {
 		})()
 
 	}
+
 	async associateRole(roleID, userID) {
 		try{
 			this.validator.checkID(userID, 'userID')
 			this.validator.checkID(roleID, 'roleID')
 
 			await this.getUserByID(userID)
-			//await this.getRoleByID(roleID)
+			await this.role.getRoleByID(roleID)
 
+			const sql = `
+			UPDATE user
+			SET roleID = "${roleID}"
+			WHERE ID = ${userID};`
+			await this.db.run(sql)
 
 			return true
 		}catch(e) {
