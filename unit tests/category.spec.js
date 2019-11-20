@@ -93,6 +93,79 @@ describe('associateToCategory', () => {
 	})
 })
 
+describe('getCategories()', () => {
+	test('Valid game ID', async done => {
+		expect.assertions(1)
+
+		const category = await new Category()
+		const game = category.game
+
+		const catID1 = await category.addCategory('Cats')
+		const catID2 = await category.addCategory('Runner')
+
+		await game.addNewGame('Red', 'Summary', 'Description')
+		const retGame = await game.getGameByTitle('Red')
+
+		await category.associateToCategory(retGame.ID, catID1)
+		await category.associateToCategory(retGame.ID, catID2)
+		expect(await category.getCategories(gameID))
+			.toMatchObject({
+				categories: [
+					{
+						ID: catID1,
+						name: 'Cats'
+					},
+					{
+						ID: catID2,
+						name: 'Runner'
+					}
+				]
+			})
+		done()
+	})
+
+	test('Error if gameID is null', async done => {
+		expect.assertions(1)
+
+		const category = await new Category()
+
+		await expect(category.getCategories(null))
+			.rejects.toEqual(Error('Must supply gameID'))
+		done()
+	})
+
+	test('Error if gameID is NaN', async done => {
+		expect.assertions(1)
+
+		const category = await new Category()
+
+		await expect(category.getCategories('Not a number'))
+			.rejects.toEqual(Error('Must supply gameID'))
+		done()
+	})
+
+	test('Error if gameID is undefined', async done => {
+		expect.assertions(1)
+
+		const category = await new Category()
+
+		await expect(category.getCategories(undefined))
+			.rejects.toEqual(Error('Must supply gameID'))
+		done()
+	})
+
+	test('Error if game does not exist', async done => {
+		expect.assertions(1)
+
+		const category = await new Category()
+
+		await expect(category.getCategories(1))
+			.rejects.toEqual(Error('Must supply gameID'))
+		done()
+	})
+
+})
+
 describe('addCategory()', () => {
 	test('Valid name', async done => {
 		expect.assertions(1)
