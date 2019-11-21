@@ -2,6 +2,43 @@
 
 const Category = require('../modules/category.js')
 
+describe('getAllCategories()', () => {
+	test('Gets all categories', () => {
+		expect.assertions(1)
+
+		const category = await new Category()
+		
+		await category.addCategory('Comedy')
+		await category.addCategory('Horror')
+		await category.addCategory('Cats')
+
+		const allCategories = await categories.getAllCategories()
+
+		expect(allCategories).toMatchObject({
+			categories: [
+				{title: 'Comedy'},
+				{title: 'Horror'},
+				{title: 'Cats'}
+			]
+		})
+
+		done()
+	})
+
+	test('Error if no categories', () => {
+		expect.assertions(1)
+
+		const category = await new Category()
+		
+
+		await expect( categories.getAllCategories() )
+			.rejects.toEqual(Error('No categories found'))
+
+
+		done()
+	})
+})
+
 describe('associateToCategory', () => {
 	test('Valid gameID and categoryID', async done => {
 		expect.assertions(1)
