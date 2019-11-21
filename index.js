@@ -20,7 +20,7 @@ const session = require('koa-session')
 const User = require('./modules/user')
 const Review = require('./modules/review')
 const Games = require('./modules/game')
-
+const Category = require('./modules/category')
 const app = new Koa()
 const router = new Router()
 
@@ -71,6 +71,8 @@ router.get('/', async ctx => {
 		const gamesList = (await games.getGames()).games
 
 		const review = await new Review(dbName)
+		const category = await new Category(dbName)
+
 
 		for(let i = 0; i < gamesList.length; i++) {//Set the list of games with their pictures
 			const curID = gamesList[i].ID
@@ -82,6 +84,7 @@ router.get('/', async ctx => {
 			gamesList[i].pictures = pic
 
 			gamesList[i].avgRating = Math.round(await review.getAverageRating(curID))
+			gamesList[i].category = (await category.getCategories(curID)).categories//Get all other categories
 		}
 
 
@@ -106,6 +109,7 @@ router.get('/game', async ctx => {
 		if(ctx.session.authorised !== true)return ctx.redirect('/login?msg=you need to log in')
 		const games = await new Games(dbName)
 		const review = await new Review(dbName)
+		const category = await new Category(dbName)
 
 		if(!ctx.query.gameID) return ctx.redirect('/')//Make sure gameID is supplied
 
@@ -123,6 +127,12 @@ router.get('/game', async ctx => {
 			temp = {}
 		}
 		const reviews = temp.reviews || []
+
+		const categories = (await category.getCategories(gameID)).categories//get all categories
+		thisGame.category = categories
+
+		thisGame.otherCategories = (await category.getOtherCategories(gameID)).categories//Get all other categories
+
 		let uReview
 		for(let i = 0; i < reviews.length; i++) {//Remove user's review from main list
 			if(reviews[i].userID === ctx.session.userID) {
@@ -214,6 +224,45 @@ router.post('/deleteGame', async ctx => {
 		if(del) await game.deleteGameByID(gameID)
 
 		ctx.redirect('/')
+	} catch(err) {
+		await ctx.render('error', {message: err.message})
+	}
+})
+
+router.post('/removeCategoryFromGame', async ctx => {
+	try{
+		const body = ctx.request.body
+		if(ctx.session.authorised !== true) {//Ensure authorised access
+			return ctx.redirect('/login?msg=you need to log in')
+		}
+		const category = await new Category(dbName)
+
+		const gameID = body.gameID
+		const catID = body.categoryID
+
+		await category.unassociateToCategory(gameID, catID)
+
+		//refresh
+		ctx.redirect(`game?gameID=${gameID}`)
+	} catch(err) {
+		await ctx.render('error', {message: err.message})
+	}
+})
+
+router.post('/addCategoryToGame', async ctx => {
+	try {
+		// extract the data from the request
+		const body = ctx.request.body
+		if(ctx.session.authorised !== true) {//Ensure authorised access
+			return ctx.redirect('/login?msg=you need to log in')
+		}
+
+		const category = await new Category(dbName)
+		const gameID = body.gameID
+
+		await category.associateToCategory(gameID, body.category)
+		//refresh
+		ctx.redirect(`game?gameID=${gameID}`)
 	} catch(err) {
 		await ctx.render('error', {message: err.message})
 	}

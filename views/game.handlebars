@@ -69,6 +69,44 @@
                 
                 <p>{{game.desc}}</p>
                 <p>Average rating: {{averageRating}} / 5</p>
+                {{#if game.category}}
+                    <div class="bubbles">
+                    {{#each game.category}}
+                        <div class="bubble_long">
+                            <div class="bubble_longInner">
+                                {{this.title}}
+                            </div>
+                            {{#if @root.admin}}
+                            <form action="/removeCategoryFromGame" method="POST" class="actionForm">
+                                <input type="text" name="gameID" value="{{@root.game.ID}}" style="display:none">
+                                <input type="text" name="categoryID" value="{{this.categoryID}}" style="display:none">
+                                <button type="submit" class="bubbleAction">X</button>  
+                            </form>
+                            {{/if}}
+                        </div>
+                    
+                    {{/each}}
+                    </div>
+                {{/if}}
+                
+                {{#if game.otherCategories}}
+                    {{#if @root.admin}}
+                    <form action="addCategoryToGame" method="POST">
+                        <br>
+                        <p></p>
+                        <select name="category">
+                            {{#each game.otherCategories}}
+                                <option value="{{this.ID}}">{{this.title}}</option>
+                            {{/each}}
+                        </select>
+                        <input type="text" name="gameID" value="{{game.ID}}" style="display:none">
+                        
+                        <button type="submit" class="">
+                            Add category
+                        </button>
+                    </form>
+                    {{/if}}
+                {{/if}}
                 <hr>
             </div>
             

@@ -1,6 +1,4 @@
-/* eslint-disable max-lines */
-/* eslint-disable max-statements */
-/* eslint-disable max-lines-per-function */
+
 
 'use strict'
 
@@ -48,6 +46,7 @@ module.exports = class Category {
 			this.validator.checkID(categoryID, 'categoryID')
 
 			await this.game.getGameByID(gameID)
+
 			await this.getCategoryByID(categoryID)
 
 			const sql = `INSERT INTO game_category (gameID, categoryID)
@@ -55,6 +54,21 @@ module.exports = class Category {
                 ${gameID},
                 ${categoryID}
             );`
+			await this.db.run(sql)
+			return true
+		}catch(e) {
+			throw e
+		}
+	}
+
+	async unassociateToCategory(gameID, categoryID) {
+		try{
+			this.validator.checkID(gameID, 'gameID')
+			this.validator.checkID(categoryID, 'categoryID')
+
+			const sql = `DELETE FROM game_category
+			WHERE gameID = ${gameID}
+			AND categoryID = ${categoryID};`
 			await this.db.run(sql)
 			return true
 		}catch(e) {
@@ -75,10 +89,12 @@ module.exports = class Category {
 			const data = await this.db.all(sql)
 			const result = { categories: [] }
 			for(let i = 0; i < Object.keys(data).length; i++) {
-				const curCat = await this.getCategoryByID(data[i].ID)//Retrieve full information
+
+				const curCat = await this.getCategoryByID(data[i].categoryID)//Retrieve full information
 				data[i].title = curCat.title//Add title to data
 				result.categories.push(data[i])
 			}
+
 			return result
 		}catch(e) {
 			throw e
@@ -127,11 +143,49 @@ module.exports = class Category {
 		}
 	}
 
+	async getAllCategories() {
+		const sql = `
+			SELECT * FROM category;`
+
+		const data = await this.db.all(sql)
+		if(Object.keys(data).length === 0) throw new Error('No categories found')
+		const result = { categories: [] }
+		for(let i = 0; i < Object.keys(data).length; i++) {
+			const curCat = await this.getCategoryByID(data[i].ID)//Retrieve full information
+			data[i].title = curCat.title//Add title to data
+			result.categories.push(data[i])
+		}
+
+
+		return result
+	}
+
+	async getOtherCategories(gameID) {
+		this.validator.checkID(gameID, 'gameID')
+
+		const allCat = (await this.getAllCategories()).categories
+
+		const allGameCat = (await this.getCategories(gameID)).categories
+
+		const result = {categories: []}
+
+		for(let i = 0; i < allCat.length; i++) {
+			let flag = false
+			for(let j = 0; j < allGameCat.length; j++) {
+				if(allCat[i].ID === allGameCat[j].categoryID) {
+					flag = true
+					break
+				}
+			}
+			if(!flag) result.categories.push(allCat[i])
+		}
+
+		return result
+	}
+
 	async deleteByID(catID) {
 		try{
-			if(catID === null || isNaN(catID)) {
-				throw new Error('Must supply catID')
-			}
+			this.validator.checkID(catID, 'catID')
 
 			const sql = [`
             DELETE FROM game_category

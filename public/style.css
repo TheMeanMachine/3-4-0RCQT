@@ -153,3 +153,118 @@ a:active {
   border-radius: 10px;
   
 }
+  .card{
+    padding: 10px;
+  }
+
+  .reviewCard{
+    background-color: ivory;
+    border-radius: 10px;
+    
+    
+    width: 90%;
+    margin: 0 auto;
+    box-shadow: 0 1px 3px rgba(0,0,0,0.12), 0 1px 2px rgba(0,0,0,0.24);
+  }
+
+  .reviewCardInner{
+    margin:10px;
+    padding: 10px;
+  }
+
+
+
+  .cardImg{
+    
+    
+    
+  }
+  .cardImg::after{
+    display: block;
+    height: 1px;
+    width: 80%;
+    background: #D1D1D1;
+    margin: 0 auto;
+    content: '';
+    
+  }
+
+  .cardImgInner{
+    height: 200px;
+    width: 200px;
+    object-fit:scale-down;
+  }
+
+  .cards{
+    width: fit-content;
+
+    margin: 0 auto;
+    max-width: 700px;
+  }
+
+  .mainGamePageOuter{
+    background: whitesmoke;
+    border-radius: 10px;
+    
+    max-width: 800px;
+    margin: 0 auto;
+    text-align: center;
+    overflow: hidden;
+  }
+
+  .backButton{
+    position: fixed;
+    padding: 10px;
+    background: grey;
+    border-radius: 10px;
+    
+  }
+
+  .bubble_long{
+    display: inline-table;
+    background: skyblue;
+    border-radius: 10px;
+    margin: 5px;
+    padding: 0 10px 0 10px ;
+    box-shadow: 0 1px 3px rgba(0,0,0,0.12), 0 1px 2px rgba(0,0,0,0.24);
+  }
+
+  .bubble_longInner{
+    display: inline-table;
+    height: 30px;
+    line-height: 30px;
+    text-align: center;
+   
+    margin: 0 auto;
+
+    
+  }
+
+  .actionForm{
+    padding: 0;
+    margin: 0;
+    height: auto;
+    width: auto;
+    display: inline-table;
+    border:none;
+  }
+
+  .bubbleAction{
+    background: palevioletred;
+    
+    border-radius: 100%;
+    font-size: 0.9em;
+    text-align: center;
+    line-height: 20px;
+    height: 20px;
+    width: 20px;
+    margin-left: 10px;
+    display: inline-table;
+    border:none;
+  }
+
+  .bubbles{
+    min-height: 40px;
+    display: inline-table;
+    margin: 0 auto;
+  }
