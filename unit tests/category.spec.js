@@ -52,7 +52,7 @@ describe('getOtherCategories()', () => {
 		const retGame = await game.getGameByTitle('Red')
 		await category.associateToCategory(retGame.ID, catID)
 
-		const result = await category.getOtherCategories()
+		const result = await category.getOtherCategories(retGame.ID)
 
 		expect(result).toMatchObject(
 			{

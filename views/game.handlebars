@@ -42,21 +42,37 @@
                 <p>{{game.summary}}</p>
                 
                 <p>{{game.desc}}</p>
-                <div class="bubbles">
-                {{#each game.category}}
-                
+                {{#if game.category}}
+                    <div class="bubbles">
+                    {{#each game.category}}
+                    
 
-                
-                    <div class="bubble_long">
-                        <div class="bubble_longInner">
-                            {{this.title}}
+                    
+                        <div class="bubble_long">
+                            <div class="bubble_longInner">
+                                {{this.title}}
+                            </div>
                         </div>
+                    
+                    {{/each}}
                     </div>
+                {{/if}}
                 
-                {{/each}}
-
                 
-                </div>
+                <form action="addCategory" method="POST">
+                    <br>
+                    <p></p>
+                    <select name="category">
+                        {{#each game.otherCategories}}
+                            <option value="{{this.ID}}">{{this.title}}</option>
+                        {{/each}}
+                    </select>
+                    <input type="text" name="gameID" value="{{game.ID}}" style="display:none">
+                    
+                    <button type="submit" class="">
+                        Add category
+                    </button>
+                </form>
                 <hr>
             </div>
             

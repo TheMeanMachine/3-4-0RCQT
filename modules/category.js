@@ -1,6 +1,4 @@
-/* eslint-disable max-lines */
-/* eslint-disable max-statements */
-/* eslint-disable max-lines-per-function */
+
 
 'use strict'
 
@@ -140,6 +138,30 @@ module.exports = class Category {
 			result.categories.push(data[i])
 		}
 
+
+		return result
+	}
+
+	async getOtherCategories(gameID) {
+		this.validator.checkID(gameID, 'gameID')
+
+		const allCat = (await this.getAllCategories()).categories
+
+		const allGameCat = (await this.getCategories(gameID)).categories
+
+		const result = {categories: []}
+
+		console.log(allCat, allGameCat)
+		for(let i = 0; i < allCat.length; i++) {
+			let flag = false
+			for(let j = 0; j < allGameCat.length; j++) {
+				if(allCat[i].ID === allGameCat[j].ID) {
+					flag = true
+					break
+				}
+			}
+			if(!flag) result.categories.push(allCat[i])
+		}
 
 		return result
 	}

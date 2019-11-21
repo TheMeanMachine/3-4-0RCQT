@@ -120,6 +120,8 @@ router.get('/game', async ctx => {
 		const categories = (await category.getCategories(gameID)).categories//get all categories
 		thisGame.category = categories
 
+		thisGame.otherCategories = (await category.getOtherCategories(gameID)).categories//Get all other categories
+
 
 		temp = await review.getReviewsByGameID(gameID)//Get all reviews
 		const reviews = temp.reviews
