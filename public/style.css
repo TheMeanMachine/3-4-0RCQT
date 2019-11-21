@@ -3,6 +3,30 @@ body {
   font-family: Arial, Helvetica, sans-serif;
 }
 
+/* unvisited link */
+a:link {
+  color: initial;
+  text-decoration: none;
+}
+
+/* visited link */
+a:visited {
+  color: initial;
+  text-decoration: none;
+}
+
+/* mouse over link */
+a:hover {
+  color: initial;
+  text-decoration: none;
+}
+
+/* selected link */
+a:active {
+  color: initial;
+  text-decoration: none;
+}
+
 .msg {
   border: 1px solid red;
   font-weight: bold;
@@ -20,7 +44,29 @@ body {
   
 }
 
-.adminReviewPanel{
+.options{
+  background: whitesmoke;
+  border-radius: 10px;
+  width: 300px;
+  margin: 0 auto;
+  text-align: center;
+  overflow: hidden;
+
+  box-shadow: 0 1px 3px rgba(0,0,0,0.12), 0 1px 2px rgba(0,0,0,0.24);
+}
+
+.optionsContainer{
+  width: 100%;
+  overflow: hidden;
+}
+
+.optionsOuter{
+  margin: 10px;
+  
+  
+}
+
+.adminPanel{
   border: 1px solid red;
   background-color: salmon;
   margin: 0 auto;
@@ -59,9 +105,11 @@ body {
 
 
 
-.cardImg{
-  
-  
+.cardImg > p{
+  height: 100px;
+  margin-bottom:10px;
+  line-height: 100px;
+  text-align: center;
   
 }
 .cardImg::after{
@@ -76,8 +124,9 @@ body {
 
 .cardImgInner{
   height: 200px;
-  width: 200px;
+  width: 300px;
   object-fit:scale-down;
+  margin-bottom:10px;
 }
 
 .cards{

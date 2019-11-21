@@ -1,0 +1,31 @@
+
+<!doctype html>
+
+<html lang="en">
+	<head>
+		<meta charset="utf-8">
+		<title>New game</title>
+		<meta name="description" content="Form to add a new game">
+		<meta name="author" content="Aaron Machin">
+		<link href="/style.css" type="text/css" rel="stylesheet" />
+	</head>
+	<body>
+        
+
+		<div class="mainGamePageOuter">
+            <form action="/newGame" method="POST" id="newGame">
+                <h1>New game</h1>
+                <div class="card">
+                    <p>Title <br><input type="text" name="title" placeholder="Title"></p>
+                    <br>
+                    <p>Summary <br><textarea rows="2" cols="50" name="summary" form="newGame" placeholder="Summary"></textarea></p>
+                    <br>
+                    <p>Description <br><textarea rows="4" cols="50" name="desc" form="newGame" placeholder="Description"></textarea></p>
+                    <br>
+                    <button type="submit">SUBMIT</button>
+                    <p></p>
+                </div>
+            </form>
+        </div>
+    </body>
+</html>
