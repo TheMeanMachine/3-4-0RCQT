@@ -3,16 +3,16 @@
 const Category = require('../modules/category.js')
 
 describe('getAllCategories()', () => {
-	test('Gets all categories', () => {
+	test('Gets all categories', async done => {
 		expect.assertions(1)
 
 		const category = await new Category()
-		
+
 		await category.addCategory('Comedy')
 		await category.addCategory('Horror')
 		await category.addCategory('Cats')
 
-		const allCategories = await categories.getAllCategories()
+		const allCategories = await category.getAllCategories()
 
 		expect(allCategories).toMatchObject({
 			categories: [
@@ -25,15 +25,42 @@ describe('getAllCategories()', () => {
 		done()
 	})
 
-	test('Error if no categories', () => {
+	test('Error if no categories', async done => {
 		expect.assertions(1)
 
 		const category = await new Category()
-		
 
-		await expect( categories.getAllCategories() )
+		await expect( category.getAllCategories() )
 			.rejects.toEqual(Error('No categories found'))
 
+
+		done()
+	})
+})
+
+describe('getOtherCategories()', () => {
+	test('Valid gameID', async done => {
+		expect.assertions(1)
+
+		const category = await new Category()
+		const game = category.game
+
+		const catID = await category.addCategory('Horror')
+		await category.addCategory('Cats')
+		await category.addCategory('Comedy')
+		await game.addNewGame('Red', 'Summary', 'Description')
+		const retGame = await game.getGameByTitle('Red')
+		await category.associateToCategory(retGame.ID, catID)
+
+		const result = await category.getOtherCategories()
+
+		expect(result).toMatchObject(
+			{
+				categories: [
+					{title: 'Cats'},
+					{title: 'Comedy'}
+				]}
+		)
 
 		done()
 	})
