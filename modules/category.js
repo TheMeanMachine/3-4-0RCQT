@@ -61,6 +61,21 @@ module.exports = class Category {
 		}
 	}
 
+	async unassociateToCategory(gameID, categoryID) {
+		try{
+			this.validator.checkID(gameID, 'gameID')
+			this.validator.checkID(categoryID, 'categoryID')
+
+			const sql = `DELETE FROM game_category
+			WHERE gameID = ${gameID}
+			AND categoryID = ${categoryID};`
+			await this.db.run(sql)
+			return true
+		}catch(e) {
+			throw e
+		}
+	}
+
 	async getCategories(gameID) {
 		try{
 			this.validator.checkID(gameID, 'gameID')//Check gameID is valid
