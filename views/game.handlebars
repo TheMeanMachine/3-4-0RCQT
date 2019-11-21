@@ -45,21 +45,14 @@
                 {{#if game.category}}
                     <div class="bubbles">
                     {{#each game.category}}
-                    
-
-                    
                         <div class="bubble_long">
                             <div class="bubble_longInner">
                                 {{this.title}}
-                                
                             </div>
-                            <form action="removeCategoryGame" method="POST" class="actionForm">
-                                
+                            <form action="/removeCategoryFromGame" method="POST" class="actionForm">
                                 <input type="text" name="gameID" value="{{@root.game.ID}}" style="display:none">
-                                <input type="text" name="categoryID" value="{{this.ID}}" style="display:none">
-                                <button type="submit" class="bubbleAction">X</button>
-                                
-                                
+                                <input type="text" name="categoryID" value="{{this.categoryID}}" style="display:none">
+                                <button type="submit" class="bubbleAction">X</button>  
                             </form>
                         </div>
                     

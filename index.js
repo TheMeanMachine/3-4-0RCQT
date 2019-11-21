@@ -159,6 +159,26 @@ router.get('/game', async ctx => {
 	}
 })
 
+router.post('/removeCategoryFromGame', async ctx => {
+	try{
+		const body = ctx.request.body
+		if(ctx.session.authorised !== true) {//Ensure authorised access
+			return ctx.redirect('/login?msg=you need to log in')
+		}
+		const category = await new Category(dbName)
+
+		const gameID = body.gameID
+		const catID = body.categoryID
+
+		await category.unassociateToCategory(gameID, catID)
+
+		//refresh
+		ctx.redirect(`game?gameID=${gameID}`)
+	} catch(err) {
+		await ctx.render('error', {message: err.message})
+	}
+})
+
 router.post('/addCategoryToGame', async ctx => {
 	try {
 		// extract the data from the request
@@ -169,7 +189,7 @@ router.post('/addCategoryToGame', async ctx => {
 
 		const category = await new Category(dbName)
 		const gameID = body.gameID
-		console.log(body.category)
+
 		await category.associateToCategory(gameID, body.category)
 		//refresh
 		ctx.redirect(`game?gameID=${gameID}`)
