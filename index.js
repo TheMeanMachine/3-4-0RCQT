@@ -24,7 +24,7 @@ const session = require('koa-session')
 const User = require('./modules/user')
 const Review = require('./modules/review')
 const Games = require('./modules/game')
-
+const Category = require('./modules/category')
 const app = new Koa()
 const router = new Router()
 
@@ -104,6 +104,7 @@ router.get('/game', async ctx => {
 		}
 		const games = await new Games(dbName)
 		const review = await new Review(dbName)
+		const category = await new Category(dbName)
 
 		if(!ctx.query.gameID) return ctx.redirect('/')//Make sure gameID is supplied
 
@@ -114,6 +115,11 @@ router.get('/game', async ctx => {
 		let pic = temp.pictures
 		if(pic == undefined)pic = []
 		thisGame.pictures = pic
+
+
+		const categories = (await category.getCategories(gameID)).categories//get all categories
+		thisGame.category = categories
+
 
 		temp = await review.getReviewsByGameID(gameID)//Get all reviews
 		const reviews = temp.reviews

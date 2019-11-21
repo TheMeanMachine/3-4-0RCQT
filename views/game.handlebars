@@ -42,14 +42,21 @@
                 <p>{{game.summary}}</p>
                 
                 <p>{{game.desc}}</p>
-
+                <div class="bubbles">
                 {{#each game.category}}
+                
+
+                
                     <div class="bubble_long">
                         <div class="bubble_longInner">
-                            <p>{{this.title}}</p>
+                            {{this.title}}
                         </div>
                     </div>
+                
                 {{/each}}
+
+                
+                </div>
                 <hr>
             </div>
             
