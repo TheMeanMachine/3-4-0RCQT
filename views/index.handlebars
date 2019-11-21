@@ -14,6 +14,27 @@
 		<p>This is a secure page. Users need to have a valid account and be logged in to see it.</p>
 		<p><a href="/logout">log out</a></p>
 		<div class="cards">
+			{{#if categories}}
+				
+				<form action="/sortBycategory" method="POST">
+					<br>
+					<p></p>
+					<select name="category">
+						<option value="">Select a category</option>
+						{{#each categories}}
+							<option value="{{this.ID}}"
+							{{#if_eq this.ID @root.selectedCat}}
+							selected="selected"
+							{{/if_eq}}>{{this.title}}</option>
+						{{/each}}
+					</select>
+					<button type="submit">
+						Sort by Category
+					</button>
+				</form>
+				
+			{{/if}}
+
 			{{#each games}}
 				<div class="cardOuter" onclick="window.location.href='game?gameID={{this.ID}}'">
 					<div class="cardImg">

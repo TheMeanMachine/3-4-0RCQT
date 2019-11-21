@@ -74,8 +74,6 @@ router.get('/', async ctx => {
 		const category = await new Category(dbName)
 		const temp = await games.getGames()
 		const gamesList = temp.games
-
-
 		for(let i = 0; i < gamesList.length; i++) {//Set the list of games with their pictures
 			const curID = gamesList[i].ID
 			const tempPic = await games.getPictures(curID)
@@ -87,9 +85,57 @@ router.get('/', async ctx => {
 			gamesList[i].category = (await category.getCategories(curID)).categories//Get all other categories
 		}
 
+		const categories = (await category.getAllCategories()).categories
 
 		//Render the home page
-		await ctx.render('index', { games: gamesList}, {user: userInfo})
+		await ctx.render('index', { games: gamesList,
+			categories: categories,
+			user: userInfo})
+	} catch(err) {
+		await ctx.render('error', {message: err.message})
+	}
+})
+
+
+router.post('/sortBycategory', async ctx => {
+	try{
+		const body = ctx.request.body
+		if(ctx.session.authorised !== true) {//Ensure authorised access
+			return ctx.redirect('/login?msg=you need to log in')
+		}
+
+		ctx.redirect(`/${body.category}`)
+	} catch(err) {
+		await ctx.render('error', {message: err.message})
+	}
+
+})
+
+router.get('/:category', async ctx => {
+	try {
+		if(ctx.session.authorised !== true) {//Ensure authorised access
+			return ctx.redirect('/login?msg=you need to log in')
+		}
+		const user = await new User(dbName)
+		const userInfo = user.getUserByID(ctx.session.userID)
+		const games = await new Games(dbName)
+		const category = await new Category(dbName)
+		const gamesList = (await category.getGamesOfCategory(ctx.params.category)).games
+
+		for(let i = 0; i < gamesList.length; i++) {//Set the list of games with their pictures
+			const curID = gamesList[i].ID
+			const tempPic = await games.getPictures(curID)
+			const pic = tempPic.pictures
+			if(pic === undefined)pic = []
+
+			gamesList[i].pictures = pic
+
+			gamesList[i].category = (await category.getCategories(curID)).categories//Get all other categories
+		}
+		const categories = (await category.getAllCategories()).categories
+
+		//Render the home page
+		await ctx.render('index', { games: gamesList, categories: categories, selectedCat: ctx.params.category, helpers}, {user: userInfo})
 	} catch(err) {
 		await ctx.render('error', {message: err.message})
 	}
