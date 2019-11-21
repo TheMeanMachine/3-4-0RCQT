@@ -64,14 +64,17 @@ const helpers ={
  */
 router.get('/', async ctx => {
 	try {
+		const body = ctx.request.body
 		if(ctx.session.authorised !== true)return ctx.redirect('/login?msg=you need to log in')
 		const user = await new User(dbName)
 		const userInfo = user.getUserByID(ctx.session.userID)
 		const games = await new Games(dbName)
-		const gamesList = (await games.getGames()).games
 
 		const review = await new Review(dbName)
 		const category = await new Category(dbName)
+		let gamesList = (await games.getGames()).games
+
+		if(ctx.request.query.category) gamesList = (await category.getGamesOfCategory(ctx.request.query.category)).games
 
 		for(let i = 0; i < gamesList.length; i++) {//Set the list of games with their pictures
 			const curID = gamesList[i].ID
@@ -90,6 +93,7 @@ router.get('/', async ctx => {
 		await ctx.render('index', { games: gamesList,
 			categories: categories,
 			user: userInfo,
+			selectedCat: ctx.request.query.category,
 			helpers})
 	} catch(err) {
 		await ctx.render('error', {message: err.message})
@@ -111,38 +115,6 @@ router.post('/sortBycategory', async ctx => {
 
 })
 
-router.get('/:category', async ctx => {
-	try {
-		if(ctx.session.authorised !== true) {//Ensure authorised access
-			return ctx.redirect('/login?msg=you need to log in')
-		}
-		const user = await new User(dbName)
-		const userInfo = user.getUserByID(ctx.session.userID)
-		const games = await new Games(dbName)
-		const review = await new Review(dbName)
-		const category = await new Category(dbName)
-		const gamesList = (await category.getGamesOfCategory(ctx.params.category)).games
-
-		for(let i = 0; i < gamesList.length; i++) {//Set the list of games with their pictures
-			const curID = gamesList[i].ID
-			console.log(curID)
-			const tempPic = await games.getPictures(curID)
-			const pic = tempPic.pictures
-			if(pic === undefined)pic = []
-
-			gamesList[i].pictures = pic
-
-			gamesList[i].avgRating = Math.round(await review.getAverageRating(curID))
-			gamesList[i].category = (await category.getCategories(curID)).categories//Get all other categories
-		}
-		const categories = (await category.getAllCategories()).categories
-
-		//Render the home page
-		await ctx.render('index', { games: gamesList, categories: categories, selectedCat: ctx.params.category, helpers}, {user: userInfo})
-	} catch(err) {
-		await ctx.render('error', {message: err.message})
-	}
-})
 
 /**
  * The game main page
@@ -155,26 +127,29 @@ router.get('/:category', async ctx => {
 
 router.get('/game', async ctx => {
 	try {
+		console.log(-5)
 		if(ctx.session.authorised !== true)return ctx.redirect('/login?msg=you need to log in')
+		console.log(-4)
 		const games = await new Games(dbName)
 		const review = await new Review(dbName)
 		const category = await new Category(dbName)
-
+		console.log(-3)
 		if(!ctx.query.gameID) return ctx.redirect('/')//Make sure gameID is supplied
-
+		console.log(-2)
 		const gameID = ctx.query.gameID
 		const thisGame = await games.getGameByID(gameID)
-
+		console.log(-1)
 		let temp= await games.getPictures(gameID)//Get pictures for the game
 		let pic = temp.pictures
 		if(pic === undefined)pic = []
 		thisGame.pictures = pic
-
+		console.log(1)
 		try{
 			temp = await review.getReviewsByGameID(gameID)//Get all reviews
 		}catch(e) {//If no reviews
 			temp = {}
 		}
+		console.log(2)
 		const reviews = temp.reviews || []
 
 		const categories = (await category.getCategories(gameID)).categories//get all categories
@@ -191,7 +166,7 @@ router.get('/game', async ctx => {
 			}
 
 		}
-
+		console.log(3)
 		for(let i = 0; i < reviews.length; i++) {//Remove unchecked review
 
 			if(ctx.session.admin === false && reviews[i].flag === 0) {
@@ -200,7 +175,7 @@ router.get('/game', async ctx => {
 
 
 		}
-
+		console.log(4)
 		const ratingsMax = 5
 		const ratingsReviews = []
 		//Set ratings, an array of objs with value and checked
@@ -212,6 +187,7 @@ router.get('/game', async ctx => {
 				ratingsReviews[i].checked = true//set to true if user picked this rating
 			}
 		}
+		console.log(5)
 		const avgRating = await review.getAverageRating(gameID)
 		//Render game main page
 		await ctx.render('game', {
@@ -504,7 +480,7 @@ router.post('/login', async ctx => {
 		ctx.session.authorised = true
 		ctx.session.userID = ID
 		ctx.session.admin = false
-		if(authUser.roleID == 2)ctx.session.admin = true
+		if(authUser.roleID === 2)ctx.session.admin = true
 
 		return ctx.redirect('/?msg=you are now logged in...')
 	} catch(err) {
