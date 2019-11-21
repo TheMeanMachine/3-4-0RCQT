@@ -71,8 +71,10 @@ router.get('/', async ctx => {
 		const user = await new User(dbName)
 		const userInfo = user.getUserByID(ctx.session.userID)
 		const games = await new Games(dbName)
+		const category = await new Category(dbName)
 		const temp = await games.getGames()
 		const gamesList = temp.games
+
 
 		for(let i = 0; i < gamesList.length; i++) {//Set the list of games with their pictures
 			const curID = gamesList[i].ID
@@ -81,7 +83,11 @@ router.get('/', async ctx => {
 			if(pic === undefined)pic = []
 
 			gamesList[i].pictures = pic
+
+			gamesList[i].category = (await category.getCategories(curID)).categories//Get all other categories
 		}
+
+
 		//Render the home page
 		await ctx.render('index', { games: gamesList}, {user: userInfo})
 	} catch(err) {

@@ -28,6 +28,19 @@
 						
 						<h2>{{this.title}}</h2>
 						<p>{{this.summary}}</p>
+
+						
+							<div class="bubbles">
+							{{#each this.category}}
+								<div class="bubble_long">
+									<div class="bubble_longInner">
+										{{this.title}}
+									</div>
+								</div>
+							
+							{{/each}}
+							</div>
+						
 					</div>
 				</div>
 			{{/each}}
