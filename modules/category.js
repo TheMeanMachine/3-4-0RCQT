@@ -127,11 +127,26 @@ module.exports = class Category {
 		}
 	}
 
+	async getAllCategories() {
+		const sql = `
+			SELECT * FROM category;`
+
+		const data = await this.db.all(sql)
+		if(Object.keys(data).length === 0) throw new Error('No categories found')
+		const result = { categories: [] }
+		for(let i = 0; i < Object.keys(data).length; i++) {
+			const curCat = await this.getCategoryByID(data[i].ID)//Retrieve full information
+			data[i].title = curCat.title//Add title to data
+			result.categories.push(data[i])
+		}
+
+
+		return result
+	}
+
 	async deleteByID(catID) {
 		try{
-			if(catID === null || isNaN(catID)) {
-				throw new Error('Must supply catID')
-			}
+			this.validator.checkID(catID, 'catID')
 
 			const sql = [`
             DELETE FROM game_category
