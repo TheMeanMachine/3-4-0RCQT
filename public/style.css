@@ -111,7 +111,7 @@ body {
   }
 
   .bubble_longInner{
-    
+    display: inline-table;
     height: 30px;
     line-height: 30px;
     text-align: center;
@@ -119,6 +119,29 @@ body {
     margin: 0 auto;
 
     
+  }
+
+  .actionForm{
+    padding: 0;
+    margin: 0;
+    height: auto;
+    width: auto;
+    display: inline-table;
+    border:none;
+  }
+
+  .bubbleAction{
+    background: palevioletred;
+    
+    border-radius: 100%;
+    font-size: 0.9em;
+    text-align: center;
+    line-height: 20px;
+    height: 20px;
+    width: 20px;
+    margin-left: 10px;
+    display: inline-table;
+    border:none;
   }
 
   .bubbles{
