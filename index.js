@@ -46,6 +46,12 @@ const helpers ={
 			return opts.fn(this)
 		else
 			return opts.inverse(this)
+	},
+	if_EqOREq: function(a, b, c, opts) {
+		if(a || b == c)
+			return opts.fn(this)
+		else
+			return opts.inverse(this)
 	}
 }
 
@@ -108,21 +114,31 @@ router.get('/game', async ctx => {
 
 		let temp= await games.getPictures(gameID)//Get pictures for the game
 		let pic = temp.pictures
-		if(pic == undefined)pic = []
+		if(pic === undefined)pic = []
 		thisGame.pictures = pic
 
-
-		const avgRating = await review.getAverageRating(gameID)
-
-		temp = await review.getReviewsByGameID(gameID)//Get all reviews
-		const reviews = temp.reviews
+		try{
+			temp = await review.getReviewsByGameID(gameID)//Get all reviews
+		}catch(e) {//If no reviews
+			temp = {}
+		}
+		const reviews = temp.reviews || []
 		let uReview
 		for(let i = 0; i < reviews.length; i++) {//Remove user's review from main list
-			if(reviews[i].userID == ctx.session.userID) {
+			if(reviews[i].userID === ctx.session.userID) {
 				uReview = reviews[i]
 				reviews.splice(i,1)
 				break
 			}
+
+		}
+
+		for(let i = 0; i < reviews.length; i++) {//Remove unchecked review
+
+			if(ctx.session.admin === false && reviews[i].flag === 0) {
+				reviews.splice(i,1)
+			}
+
 
 		}
 
@@ -133,11 +149,11 @@ router.get('/game', async ctx => {
 			ratingsReviews[i] ={
 				value: i
 			}
-			if(uReview && i == uReview.rating) {
+			if(uReview && i === uReview.rating) {
 				ratingsReviews[i].checked = true//set to true if user picked this rating
 			}
 		}
-
+		const avgRating = await review.getAverageRating(gameID)
 		//Render game main page
 		await ctx.render('game', {
 			game: thisGame,
@@ -148,6 +164,56 @@ router.get('/game', async ctx => {
 			averageRating: Math.round(avgRating),
 			helpers
 		})
+	} catch(err) {
+		if(err.message == 'No reviews found') console.log(err)
+		//await ctx.render('error', {message: err.message})
+	}
+})
+
+router.post('/reviewAdminUpdate', async ctx => {
+	try{
+		// extract the data from the request
+		const body = ctx.request.body
+		if(ctx.session.authorised !== true || !ctx.session.admin)return ctx.redirect('/login?msg=you need to log in')
+		// call the functions in the module
+		const review = await new Review(dbName)
+
+		const gameID = body.gameID
+		const reviewID = body.reviewID
+		console.log(reviewID)
+
+		const flag = body.flag ? true : false
+		const del = body.delete ? true : false
+
+		console.log(del)
+		console.log(flag)
+
+
+		if(!del) await review.publishReview(reviewID, flag)
+		if(del) await review.deleteReviewByID(reviewID)
+
+		ctx.redirect(`game?gameID=${gameID}`)
+	} catch(err) {
+		await ctx.render('error', {message: err.message})
+	}
+})
+
+router.post('/deleteGame', async ctx => {
+	try{
+		// extract the data from the request
+		const body = ctx.request.body
+		if(ctx.session.authorised !== true || !ctx.session.admin)return ctx.redirect('/login?msg=you need to log in')
+		// call the functions in the module
+		const game = await new Games(dbName)
+
+		const gameID = body.gameID
+
+
+		const del = body.delete ? true : false
+
+		if(del) await game.deleteGameByID(gameID)
+
+		ctx.redirect('/')
 	} catch(err) {
 		await ctx.render('error', {message: err.message})
 	}
@@ -182,6 +248,19 @@ router.post('/addReview', async ctx => {
 	}
 })
 
+router.get('/newGame', async ctx => {
+	try {
+		if(ctx.session.authorised !== true)return ctx.redirect('/login?msg=you need to log in')
+
+
+		await ctx.render('addGame', {
+			helpers
+		})
+	} catch(err) {
+		await ctx.render('error', {message: err.message})
+	}
+})
+
 /**
  * Script to add a new game
  *
@@ -199,9 +278,9 @@ router.post('/newGame', async ctx => {
 
 		//Add the new game
 		await game.addNewGame(body.title, body.summary, body.desc)
-
+		const gameID = (await game.getGameByTitle(body.title)).ID
 		//Go back to home
-		ctx.redirect('/')
+		ctx.redirect(`/game?gameID=${gameID}`)
 	} catch(err) {
 		await ctx.render('error', {message: err.message})
 	}
@@ -219,7 +298,7 @@ router.post('/addGamePhoto',koaBody, async ctx => {
 	try {
 		// extract the data from the request
 		const body = ctx.request.body
-		if(ctx.session.authorised !== true || ctx.session.role !== adminRoleID)return ctx.redirect('/login?msg=you need to log in')
+		if(ctx.session.authorised !== true || !ctx.session.admin)return ctx.redirect('/login?msg=you need to log in')
 
 		const game = await new Games(dbName)
 

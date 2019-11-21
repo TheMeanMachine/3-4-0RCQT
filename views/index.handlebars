@@ -10,17 +10,16 @@
 		<link href="style.css" type="text/css" rel="stylesheet" />
 	</head>
 	<body>
-		<h1>Home</h1>
-		<p>This is a secure page. Users need to have a valid account and be logged in to see it.</p>
-		<p><a href="/logout">log out</a></p>
+		
 		<div class="cards">
 			{{#each games}}
-				<div class="cardOuter" onclick="window.location.href='game?gameID={{this.ID}}'">
+				<div class="cardOuter">
+					<a href="/game?gameID={{this.ID}}">
 					<div class="cardImg">
 						{{#if this.pictures}}
 							<img class="cardImgInner" src="{{this.pictures.[0]}}">
 						{{else}}
-							<p>No pictures found</p>
+							<p style="text-align: center;">No pictures found</p>
 						{{/if}}
 					</div>
 					
@@ -30,8 +29,40 @@
 						<p>{{this.summary}}</p>
 						<p>Rating: {{this.avgRating}} / 5</p>
 					</div>
+					</a>
 				</div>
+				
 			{{/each}}
+			<br>
+			<div class="optionsContainer">
+			<div class="optionsOuter">
+				
+				<div class="options">
+						
+					<a href="/newGame/">
+					<div class="card">
+						
+						<h2>Add a new game</h2>
+						
+					</div>
+					</a>
+				</div>
+				
+			</div>
+			
+			<div class="optionsOuter">
+				<div class="options">
+						
+					<a href="/logout">
+					<div class="card">
+						
+						<h2>Logout</h2>
+						
+					</div>
+					</a>
+				</div>
+			</div>
+		</div>
 		</div>
 
 		<p>{{message}}</p>

@@ -10,11 +10,6 @@
 		<link href="style.css" type="text/css" rel="stylesheet" />
 	</head>
 	<body>
-        {{#if admin}}
-            <div class="delete">
-                DELETE
-            </div>
-        {{/if}}
         <div class="backButton" onclick="window.location.href='/'">
             BACK
         </div>
@@ -30,10 +25,41 @@
                 {{/if}}
                 
                 {{#if admin}}
-                    <form action="addGamePhoto" method="POST" enctype="multipart/form-data">
-                        <p>Add a game picture:<br /><input type="file" name="pic1"></p>
-                        <input type="text" name="gameID" value="{{game.ID}}" style="display:none">
-                        <p><input type="submit"></p>
+                    
+                        
+
+                        <table class="adminPanel">
+                            <tr>
+                                <th>Add a game picture
+                                </th>
+                                <th>
+                                    Delete
+                                </th>
+                            </tr>
+                            <tr>
+                                <th>
+                                    <form action="addGamePhoto" method="POST" enctype="multipart/form-data">
+                                        <input type="text" name="gameID" value="{{game.ID}}" style="display:none">
+                                        <input type="file" name="pic1"> <br> 
+                                        <button type="submit">SUBMIT</button> 
+                                    </form>
+                                </th>
+                                <th>
+                                    <form action="deleteGame" method="POST">
+                                     <input type="text" name="gameID" value="{{game.ID}}" style="display:none">
+                                        <input type="checkbox" name="delete" value="true"><br> 
+                                        <button type="submit">SUBMIT</button> 
+                                    </form>
+                                </th>
+                            </tr>
+                            <tr>
+                                <th colspan="2">
+                                    
+                                    
+                                </th>
+                            </tr>
+                            
+                        </table>
                     </form>
                 {{/if}}
             </div>
@@ -50,7 +76,9 @@
                 {{#if userReview}}
                 <form action="/updateReview" method="post" id="review"> 
                     <h4>Your review</h4>
-                    
+                    {{#if_eq userReview.flag 0}}
+                        <p>Your review is being checked</p>
+                    {{/if_eq}}
                     <textarea rows="4" cols="50" name="fullText" form="review" placeholder="Write your review">{{userReview.fullText}}</textarea>
                     <br>
                     <div class="rating">
@@ -73,7 +101,44 @@
 
 
                 </form>
-                
+                {{#if @root.admin}}
+                    <form action="/reviewAdminUpdate" method="POST">
+
+                        <table class="adminPanel">
+                            <tr>
+                                <th>Published
+                                    {{#if userReview.flag}}
+                                        (true)
+                                    {{else}}
+                                        (false)
+                                    {{/if}}
+                                </th>
+                                <th>Delete?</th>
+                            </tr>
+                            <tr>
+                                <th>
+                                    <input type="checkbox" name="flag" value="true"
+                                    {{#if userReview.flag}}
+                                        checked="checked"
+                                    {{/if}}>
+                                </th>
+                                <th>
+                                    <input type="text" name="gameID" value="{{@root.game.ID}}" style="display:none">
+                                    <input type="text" name="reviewID" value="{{userReview.ID}}" style="display:none">
+                                    <input type="checkbox" name="delete" value="true">
+                                    
+                                </th>
+                            </tr>
+                            <tr>
+                                <th colspan="2">
+                                    
+                                    <button type="submit">SUBMIT</button>
+                                </th>
+                            </tr>
+                            
+                        </table>
+                    </form>
+                {{/if}}
                 {{else}}
                 <form action="/addReview" method="post" id="review"> 
                     <h4>Your review</h4>
@@ -98,27 +163,69 @@
 
 
                 </form>
-                
                 {{/if}}
+                
+                
                 <hr>
 
                 
 
                 {{#if allReview}}
                 {{#each allReview}}
-                
-                <div class="reviewCard">
-                    <div class="reviewCardInner">
-                        <div class="images">
-
-                        </div>
-                        <p>Rating: {{this.rating}}</p>
-                        <p>Review: {{this.fullText}}</p>
+                    {{#if_EqOREq @root.admin this.flag 1}}
                         
-                    </div>
-                </div>
                     
+                    <div class="reviewCard">
+                        <div class="reviewCardInner">
+                            <div class="images">
+
+                            </div>
+                            <p>Rating: {{this.rating}}</p>
+                            <p>Review: {{this.fullText}}</p>
+                            
+                            {{#if @root.admin}}
+                                <form action="/reviewAdminUpdate" method="POST">
+
+                                    <table class="adminPanel">
+                                        <tr>
+                                            <th>Published
+                                                {{#if this.flag}}
+                                                    (true)
+                                                {{else}}
+                                                    (false)
+                                                {{/if}}
+                                            </th>
+                                            <th>Delete?</th>
+                                        </tr>
+                                        <tr>
+                                            <th>
+                                                <input type="checkbox" name="flag" value="true"
+                                                {{#if this.flag}}
+                                                    checked="checked"
+                                                {{/if}}>
+                                            </th>
+                                            <th>
+                                                <input type="text" name="gameID" value="{{@root.game.ID}}" style="display:none">
+                                                <input type="text" name="reviewID" value="{{this.ID}}" style="display:none">
+                                                <input type="checkbox" name="delete" value="true">
+                                                
+                                            </th>
+                                        </tr>
+                                        <tr>
+                                            <th colspan="2">
+                                                
+                                                <button type="submit">SUBMIT</button>
+                                            </th>
+                                        </tr>
+                                        
+                                    </table>
+                                </form>
+                            {{/if}}
+                        </div>
+                    </div>
+                    {{/if_EqOREq}}
                 {{/each}}
+                
                 {{/if}}
             </div>
             
