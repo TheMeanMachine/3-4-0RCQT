@@ -35,30 +35,17 @@ module.exports = class Review {
 		})()
 	}
 
-	/**
-     * Function to check fields associated with reviews
-     *
-     * @name checkReviewFields
-     * @param fullText The body of text for the review
-	 * @param rating The rating of the review
-	 * @throws If fulltext doesn't match requirements
-	 * @throws If rating is less than 1 or greater than 5
-	 * @throws If all params are null
-     * @returns true if successful
-     *
-     */
+
 	checkRating(rating) {
 
-		if(rating !== null) {
 
-			this.validator.checkID(rating, 'rating')
+		this.validator.checkID(rating, 'rating')
 
-			const maxRating = 5
-			const greater = rating > 0
-			const lesser = rating <= maxRating
-			if(!greater || !lesser) throw new Error('Rating must be 1-5')
+		const maxRating = 5
+		const greater = rating > 0
+		const lesser = rating <= maxRating
+		if(!greater || !lesser) throw new Error('Rating must be 1-5')
 
-		}
 
 		return true
 	}
@@ -114,23 +101,21 @@ module.exports = class Review {
      */
 	async updateReview(userID, gameID, data) {
 
-		const fullText = data.fullText || null
-		const rating = data.rating || null
+		const fullText = data.fullText
+		const rating = data.rating
 
 		this.validator.checkID(userID, 'userID')
 		this.validator.checkID(gameID, 'gameID')
-
+		this.checkRating(rating)//Check input is sensible
+		if(!this.validator.checkMultipleWordsOnlyAlphaNumberic(fullText)) throw new Error('Must supply fulltext')
 		const sql = `SELECT COUNT(ID) as records FROM review
 		WHERE userID=${userID} AND gameID=${gameID};`//Make sure user has a review for this game
 		const result = await this.db.get(sql)
 		if(result.records === 0) throw new Error('Review not found')
 
 
-		this.checkRating(rating)//Check input is sensible
-		if(!this.validator.checkMultipleWordsOnlyAlphaNumberic(fullText)) throw new Error('Must supply fullText')
-
 		const updateSql = `UPDATE review SET fullText = "${fullText}",
-			rating = ${rating}
+			rating = ${rating},
 			flag = 0
 			WHERE userID = ${userID}
 			AND gameID = ${gameID};
@@ -159,7 +144,7 @@ module.exports = class Review {
 		const rating = data.rating
 
 		this.checkRating(rating)//Check input is sensible
-		if(!this.validator.checkMultipleWordsOnlyAlphaNumberic(fullText)) throw new Error('Must supply fullText')
+		if(!this.validator.checkMultipleWordsOnlyAlphaNumberic(fullText)) throw new Error('Must supply fulltext')
 		this.validator.checkID(gameID, 'gameID')
 
 		await this.games.getGameByID(gameID)//Checks if game exists

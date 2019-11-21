@@ -16,7 +16,7 @@ module.exports = class Validator {
      *
      */
 	checkMultipleWordsOnlyAlphaNumberic(test) {
-		if(test === undefined || test.length === 0) {
+		if(test === null || test === undefined || test.length === 0) {
 			return false
 		}
 		const regex = new RegExp('^[a-zA-Z0-9 ,."!\'\-]*$')

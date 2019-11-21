@@ -212,70 +212,6 @@ describe('updateReview()', () => {
 
 		done()
 	})
-
-	test('Valid review only fulltext', async done => {
-		expect.assertions(2)
-
-		const review = await new Reviews()
-		const game = await review.games
-		const user = await review.users
-		const userID = await user.register('Samson', 'Password')
-		await game.addNewGame('title', 'summary', 'desc')
-		const retreiveGame = await game.getGameByTitle('title')
-		await review.addReview(retreiveGame.ID,
-			{
-				fullText: 'fulltext',
-				rating: 3
-			}, userID
-		)
-		const changed = {
-			fullText: 'This is changed fulltext'
-		}
-		const result = await review.updateReview(userID, retreiveGame.ID, changed)
-
-		expect(result).toBe(true)
-
-		expect(await review.getReviewsByGameID(retreiveGame.ID)).toMatchObject(
-			{ reviews:
-                [changed] }
-
-		)
-
-		done()
-	})
-
-	test('Valid review only rating', async done => {
-		expect.assertions(2)
-
-		const review = await new Reviews()
-		const game = await review.games
-		const user = await review.users
-		const userID = await user.register('Samson', 'Password')
-		await game.addNewGame('title', 'summary', 'desc')
-		const retreiveGame = await game.getGameByTitle('title')
-		await review.addReview(retreiveGame.ID,
-			{
-				fullText: 'fulltext',
-				rating: 3
-			}, userID
-		)
-		const changed = {
-			rating: 4
-		}
-		const result = await review.updateReview(userID,retreiveGame.ID, changed
-		)
-
-		expect(result).toBe(true)
-
-		expect(await review.getReviewsByGameID(retreiveGame.ID)).toMatchObject(
-			{ reviews:
-                [changed] }
-
-		)
-
-		done()
-	})
-
 	test('Error if review does not exist', async done => {
 		expect.assertions(1)
 
@@ -294,7 +230,8 @@ describe('updateReview()', () => {
 
 		await expect(review.updateReview(3,retreiveGame.ID,
 			{
-				rating: 4
+				rating: 4,
+				fullText: 'Hello!'
 			})).rejects.toEqual(Error('Review not found'))
 
 
@@ -352,6 +289,21 @@ describe('updateReview()', () => {
 			{
 				rating: 4
 			})).rejects.toEqual(Error('Must supply gameID'))
+
+
+		done()
+	})
+
+	test('Error if fulltext is not valid', async done => {
+		expect.assertions(1)
+
+		const review = await new Reviews()
+
+		await expect(review.updateReview(1,1,
+			{
+				rating: 4,
+				fullText: '@;\';!'
+			})).rejects.toEqual(Error('Must supply fulltext'))
 
 
 		done()
@@ -450,74 +402,26 @@ describe('getReviewsByGameID()', () => {
 
 })
 
-describe('checkReviewFields()', () => {
-	test('Valid input _ both fields', async done => {
+describe('checkRating()', () => {
+	test('Valid input', async done => {
 		expect.assertions(1)
 
 		const review = await new Reviews()
 
-		const result = await review.checkReviewFields('This is full text', 1)
-
-		expect(result).toBe(true)
-
-		done()
-	})
-	test('Valid input _ just full text', async done => {
-		expect.assertions(1)
-
-		const review = await new Reviews()
-
-		const result = await review.checkReviewFields('This is full text')
+		const result = await review.checkRating(1)
 
 		expect(result).toBe(true)
 
 		done()
 	})
 
-	test('Valid input _ just rating', async done => {
-		expect.assertions(1)
-
-		const review = await new Reviews()
-
-		const result = await review.checkReviewFields(null, 1)
-
-		expect(result).toBe(true)
-
-		done()
-	})
-
-	test('Error if full', async done => {
-		expect.assertions(1)
-
-		const review = await new Reviews()
-		try{
-			await review.checkReviewFields(null, null)
-		}catch(e) {
-			expect(e).toEqual(Error('All fields are null'))
-		}
-
-		done()
-	})
-
-	test('Error if fulltext is not valid', async done => {
-		expect.assertions(1)
-
-		const review = await new Reviews()
-		try{
-			await review.checkReviewFields('($(*(!()_', null)
-		}catch(e) {
-			expect(e).toEqual(Error('Must supply fulltext'))
-		}
-
-		done()
-	})
 
 	test('Error if rating is too low', async done => {
 		expect.assertions(1)
 
 		const review = await new Reviews()
 		try{
-			await review.checkReviewFields('Fulltext', 0)
+			await review.checkRating(0)
 		}catch(e) {
 			expect(e).toEqual(Error('Rating must be 1-5'))
 		}
@@ -530,7 +434,7 @@ describe('checkReviewFields()', () => {
 
 		const review = await new Reviews()
 		try{
-			await review.checkReviewFields('Fulltext', 6)
+			await review.checkRating(6)
 		}catch(e) {
 			expect(e).toEqual(Error('Rating must be 1-5'))
 		}
