@@ -48,7 +48,7 @@ describe('getGamesOfCategory()', () => {
 		const catID = await category.addCategory('Horror')
 		await category.addCategory('Cats')
 		await category.addCategory('Comedy')
-
+		await game.addNewGame('Green', 'Summary', 'Description')
 		await game.addNewGame('Red', 'Summary', 'Description')
 		const retGame = await game.getGameByTitle('Red')
 		await category.associateToCategory(retGame.ID, catID)
@@ -69,6 +69,7 @@ describe('getGamesOfCategory()', () => {
 		done()
 	})
 
+
 	test('Error if catID is null', async done => {
 		expect.assertions(1)
 
@@ -76,7 +77,7 @@ describe('getGamesOfCategory()', () => {
 
 
 		await expect(category.getGamesOfCategory(null))
-			.rejects('Must supply catID')
+			.rejects.toEqual(Error('Must supply catID'))
 		done()
 	})
 
@@ -86,8 +87,8 @@ describe('getGamesOfCategory()', () => {
 		const category = await new Category()
 
 
-		await expect(category.getGamesOfCategory("not a number"))
-			.rejects('Must supply catID')
+		await expect(category.getGamesOfCategory('not a number'))
+			.rejects.toEqual(Error('Must supply catID'))
 		done()
 	})
 
@@ -98,7 +99,7 @@ describe('getGamesOfCategory()', () => {
 
 
 		await expect(category.getGamesOfCategory(undefined))
-			.rejects('Must supply catID')
+			.rejects.toEqual(Error('Must supply catID'))
 		done()
 	})
 })

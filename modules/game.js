@@ -65,6 +65,8 @@ module.exports = class Game {
 		})()
 
 	}
+
+
 	/**
      * Function to associate a publisher to a game
      *
@@ -80,7 +82,7 @@ module.exports = class Game {
 				throw new Error('Must supply gameID')
 			}
 			if(publisherID === null || isNaN(publisherID)) {
-				throw new Error('Must supply gameID')
+				throw new Error('Must supply publisherID')
 			}
 
 			await this.getGameByID(gameID)

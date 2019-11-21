@@ -342,7 +342,7 @@ describe('associateToPublisher()', () => {
 		await publisher.addPublisher('Rockstar Games')
 
 		await expect(game.associateToPublisher(retreiveGame.ID, null))
-			.rejects.toEqual(Error('Must supply gameID'))
+			.rejects.toEqual(Error('Must supply publisherID'))
 		done()
 	})
 
@@ -361,7 +361,7 @@ describe('associateToPublisher()', () => {
 		await publisher.addPublisher('Rockstar Games')
 
 		await expect(game.associateToPublisher(retreiveGame.ID, 'Not a number'))
-			.rejects.toEqual(Error('Must supply gameID'))
+			.rejects.toEqual(Error('Must supply publisherID'))
 		done()
 	})
 
