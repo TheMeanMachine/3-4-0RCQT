@@ -12,6 +12,27 @@
 	<body>
 		
 		<div class="cards">
+			{{#if categories}}
+				
+				<form action="/sortBycategory" method="POST">
+					<br>
+					<p></p>
+					<select name="category">
+						<option value="">Select a category</option>
+						{{#each categories}}
+							<option value="{{this.ID}}"
+							{{#if_eq this.ID @root.selectedCat}}
+							selected="selected"
+							{{/if_eq}}>{{this.title}}</option>
+						{{/each}}
+					</select>
+					<button type="submit">
+						Sort by Category
+					</button>
+				</form>
+				
+			{{/if}}
+
 			{{#each games}}
 				<div class="cardOuter">
 					<a href="/game?gameID={{this.ID}}">

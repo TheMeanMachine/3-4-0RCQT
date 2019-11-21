@@ -112,25 +112,23 @@ module.exports = class Category {
 	}
 
 	async getCategoryByID(catID) {
-		try{
-			if(catID === null || isNaN(catID)) {
-				throw new Error('Must supply catID')
-			}
 
-			let sql = `SELECT count(ID) AS count FROM category WHERE ID = ${catID};`
-			let records = await this.db.get(sql)
-			if(records.count === 0) {
-				throw new Error('Category not found')
-			}
-
-			sql = `SELECT * FROM category WHERE ID = ${catID};`
-
-			records = await this.db.get(sql)
-			return records
-
-		}catch(e) {
-			throw e
+		if(catID === null || isNaN(catID)) {
+			throw new Error('Must supply catID')
 		}
+
+		let sql = `SELECT count(ID) AS count FROM category WHERE ID = ${catID};`
+		let records = await this.db.get(sql)
+		if(records.count === 0) {
+			throw new Error('Category not found')
+		}
+
+		sql = `SELECT * FROM category WHERE ID = ${catID};`
+
+		records = await this.db.get(sql)
+		return records
+
+
 	}
 
 	async getAllCategories() {
@@ -173,25 +171,43 @@ module.exports = class Category {
 		return result
 	}
 
-	async deleteByID(catID) {
-		try{
-			this.validator.checkID(catID, 'catID')
+	async getGamesOfCategory(catID) {
+		this.validator.checkID(catID, 'catID')
 
-			const sql = [`
-            DELETE FROM game_category
-            WHERE categoryID = ${catID};
-            `,`
-            DELETE FROM category
-            WHERE ID = ${catID}`
-			]
+		const sql = `
+			SELECT * FROM game_category
+			WHERE categoryID = ${catID};`
 
-			for(let i = 0; i < sql.length; i++) {
-				await this.db.run(sql[i])
-			}
+		const categories = await this.db.all(sql)
 
-			return true
-		}catch(e) {
-			throw e
+		const result = { games: []}
+		for(let i = 0; i < Object.keys(categories).length; i++) {
+
+			const gameData = await this.game.getGameByID(categories[i].gameID)
+			result.games.push(gameData)
+
 		}
+
+		return result
+	}
+
+	async deleteByID(catID) {
+
+		this.validator.checkID(catID, 'catID')
+
+		const sql = [`
+		DELETE FROM game_category
+		WHERE categoryID = ${catID};
+		`,`
+		DELETE FROM category
+		WHERE ID = ${catID}`
+		]
+
+		for(let i = 0; i < sql.length; i++) {
+			await this.db.run(sql[i])
+		}
+
+		return true
+
 	}
 }
