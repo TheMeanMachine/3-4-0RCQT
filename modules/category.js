@@ -46,6 +46,7 @@ module.exports = class Category {
 			this.validator.checkID(categoryID, 'categoryID')
 
 			await this.game.getGameByID(gameID)
+
 			await this.getCategoryByID(categoryID)
 
 			const sql = `INSERT INTO game_category (gameID, categoryID)
@@ -73,10 +74,12 @@ module.exports = class Category {
 			const data = await this.db.all(sql)
 			const result = { categories: [] }
 			for(let i = 0; i < Object.keys(data).length; i++) {
-				const curCat = await this.getCategoryByID(data[i].ID)//Retrieve full information
+
+				const curCat = await this.getCategoryByID(data[i].categoryID)//Retrieve full information
 				data[i].title = curCat.title//Add title to data
 				result.categories.push(data[i])
 			}
+
 			return result
 		}catch(e) {
 			throw e
@@ -151,11 +154,10 @@ module.exports = class Category {
 
 		const result = {categories: []}
 
-		console.log(allCat, allGameCat)
 		for(let i = 0; i < allCat.length; i++) {
 			let flag = false
 			for(let j = 0; j < allGameCat.length; j++) {
-				if(allCat[i].ID === allGameCat[j].ID) {
+				if(allCat[i].ID === allGameCat[j].categoryID) {
 					flag = true
 					break
 				}
