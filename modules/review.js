@@ -1,6 +1,4 @@
 
-/* eslint-disable complexity */
-/* eslint-disable max-lines-per-function */
 
 'use strict'
 
@@ -21,25 +19,13 @@ module.exports = class Review {
 			this.games = await new Games(this.dbName)
 			this.users = await new Users(this.dbName)
 			const sql =
-            [`
-            CREATE TABLE IF NOT EXISTS reviewScreenshot(
-                ID INTEGER PRIMARY KEY AUTOINCREMENT,
-                reviewID INTEGER,
-                picture TEXT,
-                FOREIGN KEY (reviewID) REFERENCES review(ID)
-            );`,`
-    
-            CREATE TABLE IF NOT EXISTS review(
-                ID INTEGER PRIMARY KEY AUTOINCREMENT,
-                gameID INTEGER,
-                userID INTEGER,
-                fullText TEXT,
-                rating INTEGER,
-                flag INTEGER,
-                FOREIGN KEY (gameID) REFERENCES game(ID),
-                FOREIGN KEY (userID) REFERENCES user(ID)
-            );`]
-
+			[`CREATE TABLE IF NOT EXISTS reviewScreenshot(ID INTEGER PRIMARY KEY AUTOINCREMENT,
+				reviewID INTEGER,picture TEXT,
+                FOREIGN KEY (reviewID) REFERENCES review(ID));`,`
+			CREATE TABLE IF NOT EXISTS review(ID INTEGER PRIMARY KEY AUTOINCREMENT,
+				gameID INTEGER,userID INTEGER,fullText TEXT,rating INTEGER,flag INTEGER,
+            	FOREIGN KEY (gameID) REFERENCES game(ID),
+				FOREIGN KEY (userID) REFERENCES user(ID));`]
 
 			for(let i = 0; i < sql.length; i++) {
 				await this.db.run(sql[i])
@@ -61,31 +47,17 @@ module.exports = class Review {
      * @returns true if successful
      *
      */
-	checkReviewFields(fullText, rating) {
-		// eslint-disable-next-line eqeqeq
-		if(fullText != null) {
-			const checkFullText = this.validator.checkMultipleWordsOnlyAlphaNumberic(fullText)
-			if(!checkFullText) {
-				throw new Error('Must supply fulltext')
-			}
-		}
-		// eslint-disable-next-line eqeqeq
-		if(rating != null) {
+	checkRating(rating) {
 
-			if(isNaN(rating)) {
-				throw new Error('Must supply rating')
+		if(rating !== null) {
 
-			}
+			this.validator.checkID(rating, 'rating')
+
 			const maxRating = 5
 			const greater = rating > 0
 			const lesser = rating <= maxRating
-			if(!greater || !lesser) {
-				throw new Error('Rating must be 1-5')
-			}
-		}
+			if(!greater || !lesser) throw new Error('Rating must be 1-5')
 
-		if(rating === null && fullText === null) {
-			throw new Error('All fields are null')
 		}
 
 		return true
@@ -144,62 +116,29 @@ module.exports = class Review {
 
 		const fullText = data.fullText || null
 		const rating = data.rating || null
-		try{
 
-			if(userID === null || isNaN(userID)) {//Check reviewID has been given and is correct
+		this.validator.checkID(userID, 'userID')
+		this.validator.checkID(gameID, 'gameID')
 
-				throw new Error('Must supply userID')
-			}
-
-			if(gameID === null || isNaN(gameID)) {//Check gameID has been given and is correct
-
-				throw new Error('Must supply gameID')
-			}
-
-			const sql = `
-				SELECT COUNT(ID) as records FROM review
-				WHERE userID=${userID}
-				AND gameID=${gameID};`//Make sure user has a review for this game
-			const data = await this.db.get(sql)
-			if(data.records === 0) {
-				throw new Error('Review not found')
-			}
-
-			this.checkReviewFields(fullText, rating)//Check input is sensible
+		const sql = `SELECT COUNT(ID) as records FROM review
+		WHERE userID=${userID} AND gameID=${gameID};`//Make sure user has a review for this game
+		const result = await this.db.get(sql)
+		if(result.records === 0) throw new Error('Review not found')
 
 
-			if(fullText !== null) {//If fulltext is to be updated
+		this.checkRating(rating)//Check input is sensible
+		if(!this.validator.checkMultipleWordsOnlyAlphaNumberic(fullText)) throw new Error('Must supply fullText')
 
-				const sql = `
-                UPDATE review 
-                SET fullText = "${fullText}",
-                flag = 0
-				WHERE userID = ${userID}
-				AND gameID = ${gameID};
-                `
+		const updateSql = `UPDATE review SET fullText = "${fullText}",
+			rating = ${rating}
+			flag = 0
+			WHERE userID = ${userID}
+			AND gameID = ${gameID};
+			`
 
-				await this.db.run(sql)
-			}
+		await this.db.run(updateSql)
 
-			if(rating !== null) {//if rating is to be updated
-
-				const sql = `
-                UPDATE review 
-                SET rating = "${rating}"
-				WHERE userID = ${userID}
-				AND gameID = ${gameID};
-                `
-
-				await this.db.run(sql)
-			}
-
-			return true
-
-		}catch(e) {
-
-			throw e
-
-		}
+		return true
 
 	}
 
@@ -219,39 +158,21 @@ module.exports = class Review {
 		const fullText = data.fullText || ''
 		const rating = data.rating
 
-		try{
-			this.checkReviewFields(fullText, rating)//Check input is sensible
+		this.checkRating(rating)//Check input is sensible
+		if(!this.validator.checkMultipleWordsOnlyAlphaNumberic(fullText)) throw new Error('Must supply fullText')
+		this.validator.checkID(gameID, 'gameID')
 
-			if(gameID === null || isNaN(gameID)) {
-				throw new Error('Must supply gameID')
-			}
-			await this.games.getGameByID(gameID)//Checks if game exists
+		await this.games.getGameByID(gameID)//Checks if game exists
 
-			if(userID === null || isNaN(userID)) {
-				throw new Error('Must supply userID')
-			}
+		this.validator.checkID(userID, 'userID')
 
-			const sql = `
-            INSERT INTO review (
-                gameID,
-                userID,
-                fullText,
-                rating,
-                flag) VALUES (
-                    ${gameID},
-                    ${userID},
-                    "${fullText}",
-                    ${rating},
-                    0
-                );`
+		const sql = `INSERT INTO review (gameID,userID,fullText,rating,flag) VALUES (
+				${gameID},${userID},"${fullText}",${rating},0);`
 
-			const data = await this.db.run(sql)
+		const result = await this.db.run(sql)
 
-			return data.lastID
+		return result.lastID
 
-		}catch(e) {
-			throw e
-		}
 	}
 	/**
      * Function to get all of a game's reviews

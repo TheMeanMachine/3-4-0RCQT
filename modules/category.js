@@ -1,5 +1,3 @@
-
-
 'use strict'
 
 const sqlite = require('sqlite-async')
@@ -18,19 +16,11 @@ module.exports = class Category {
 			this.db = await sqlite.open(this.dbName)
 			this.game = await new Games(this.dbName)
 			const sql =
-            [`
-            CREATE TABLE IF NOT EXISTS game_category(
-                ID INTEGER PRIMARY KEY AUTOINCREMENT,
-                gameID INTEGER,
-                categoryID INTEGER,
-                FOREIGN KEY (gameID) REFERENCES game(ID),
-                FOREIGN KEY (categoryID) REFERENCES category(ID)
-            );`,`
-            CREATE TABLE IF NOT EXISTS category(
-                ID INTEGER PRIMARY KEY AUTOINCREMENT,
-                title TEXT
-            );`
-            ]
+			[`CREATE TABLE IF NOT EXISTS game_category
+			(ID INTEGER PRIMARY KEY AUTOINCREMENT,gameID INTEGER,categoryID INTEGER,
+			FOREIGN KEY (gameID) REFERENCES game(ID),
+			FOREIGN KEY (categoryID) REFERENCES category(ID));`
+			,'CREATE TABLE IF NOT EXISTS category(ID INTEGER PRIMARY KEY AUTOINCREMENT,title TEXT);']
 			for(let i = 0; i < sql.length; i++) {
 				await this.db.run(sql[i])
 			}

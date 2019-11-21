@@ -175,8 +175,8 @@ router.get('/game', async ctx => {
 			helpers
 		})
 	} catch(err) {
-		if(err.message == 'No reviews found') console.log(err)
-		//await ctx.render('error', {message: err.message})
+		if(err.message === 'Game not found') await ctx.redirect('/')
+		await ctx.render('error', {message: err.message})
 	}
 })
 

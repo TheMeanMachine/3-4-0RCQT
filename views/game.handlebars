@@ -10,10 +10,6 @@
 		<link href="style.css" type="text/css" rel="stylesheet" />
 	</head>
 	<body>
-        <div class="backButton" onclick="window.location.href='/'">
-            BACK
-        </div>
-
 		<div class="mainGamePageOuter">
             <div class="cardImg">
                 {{#if game.pictures}}
@@ -25,9 +21,6 @@
                 {{/if}}
                 
                 {{#if admin}}
-                    
-                        
-
                         <table class="adminPanel">
                             <tr>
                                 <th>Add a game picture
@@ -271,7 +264,32 @@
         </div>
         
 		
-        <p><a href="/logout">log out</a></p>
+        <div class="optionsContainer">
+            <div class="optionsOuter">
+                <div class="options">
+                        
+                    <a href="/">
+                    <div class="card">
+                        
+                        <h2>Back home</h2>
+                        
+                    </div>
+                    </a>
+                </div>
+            </div>
+            <div class="optionsOuter">
+                <div class="options">
+                        
+                    <a href="/logout">
+                    <div class="card">
+                        
+                        <h2>Logout</h2>
+                        
+                    </div>
+                    </a>
+                </div>
+            </div>
+        </div>
 		<p>{{message}}</p>
 		
 </html>
