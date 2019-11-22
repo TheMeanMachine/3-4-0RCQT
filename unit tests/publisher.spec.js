@@ -61,6 +61,29 @@ describe('getGamesOfPublisher()', () => {
 
 })
 
+describe('unassociateToPublisher', () => {
+	test('Valid gameID and categoryID', async done => {
+		expect.assertions(1)
+
+		const publisher = await new Publishers()
+		const game = publisher.game
+
+		const pubID = await publisher.addPublisher('Rocky Games')
+
+		await game.addNewGame('Red', 'Summary', 'Description')
+		const retGame = await game.getGameByTitle('Red')
+
+		await publisher.associateToPublisher(retGame.ID, pubID)
+
+		const result = await publisher.unassociateToPublisher(retGame.ID, pubID)
+
+		expect(result)
+			.toBe(true)
+
+		done()
+	})
+})
+
 describe('associateToPublisher()', () => {
 	test('Valid publisher and game', async done => {
 		expect.assertions(2)
