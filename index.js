@@ -18,6 +18,7 @@ const User = require('./modules/user')
 const Review = require('./modules/review')
 const Games = require('./modules/game')
 const Category = require('./modules/category')
+const Publisher = require('./modules/publisher')
 const app = new Koa()
 const router = new Router()
 
@@ -70,19 +71,23 @@ router.get('/', async ctx => {
 
 		const review = await new Review(dbName)
 		const category = await new Category(dbName)
+		const publisher = await new Publisher(dbName)
 		let gamesList = (await games.getGames()).games
 
 		if(ctx.request.query.category) gamesList = (await category.getGamesOfCategory(ctx.request.query.category)).games
-		const categories = (await category.getAllCategories()).categories
+		if(ctx.request.query.publisher) gamesList = (await publisher.getGamesOfPublisher(ctx.request.query.publisher)).games
 
+		const categories = (await category.getAllCategories()).categories
+		const publishers = (await publisher.getAllPublishers()).publishers
 		for(let i = 0; i < gamesList.length; i++) {//Set the list of games with their pictures
 			gamesList[i].pictures = (await games.getPictures(gamesList[i].ID)).pictures
 			gamesList[i].avgRating = Math.round(await review.getAverageRating(gamesList[i].ID))
 			gamesList[i].category = (await category.getCategories(gamesList[i].ID)).categories//Get all other categories
+			gamesList[i].publishers = (await publisher.getPublishers(gamesList[i].ID)).publishers
 		}
 		//Render the home page
-		await ctx.render('index', {games: gamesList,categories: categories,
-			selectedCat: ctx.request.query.category,helpers})
+		await ctx.render('index', {games: gamesList,categories: categories,publishers: publishers,
+			selectedCat: ctx.request.query.category,selectedPub: ctx.request.query.publisher,helpers, admin: ctx.session.admin})
 	} catch(err) {
 		await ctx.render('error', {message: err.message})
 	}
@@ -97,12 +102,14 @@ router.get('/', async ctx => {
  * @authentication This route requires cookie-based authentication.
  *
  */
+// eslint-disable-next-line max-lines-per-function
 router.get('/game', async ctx => {
 	try {
 		if(ctx.session.authorised !== true || !ctx.query.gameID)return ctx.redirect('/')
 		const games = await new Games(dbName)
 		const review = await new Review(dbName)
 		const category = await new Category(dbName)
+		const publishers = await new Publisher(dbName)
 
 
 		const gameID = ctx.query.gameID
@@ -115,7 +122,9 @@ router.get('/game', async ctx => {
 
 		thisGame.category = (await category.getCategories(gameID)).categories//get all categories
 		thisGame.otherCategories = (await category.getOtherCategories(gameID)).categories//Get all other categories
-
+		thisGame.publishers = (await publishers.getPublishers(gameID)).publishers
+		thisGame.otherPublishers = (await publishers.getAllPublishers()).publishers
+		console.log(thisGame.publishers)
 		const ratingsReviews = [{value: 1},{value: 2},{value: 3},{value: 4},{value: 5}]//Set ratings
 		const avgRating = await review.getAverageRating(gameID)
 		//Render game main page
@@ -214,6 +223,24 @@ router.post('/removeCategoryFromGame', async ctx => {
 	}
 })
 
+router.post('/removePublisherFromGame', async ctx => {
+	try{
+		const body = ctx.request.body
+		if(ctx.session.authorised !== true || !ctx.session.admin)return ctx.redirect('/')
+		const publisher = await new Publisher(dbName)
+
+		const gameID = body.gameID
+		const pubID = body.publisherID
+
+		await publisher.unassociateToPublisher(gameID, pubID)
+
+		//refresh
+		ctx.redirect(`game?gameID=${gameID}`)
+	} catch(err) {
+		await ctx.render('error', {message: err.message})
+	}
+})
+
 /**
  * Script to add a category to a game
  *
@@ -234,6 +261,23 @@ router.post('/addCategoryToGame', async ctx => {
 		const gameID = body.gameID
 
 		await category.associateToCategory(gameID, body.category)
+		//refresh
+		ctx.redirect(`game?gameID=${gameID}`)
+	} catch(err) {
+		await ctx.render('error', {message: err.message})
+	}
+})
+
+router.post('/addPublisherToGame', async ctx => {
+	try {
+		// extract the data from the request
+		const body = ctx.request.body
+		if(ctx.session.authorised !== true || !ctx.session.admin)return ctx.redirect('/')
+
+		const publisher = await new Publisher(dbName)
+		const gameID = body.gameID
+
+		await publisher.associateToPublisher(gameID, body.publisher)
 		//refresh
 		ctx.redirect(`game?gameID=${gameID}`)
 	} catch(err) {
@@ -286,6 +330,35 @@ router.get('/newGame', async ctx => {
 		await ctx.render('addGame', {
 			helpers
 		})
+	} catch(err) {
+		await ctx.render('error', {message: err.message})
+	}
+})
+
+router.get('/newPublisher', async ctx => {
+	try {
+		if(ctx.session.authorised !== true || !ctx.session.admin)return ctx.redirect('/')
+
+		await ctx.render('addPublisher', {
+			helpers
+		})
+	} catch(err) {
+		await ctx.render('error', {message: err.message})
+	}
+})
+
+router.post('/newPublisher', async ctx => {
+	try {
+		// extract the data from the request
+		const body = ctx.request.body
+		if(ctx.session.authorised !== true || !ctx.session.admin)return ctx.redirect('/')
+		const publisher = await new Publisher(dbName)
+
+		//Add the new game
+		await publisher.addPublisher(body.name)
+
+		//Go back to home
+		ctx.redirect('/')
 	} catch(err) {
 		await ctx.render('error', {message: err.message})
 	}

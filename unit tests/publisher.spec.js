@@ -3,6 +3,245 @@
 
 const Publishers = require('../modules/publisher.js')
 
+
+describe('getAllPublishers()', () => {
+	test('Gets all Publishers', async done => {
+		expect.assertions(1)
+
+		const publisher = await new Publishers()
+
+		await publisher.addPublisher('Rockstar Games')
+		await publisher.addPublisher('Pop Star Games')
+		const allPubishers = await publisher.getAllPublishers()
+
+		expect(allPubishers).toMatchObject({
+			publishers: [
+				{name: 'Rockstar Games'},
+				{name: 'Pop Star Games'},
+
+			]
+		})
+
+		done()
+	})
+
+})
+
+describe('getGamesOfPublisher()', () => {
+	test('Valid publisherID', async done => {
+		expect.assertions(1)
+
+		const publisher = await new Publishers()
+		const game = publisher.game
+
+
+		const pubID = await publisher.addPublisher('Rockstar Games')
+		await publisher.addPublisher('Pop Star Games')
+
+		await game.addNewGame('Green', 'Summary', 'Description')
+		await game.addNewGame('Red', 'Summary', 'Description')
+		const retGame = await game.getGameByTitle('Red')
+		await publisher.associateToPublisher(retGame.ID, pubID)
+
+		const result = await publisher.getGamesOfPublisher(pubID)
+
+		expect(result).toMatchObject(
+			{
+				games: [
+					{
+						title: 'Red',
+						summary: 'Summary',
+						desc: 'Description'
+					}
+				]
+			}
+		)
+		done()
+	})
+
+})
+
+describe('unassociateToPublisher', () => {
+	test('Valid gameID and publisherID', async done => {
+		expect.assertions(1)
+
+		const publisher = await new Publishers()
+		const game = publisher.game
+
+		const pubID = await publisher.addPublisher('Rocky Games')
+
+		await game.addNewGame('Red', 'Summary', 'Description')
+		const retGame = await game.getGameByTitle('Red')
+
+		await publisher.associateToPublisher(retGame.ID, pubID)
+
+		const result = await publisher.unassociateToPublisher(retGame.ID, pubID)
+
+		expect(result)
+			.toBe(true)
+
+		done()
+	})
+})
+
+describe('associateToPublisher()', () => {
+	test('Valid publisher and game', async done => {
+		expect.assertions(2)
+
+		const publisher = await new Publishers()
+		const game = publisher.game
+
+		await game.addNewGame(
+			'title',
+			'summary',
+			'desc')
+		const retreiveGame = await game.getGameByTitle('title')
+
+		const publisherID = await publisher.addPublisher('Rockstar Games')
+
+		expect(await publisher.associateToPublisher(retreiveGame.ID, publisherID))
+			.toBe(true)
+
+		expect(await publisher.getPublishers(retreiveGame.ID)).toMatchObject(
+			{
+				publishers: [{ID: 1}]
+			}
+		)
+
+		done()
+	})
+	test('Error if gameID null', async done => {
+		expect.assertions(1)
+
+		const publisher = await new Publishers()
+		const game = publisher.game
+
+		await game.addNewGame(
+			'title',
+			'summary',
+			'desc')
+		await game.getGameByTitle('title')
+
+		const publisherID = await publisher.addPublisher('Rockstar Games')
+
+		await expect(publisher.associateToPublisher(null, publisherID))
+			.rejects.toEqual(Error('Must supply gameID'))
+		done()
+	})
+
+	test('Error if gameID NaN', async done => {
+		expect.assertions(1)
+
+		const publisher = await new Publishers()
+		const game = publisher.game
+
+		await game.addNewGame(
+			'title',
+			'summary',
+			'desc')
+		await game.getGameByTitle('title')
+
+		const publisherID = await publisher.addPublisher('Rockstar Games')
+
+		await expect(publisher.associateToPublisher('Not a number', publisherID))
+			.rejects.toEqual(Error('Must supply gameID'))
+		done()
+	})
+
+	test('Error if publisherID null', async done => {
+		expect.assertions(1)
+
+		const publisher = await new Publishers()
+		const game = publisher.game
+
+		await game.addNewGame(
+			'title',
+			'summary',
+			'desc')
+		const retreiveGame = await game.getGameByTitle('title')
+
+		await publisher.addPublisher('Rockstar Games')
+
+		await expect(publisher.associateToPublisher(retreiveGame.ID, null))
+			.rejects.toEqual(Error('Must supply publisherID'))
+		done()
+	})
+
+	test('Error if publisherID NaN', async done => {
+		expect.assertions(1)
+
+		const publisher = await new Publishers()
+		const game = publisher.game
+
+		await game.addNewGame(
+			'title',
+			'summary',
+			'desc')
+		const retreiveGame = await game.getGameByTitle('title')
+
+		await publisher.addPublisher('Rockstar Games')
+
+		await expect(publisher.associateToPublisher(retreiveGame.ID, 'Not a number'))
+			.rejects.toEqual(Error('Must supply publisherID'))
+		done()
+	})
+
+})
+
+describe('getPublishers()', () => {
+	test('Valid gameID', async done => {
+		expect.assertions(1)
+
+		const publisher = await new Publishers()
+		const game = publisher.game
+
+		await game.addNewGame(
+			'title',
+			'summary',
+			'desc')
+		const retreiveGame = await game.getGameByTitle('title')
+		const publisherID = await publisher.addPublisher('Rockstar Games')
+		const publisherIDSecond = await publisher.addPublisher('Microsoft')
+		await publisher.associateToPublisher(retreiveGame.ID, publisherID)
+		await publisher.associateToPublisher(retreiveGame.ID, publisherIDSecond)
+
+		expect(await publisher.getPublishers(retreiveGame.ID)).toMatchObject(
+			{
+				publishers: [{ID: 1}, {ID: 2}]
+			}
+		)
+
+
+		done()
+	})
+
+	test('Error if gameID NaN', async done => {
+		expect.assertions(1)
+
+		const publisher = await new Publishers()
+		const game = publisher.game
+
+
+		await expect(publisher.getPublishers('Not a number'))
+			.rejects.toEqual(Error('Must supply gameID'))
+		done()
+	})
+
+	test('Error if gameID null', async done => {
+		expect.assertions(1)
+
+		const publisher = await new Publishers()
+		const game = publisher.game
+
+
+		await expect(publisher.getPublishers(null))
+			.rejects.toEqual(Error('Must supply gameID'))
+		done()
+	})
+
+})
+
+
 describe('deletePublisherByID()', () => {
 	test('Valid publisher', async done => {
 		expect.assertions(2)
@@ -74,17 +313,6 @@ describe('getPublisherByID()', () => {
 
 		await expect(publisher.getPublisherByID(null))
 			.rejects.toEqual(Error('Must supply ID'))
-
-		done()
-	})
-
-	test('Error if publisher does not exist', async done => {
-		expect.assertions(1)
-
-		const publisher = await new Publishers()
-
-		await expect(publisher.getPublisherByID(1))
-			.rejects.toEqual(Error('Publisher not found'))
 
 		done()
 	})
