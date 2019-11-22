@@ -32,7 +32,26 @@
 				</form>
 				
 			{{/if}}
-
+			{{#if publishers}}
+				
+				<form action="/" method="GET">
+					<br>
+					<p></p>
+					<select name="publisher">
+						<option value="">Select a publisher</option>
+						{{#each publishers}}
+							<option value="{{this.ID}}"
+							{{#if_eq this.ID @root.selectedPub}}
+							selected="selected"
+							{{/if_eq}}>{{this.name}}</option>
+						{{/each}}
+					</select>
+					<button type="submit">
+						Sort by Publisher
+					</button>
+				</form>
+				
+			{{/if}}
 			{{#each games}}
 				<div class="cardOuter">
 					<a href="/game?gameID={{this.ID}}">
@@ -45,7 +64,19 @@
 					</div>
 					
 					<div class="card">
-						
+						{{#if this.publishers}}
+						<p>Publishers</p>
+						<div class="bubbles">
+							{{#each this.publishers}}
+								<div class="bubble_long">
+									<div class="bubble_longInner">
+										{{this.name}}
+									</div>
+								</div>
+							
+							{{/each}}
+						</div>
+						{{/if}}
 						<h2>{{this.title}}</h2>
 						<p>{{this.summary}}</p>
 						<p>Rating: {{this.avgRating}} / 5</p>

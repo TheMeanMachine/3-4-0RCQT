@@ -71,19 +71,23 @@ router.get('/', async ctx => {
 
 		const review = await new Review(dbName)
 		const category = await new Category(dbName)
+		const publisher = await new Publisher(dbName)
 		let gamesList = (await games.getGames()).games
 
 		if(ctx.request.query.category) gamesList = (await category.getGamesOfCategory(ctx.request.query.category)).games
-		const categories = (await category.getAllCategories()).categories
+		if(ctx.request.query.publisher) gamesList = (await publisher.getGamesOfPublisher(ctx.request.query.publisher)).games
 
+		const categories = (await category.getAllCategories()).categories
+		const publishers = (await publisher.getAllPublishers()).publishers
 		for(let i = 0; i < gamesList.length; i++) {//Set the list of games with their pictures
 			gamesList[i].pictures = (await games.getPictures(gamesList[i].ID)).pictures
 			gamesList[i].avgRating = Math.round(await review.getAverageRating(gamesList[i].ID))
 			gamesList[i].category = (await category.getCategories(gamesList[i].ID)).categories//Get all other categories
+			gamesList[i].publishers = (await publisher.getPublishers(gamesList[i].ID)).publishers
 		}
 		//Render the home page
-		await ctx.render('index', {games: gamesList,categories: categories,
-			selectedCat: ctx.request.query.category,helpers, admin: ctx.session.admin})
+		await ctx.render('index', {games: gamesList,categories: categories,publishers: publishers,
+			selectedCat: ctx.request.query.category,selectedPub: ctx.request.query.publisher,helpers, admin: ctx.session.admin})
 	} catch(err) {
 		await ctx.render('error', {message: err.message})
 	}
@@ -211,6 +215,24 @@ router.post('/removeCategoryFromGame', async ctx => {
 		const catID = body.categoryID
 
 		await category.unassociateToCategory(gameID, catID)
+
+		//refresh
+		ctx.redirect(`game?gameID=${gameID}`)
+	} catch(err) {
+		await ctx.render('error', {message: err.message})
+	}
+})
+
+router.post('/removePublisherFromGame', async ctx => {
+	try{
+		const body = ctx.request.body
+		if(ctx.session.authorised !== true || !ctx.session.admin)return ctx.redirect('/')
+		const publisher = await new Publisher(dbName)
+
+		const gameID = body.gameID
+		const pubID = body.publisherID
+
+		await publisher.unassociateToPublisher(gameID, pubID)
 
 		//refresh
 		ctx.redirect(`game?gameID=${gameID}`)

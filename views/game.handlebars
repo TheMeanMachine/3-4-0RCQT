@@ -68,7 +68,7 @@
                             {{#if @root.admin}}
                             <form action="/removePublisherFromGame" method="POST" class="actionForm">
                                 <input type="text" name="gameID" value="{{@root.game.ID}}" style="display:none">
-                                <input type="text" name="categoryID" value="{{this.publisherID}}" style="display:none">
+                                <input type="text" name="publisherID" value="{{this.publisherID}}" style="display:none">
                                 <button type="submit" class="bubbleAction">X</button>  
                             </form>
                             {{/if}}
