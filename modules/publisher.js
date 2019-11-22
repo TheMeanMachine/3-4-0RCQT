@@ -87,9 +87,7 @@ module.exports = class Publisher {
      */
 	async getPublisherByID(ID) {
 		try{
-			if(ID === null || isNaN(ID)) {
-				throw new Error('Must supply ID')
-			}
+			this.validator.checkID(ID, 'ID')
 
 			let sql = `SELECT count(ID) AS count FROM publisher WHERE ID = ${ID};`
 			let records = await this.db.get(sql)
