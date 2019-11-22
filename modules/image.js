@@ -67,6 +67,30 @@ module.exports = class image {
 
 	}
 
+	async uploadPictureToReview(path, mimeType, reviewID) {
+
+		this.validator.checkID(reviewID, 'reviewID')
+
+		this.validator.checkStringExists(path, 'path')
+		this.validator.checkStringExists(mimeType, 'type')
+
+		const extension = mime.extension(mimeType)
+
+		let sql = `SELECT COUNT(id) as records FROM reviewScreenshot WHERE reviewID="${reviewID}";`
+		const data = await this.db.get(sql)//Set to the amount of pictures saved
+
+		const picPath = `review/${reviewID}/picture_${data.records}.${extension}`
+
+		await fs.copy(path, `public/${ picPath}`)
+
+		sql = `INSERT INTO reviewScreenshot (reviewID, picture) VALUES(
+            ${reviewID},"${picPath}")`
+		await this.db.run(sql)
+
+		return true
+
+	}
+
 	/**
      * Function to get pictures associated with a game
      *
@@ -82,6 +106,26 @@ module.exports = class image {
 			const sql = `
             SELECT * FROM gamePhoto
             WHERE gameID = ${gameID};
+            `
+			const data = await this.db.all(sql)
+			const result = { pictures: [] }
+			for(let i = 0; i < Object.keys(data).length; i++) {
+				result.pictures.push(data[i].picture)
+			}
+			return result
+
+		}catch(e) {
+			throw e
+		}
+	}
+
+	async getPicturesByReviewID(reviewID) {
+		try{
+			this.validator.checkID(reviewID, 'reviewID')
+
+			const sql = `
+            SELECT * FROM reviewScreenshot
+            WHERE reviewID = ${reviewID};
             `
 			const data = await this.db.all(sql)
 			const result = { pictures: [] }
