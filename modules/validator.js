@@ -23,6 +23,15 @@ module.exports = class Validator {
 		return regex.test(test)
 	}
 
+	/**
+     * Function to check an ID
+     *
+     * @name checkID
+     * @param ID the ID to check
+	 * @param name the name to use in error messages
+	 * @throws if ID is undefined, null or not a number
+	 * @returns true if successful
+     */
 	checkID(ID, name) {
 		if(ID === undefined || ID === null || isNaN(ID)) {
 			throw new Error(`Must supply ${name}`)
@@ -30,10 +39,19 @@ module.exports = class Validator {
 		return true
 	}
 
+	/**
+     * Function to check if string exists
+     *
+     * @name checkStringExists
+     * @param test the test to check
+	 * @param name the name to use in error messages
+	 * @throws if test is null, undefined or length is 0
+	 * @returns true if successful
+     */
 	checkStringExists(test, name) {
 		if(test === null || test === undefined || test.length === 0) {
 			throw new Error(`Must supply ${name}`)
 		}
-		return false
+		return true
 	}
 }

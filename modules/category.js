@@ -30,27 +30,42 @@ module.exports = class Category {
 
 	}
 
+	/**
+     * Function to associate a game with a category
+     *
+     * @name associateToCategory
+     * @param gameID the gameID to associate
+	 * @param categoryID the categoryID to associate
+	 * @throws If categoryID or gameID not supplied
+     * @returns true if rating is valid
+     */
 	async associateToCategory(gameID, categoryID) {
-		try{
-			this.validator.checkID(gameID, 'gameID')
-			this.validator.checkID(categoryID, 'categoryID')
 
-			await this.game.getGameByID(gameID)
+		this.validator.checkID(gameID, 'gameID')
+		this.validator.checkID(categoryID, 'categoryID')
 
-			await this.getCategoryByID(categoryID)
+		await this.game.getGameByID(gameID)
 
-			const sql = `INSERT INTO game_category (gameID, categoryID)
-            VALUES(
-                ${gameID},
-                ${categoryID}
-            );`
-			await this.db.run(sql)
-			return true
-		}catch(e) {
-			throw e
-		}
+		await this.getCategoryByID(categoryID)
+
+		const sql = `INSERT INTO game_category (gameID, categoryID)
+		VALUES(
+			${gameID},
+			${categoryID}
+		);`
+		await this.db.run(sql)
+		return true
+
 	}
-
+	/**
+     * Function to remove an association a game has with a category
+     *
+     * @name unassociateToCategory
+     * @param gameID the gameID to associate
+	 * @param categoryID the categoryID to associate
+	 * @throws If categoryID or gameID not supplied
+     * @returns true if rating is valid
+     */
 	async unassociateToCategory(gameID, categoryID) {
 		try{
 			this.validator.checkID(gameID, 'gameID')
@@ -65,7 +80,14 @@ module.exports = class Category {
 			throw e
 		}
 	}
-
+	/**
+     * Function to get categories based on a gameID
+     *
+     * @name getCategories
+     * @param gameID the gameID to associate
+	 * @throws If gameID not supplied
+     * @returns true if rating is valid
+     */
 	async getCategories(gameID) {
 		try{
 			this.validator.checkID(gameID, 'gameID')//Check gameID is valid
@@ -91,6 +113,15 @@ module.exports = class Category {
 		}
 	}
 
+	/**
+     * Function to add a new category
+     *
+     * @name addCategory
+     * @param name - Name of the new category
+	 * @throws If name not supplied
+	 * @throws If category already exists
+     * @returns database ID of inserted category
+     */
 	async addCategory(name) {
 		// eslint-disable-next-line eqeqeq
 		if(name == null || !this.validator.checkMultipleWordsOnlyAlphaNumberic(name)) {
@@ -111,6 +142,14 @@ module.exports = class Category {
 		return result.lastID
 	}
 
+	/**
+     * Function to get categories based on a categoryID
+     *
+     * @name getCategoryByID
+     * @param catID the catID to get
+	 * @throws If catID not supplied
+     * @returns category data
+     */
 	async getCategoryByID(catID) {
 
 		if(catID === null || isNaN(catID)) {
@@ -130,7 +169,12 @@ module.exports = class Category {
 
 
 	}
-
+	/**
+     * Function to get all categories
+     *
+     * @name getAllCategories
+     * @returns category data in object e.g. {categories:[object{},object{}]}
+     */
 	async getAllCategories() {
 		const sql = `
 			SELECT * FROM category;`
@@ -148,6 +192,14 @@ module.exports = class Category {
 		return result
 	}
 
+	/**
+     * Function to get all categories not associated with a gameID
+     *
+     * @name getOtherCategories
+     * @param gameID the gameID to get categories based on
+	 * @throws If gameID not supplied
+     * @returns category data not already associated
+     */
 	async getOtherCategories(gameID) {
 		this.validator.checkID(gameID, 'gameID')
 
@@ -171,6 +223,14 @@ module.exports = class Category {
 		return result
 	}
 
+	/**
+     * Function to get all games based on a categoryID
+     *
+     * @name getGamesOfCategory
+     * @param catID the category ID to get games based on
+	 * @throws If catID not supplied
+     * @returns games associated with a category
+     */
 	async getGamesOfCategory(catID) {
 		this.validator.checkID(catID, 'catID')
 
@@ -191,6 +251,14 @@ module.exports = class Category {
 		return result
 	}
 
+	/**
+     * Function to delete a category based on a ID
+     *
+     * @name deleteByID
+     * @param catID the category ID to get games based on
+	 * @throws If catID not supplied
+     * @returns true if successful
+     */
 	async deleteByID(catID) {
 
 		this.validator.checkID(catID, 'catID')

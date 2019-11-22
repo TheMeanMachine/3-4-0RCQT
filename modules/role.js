@@ -27,6 +27,13 @@ module.exports = class role {
 		})()
 	}
 
+	/**
+     * Function to add roles to the role table
+     *
+     * @name generateRoles
+     * @param roles a list of roles to add
+	 * @returns true if successful
+     */
 	async generateRoles(...roles) {
 		for(let i = 1; i < roles.length+1; i++) {
 			const sql = `
@@ -39,6 +46,15 @@ module.exports = class role {
 
 	}
 
+	/**
+     * Function to get role information based on a ID
+     *
+     * @name getRoleByID
+     * @param roleID the ID to get data based on
+	 * @throws if role does not exists
+	 * @throws if roleID is not supplied
+	 * @returns role data
+     */
 	async getRoleByID(roleID) {
 		this.validator.checkID(roleID, 'roleID')
 

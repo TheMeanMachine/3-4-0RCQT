@@ -314,7 +314,14 @@ module.exports = class Game {
 			throw err
 		}
 	}
-
+	/**
+     * Function to get update game information based on an ID
+     *
+     * @name updateGameByID
+     * @param ID the ID referring to the game needing update
+	 * @param data the data in an object to apply to the game e.g. data = {title: "This is a new title"}
+     * @returns true if successful
+     */
 	async updateGameByID(id, data) {
 		this.validator.checkID(id, 'ID')
 
@@ -342,7 +349,13 @@ module.exports = class Game {
 		return true
 
 	}
-
+	/**
+     * Function to get delete game information based on an ID
+     *
+     * @name deleteGameByID
+     * @param ID the ID referring to the game needing update
+	 * * @returns true if successful
+     */
 	async deleteGameByID(ID) {
 		this.validator.checkID(ID, 'ID')
 

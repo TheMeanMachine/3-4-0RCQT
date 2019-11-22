@@ -32,7 +32,14 @@ module.exports = class Review {
 		})()
 	}
 
-
+	/**
+     * Function to check rating logic
+     *
+     * @name checkRating
+     * @param rating the rating to check
+	 * @throws If rating is not between 1-5
+     * @returns true if rating is valid
+     */
 	checkRating(rating) {
 
 
@@ -47,6 +54,14 @@ module.exports = class Review {
 		return true
 	}
 
+	/**
+     * Function to delete reviews by ID
+     *
+     * @name deleteReviewByID
+     * @param reviewID The reviewID to act on
+	 * @throws If ID is not supplied
+     * @returns true if successful
+     */
 	async deleteReviewByID(reviewID) {
 
 		this.validator.checkID(reviewID, 'reviewID')
@@ -68,11 +83,20 @@ module.exports = class Review {
 
 	}
 
-	async publishReview(reviewID, boolean) {
+	/**
+     * Function to publish or unpublish a review
+     *
+     * @name publishReview
+     * @param reviewID The reviewID to act on
+	 * @param make Boolean - true if want to publish, false if not
+	 * @throws If ID is not supplied
+     * @returns true if update successful
+     */
+	async publishReview(reviewID, make) {
 		this.validator.checkID(reviewID)
 
 		let publish = 0
-		if(boolean) publish = 1
+		if(make) publish = 1
 		const sql = `
 		UPDATE review 
 		SET flag = ${publish}
@@ -192,22 +216,27 @@ module.exports = class Review {
 
 	}
 
+	/**
+     * Function to get all of a game's Average Rating
+     *
+     * @name getAverageRating
+     * @param gameID The gameID to average based on
+	 * @throws If gameID is not supplied
+     * @returns average of game's reviews
+     *
+     */
 	async getAverageRating(gameID) {
-		try{
-			if(gameID === null || isNaN(gameID)) {
-				throw new Error('Must supply gameID')
-			}
 
-			await this.games.getGameByID(gameID)//Checks if game exists
+		this.validator.checkID(gameID, 'gameID')
 
-			const sql = `
-			SELECT AVG(rating) as average FROM review
-			WHERE gameID = ${gameID}`
-			const data = await this.db.get(sql)
+		await this.games.getGameByID(gameID)//Checks if game exists
 
-			return data.average
-		}catch(e) {
-			throw e
-		}
+		const sql = `
+		SELECT AVG(rating) as average FROM review
+		WHERE gameID = ${gameID}`
+		const data = await this.db.get(sql)
+
+		return data.average
+
 	}
 }
