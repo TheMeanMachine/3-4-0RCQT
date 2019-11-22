@@ -27,6 +27,40 @@ describe('getAllPublishers()', () => {
 
 })
 
+describe('getGamesOfPublisher()', () => {
+	test('Valid publisherID', async done => {
+		expect.assertions(1)
+
+		const publisher = await new Publishers()
+		const game = publisher.game
+
+
+		const pubID = await publisher.addPublisher('Rockstar Games')
+		await publisher.addPublisher('Pop Star Games')
+
+		await game.addNewGame('Green', 'Summary', 'Description')
+		await game.addNewGame('Red', 'Summary', 'Description')
+		const retGame = await game.getGameByTitle('Red')
+		await publisher.associateToPublisher(retGame.ID, pubID)
+
+		const result = await publisher.getGamesOfPublisher(pubID)
+
+		expect(result).toMatchObject(
+			{
+				games: [
+					{
+						title: 'Red',
+						summary: 'Summary',
+						desc: 'Description'
+					}
+				]
+			}
+		)
+		done()
+	})
+
+})
+
 describe('associateToPublisher()', () => {
 	test('Valid publisher and game', async done => {
 		expect.assertions(2)
