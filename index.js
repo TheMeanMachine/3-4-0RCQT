@@ -36,18 +36,21 @@ const dbName = 'gameReview.db' || ':memory:'
 const helpers ={
 
 	if_eq: function(a, b, opts) {
+		// eslint-disable-next-line eqeqeq
 		if(a == b)
 			return opts.fn(this)
 		else
 			return opts.inverse(this)
 	},
 	if_Noteq: function(a, b, opts) {
+		// eslint-disable-next-line eqeqeq
 		if(a != b)
 			return opts.fn(this)
 		else
 			return opts.inverse(this)
 	},
 	if_EqOREq: function(a, b, c, opts) {
+		// eslint-disable-next-line eqeqeq
 		if(a || b == c)
 			return opts.fn(this)
 		else
