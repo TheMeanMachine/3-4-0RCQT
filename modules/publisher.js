@@ -75,6 +75,26 @@ module.exports = class Publisher {
 
 	}
 
+	async getGamesOfPublisher(pubID) {
+		this.validator.checkID(pubID, 'pubID')
+
+		const sql = `
+			SELECT * FROM game_publisher
+			WHERE publisherID = ${pubID};`
+
+		const publishers = await this.db.all(sql)
+
+		const result = { games: []}
+		for(let i = 0; i < Object.keys(publishers).length; i++) {
+
+			const gameData = await this.game.getGameByID(publishers[i].gameID)
+			result.games.push(gameData)
+
+		}
+
+		return result
+	}
+
 	async getAllPublishers() {
 		const sql = 'SELECT * FROM publisher;'
 
