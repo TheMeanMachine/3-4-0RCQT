@@ -7,7 +7,6 @@ const fs = require('fs-extra')
 //const sharp = require('sharp')
 //Custom modules
 const valid = require('./validator')
-const Publishers = require('./publisher')
 
 
 module.exports = class Game {
@@ -16,7 +15,7 @@ module.exports = class Game {
 
 		return (async() => {
 			this.dbName = dbName || ':memory:'
-			this.publisher = await new Publishers(this.dbName)
+
 			this.db = await sqlite.open(this.dbName)
 
 			const sql =[`CREATE TABLE IF NOT EXISTS game(ID INTEGER PRIMARY KEY AUTOINCREMENT,
@@ -36,65 +35,6 @@ module.exports = class Game {
 		})()
 
 	}
-
-
-	/**
-     * Function to associate a publisher to a game
-     *
-     * @name associateToPublisher
-     * @param gameID gameID refers to the ID in the database
-     * @param publisherID publisherID refers to the publisher being associated to the game
-     * @throws if params not supplied
-     * @returns true if successful
-     */
-	async associateToPublisher(gameID, publisherID) {
-		try{
-			this.validator.checkID(gameID, 'gameID')
-			this.validator.checkID(publisherID, 'publisherID')
-
-			await this.getGameByID(gameID)
-			await this.publisher.getPublisherByID(publisherID)
-
-			const sql = `INSERT INTO game_publisher (gameID, publisherID)
-            VALUES(
-                ${gameID},
-                ${publisherID}
-            );`
-			await this.db.run(sql)
-			return true
-		}catch(e) {
-			throw e
-		}
-	}
-	/**
-     * Function to get publishers associated to a game
-     *
-     * @name getPublishers
-     * @param gameID gameID refers to the ID in the database
-     * @throws if gameID not supplied
-     * @returns object containing publishers of game
-     */
-	async getPublishers(gameID) {
-		try {
-			if(gameID === null || isNaN(gameID)) {
-				throw new Error('Must supply gameID')
-			}
-			await this.getGameByID(gameID)//Make sure game exists
-			const sql = `SELECT * FROM game_publisher 
-            WHERE gameID = ${gameID};`
-
-			const data = await this.db.all(sql)
-			const result = { publishers: [] }
-			for(let i = 0; i < Object.keys(data).length; i++) {
-				result.publishers.push(data[i].ID)
-			}
-
-			return result
-		} catch(e) {
-			throw e
-		}
-	}
-
 	/**
      * Function to upload a picture and associate it to a game
      *

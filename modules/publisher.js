@@ -4,7 +4,7 @@ const sqlite = require('sqlite-async')
 
 //Custom modules
 const valid = require('./validator')
-
+const Games = require('./game')
 
 module.exports = class Publisher {
 
@@ -15,7 +15,7 @@ module.exports = class Publisher {
 		return (async() => {
 			this.dbName = dbName || ':memory:'
 			this.db = await sqlite.open(this.dbName)
-
+			this.game = await new Games(this.dbName)
 			const sql =
             [`CREATE TABLE IF NOT EXISTS game_publisher(ID INTEGER PRIMARY KEY AUTOINCREMENT,
             	gameID INTEGER,publisherID INTEGER,
@@ -42,14 +42,12 @@ module.exports = class Publisher {
      *
      */
 	checkPublisherFields(name) {
-		if(name !== null) {
-			const checkName = this.validator.checkMultipleWordsOnlyAlphaNumberic(name)
-			if(!checkName) {
-				throw new Error('Must supply name')
-			}
-		}else{
+
+		const checkName = this.validator.checkMultipleWordsOnlyAlphaNumberic(name)
+		if(!checkName ) {
 			throw new Error('Must supply name')
 		}
+
 		return true
 	}
 
@@ -75,6 +73,61 @@ module.exports = class Publisher {
 			throw e
 		}
 
+	}
+
+	/**
+     * Function to get publishers associated to a game
+     *
+     * @name getPublishers
+     * @param gameID gameID refers to the ID in the database
+     * @throws if gameID not supplied
+     * @returns object containing publishers of game
+     */
+	async getPublishers(gameID) {
+		try {
+			this.validator.checkID(gameID, 'gameID')
+
+			const sql = `SELECT * FROM game_publisher 
+            WHERE gameID = ${gameID};`
+
+			const data = await this.db.all(sql)
+			const result = { publishers: [] }
+			for(let i = 0; i < Object.keys(data).length; i++) {
+				result.publishers.push(data[i].ID)
+			}
+
+			return result
+		} catch(e) {
+			throw e
+		}
+	}
+
+
+	/**
+     * Function to associate a publisher to a game
+     *
+     * @name associateToPublisher
+     * @param gameID gameID refers to the ID in the database
+     * @param publisherID publisherID refers to the publisher being associated to the game
+     * @throws if params not supplied
+     * @returns true if successful
+     */
+	async associateToPublisher(gameID, publisherID) {
+		try{
+			this.validator.checkID(gameID, 'gameID')
+			this.validator.checkID(publisherID, 'publisherID')
+
+
+			const sql = `INSERT INTO game_publisher (gameID, publisherID)
+            VALUES(
+                ${gameID},
+                ${publisherID}
+            );`
+			await this.db.run(sql)
+			return true
+		}catch(e) {
+			throw e
+		}
 	}
 
 	/**

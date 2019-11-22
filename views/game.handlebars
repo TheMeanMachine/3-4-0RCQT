@@ -57,6 +57,45 @@
                 {{/if}}
             </div>
             <div class="card">
+                {{#if game.publishers}}
+                <p>Publishers</p>
+                    <div class="bubbles">
+                    {{#each game.publishers}}
+                        <div class="bubble_long">
+                            <div class="bubble_longInner">
+                                {{this.title}}
+                            </div>
+                            {{#if @root.admin}}
+                            <form action="/removePublisherFromGame" method="POST" class="actionForm">
+                                <input type="text" name="gameID" value="{{@root.game.ID}}" style="display:none">
+                                <input type="text" name="categoryID" value="{{this.publisherID}}" style="display:none">
+                                <button type="submit" class="bubbleAction">X</button>  
+                            </form>
+                            {{/if}}
+                        </div>
+                    
+                    {{/each}}
+                    </div>
+                {{/if}}
+                
+                {{#if game.otherPublisher}}
+                    {{#if @root.admin}}
+                    <form action="addPublisherToGame" method="POST">
+                        <br>
+                        <p></p>
+                        <select name="category">
+                            {{#each game.otherPublisher}}
+                                <option value="{{this.ID}}">{{this.title}}</option>
+                            {{/each}}
+                        </select>
+                        <input type="text" name="gameID" value="{{game.ID}}" style="display:none">
+                        
+                        <button type="submit" class="">
+                            Add publisher
+                        </button>
+                    </form>
+                    {{/if}}
+                {{/if}}
                 <h2>{{game.title}}</h2>
                 <p>{{game.summary}}</p>
                 

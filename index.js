@@ -115,6 +115,7 @@ router.get('/game', async ctx => {
 
 		thisGame.category = (await category.getCategories(gameID)).categories//get all categories
 		thisGame.otherCategories = (await category.getOtherCategories(gameID)).categories//Get all other categories
+		thisGame.publishers = (await games.getPublishers(gameID)).publishers
 
 		const ratingsReviews = [{value: 1},{value: 2},{value: 3},{value: 4},{value: 5}]//Set ratings
 		const avgRating = await review.getAverageRating(gameID)
