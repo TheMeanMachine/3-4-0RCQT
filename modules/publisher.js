@@ -165,6 +165,17 @@ module.exports = class Publisher {
 		}
 	}
 
+	async unassociateToPublisher(gameID, publisherID) {
+		this.validator.checkID(gameID, 'gameID')
+		this.validator.checkID(publisherID, 'publisherID')
+
+		const sql = `DELETE FROM game_publisher
+			WHERE gameID = ${gameID}
+			AND publisherID = ${publisherID};`
+		await this.db.run(sql)
+		return true
+	}
+
 	/**
      * Function to get publisher by ID
      *

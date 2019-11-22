@@ -62,7 +62,7 @@ describe('getGamesOfPublisher()', () => {
 })
 
 describe('unassociateToPublisher', () => {
-	test('Valid gameID and categoryID', async done => {
+	test('Valid gameID and publisherID', async done => {
 		expect.assertions(1)
 
 		const publisher = await new Publishers()
@@ -104,7 +104,7 @@ describe('associateToPublisher()', () => {
 
 		expect(await publisher.getPublishers(retreiveGame.ID)).toMatchObject(
 			{
-				publishers: [1]
+				publishers: [{ID: 1}]
 			}
 		)
 
@@ -207,7 +207,7 @@ describe('getPublishers()', () => {
 
 		expect(await publisher.getPublishers(retreiveGame.ID)).toMatchObject(
 			{
-				publishers: [1,2]
+				publishers: [{ID: 1}, {ID: 2}]
 			}
 		)
 
