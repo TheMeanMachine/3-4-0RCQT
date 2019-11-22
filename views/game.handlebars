@@ -143,7 +143,22 @@
             </div>
             
             <div class="content">
+                
+
                 {{#if userReview}}
+
+                    {{#if userReview.pictures}}
+                            {{#each userReview.pictures}}
+                                <img class="cardImgInner" src="{{this}}">
+                            {{/each}}
+                                
+                    {{/if}}
+                <form action="addReviewScreenshot" method="POST" enctype="multipart/form-data">
+                    <input type="text" name="gameID" value="{{game.ID}}" style="display:none">
+                    <input type="text" name="reviewID" value="{{userReview.ID}}" style="display:none">
+                    <input type="file" name="pic1"> <br> 
+                    <button type="submit">SUBMIT</button> 
+                </form>
                 <form action="/updateReview" method="post" id="review"> 
                     <h4>Your review</h4>
                     {{#if_eq userReview.flag 0}}
@@ -248,7 +263,14 @@
                     <div class="reviewCard">
                         <div class="reviewCardInner">
                             <div class="images">
-
+                                
+                                {{#if this.pictures}}
+                                    {{#each this.pictures}}
+                                        <img class="cardImgInner" src="{{this}}">
+                                    {{/each}}
+                                
+                                {{/if}}
+                                
                             </div>
                             <p>User: {{this.userID}}</p>
                             <p>Rating: {{this.rating}}</p>

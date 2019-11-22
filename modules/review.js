@@ -201,8 +201,9 @@ module.exports = class Review {
 
 		const data = await this.db.all(sql)
 		const amtReviews = Object.keys(data).length
-		const result = {reviews: [], count: amtReviews}
+		const result = {reviews: [], count: amtReviews, reviewIDs: []}
 		for(let i = 0; i < amtReviews; i++) {
+			result.reviewIDs.push(data[i].ID)
 			if(userID === data[i].userID) {
 				result.userReview = data[i]
 				continue
