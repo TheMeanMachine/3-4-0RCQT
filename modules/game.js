@@ -1,7 +1,3 @@
-/* eslint-disable max-lines */
-/* eslint-disable max-statements */
-/* eslint-disable complexity */
-/* eslint-disable max-lines-per-function */
 
 'use strict'
 
@@ -15,7 +11,6 @@ const Publishers = require('./publisher')
 
 
 module.exports = class Game {
-
 	constructor(dbName) {
 		this.validator = new valid()
 
@@ -24,42 +19,18 @@ module.exports = class Game {
 			this.publisher = await new Publishers(this.dbName)
 			this.db = await sqlite.open(this.dbName)
 
-			const sql =
-            [`
-			CREATE TABLE IF NOT EXISTS game(
-                ID INTEGER PRIMARY KEY AUTOINCREMENT,
-                title TEXT,
-                summary TEXT,
-                desc TEXT
-            );
-            `,`
-            CREATE TABLE IF NOT EXISTS gamePhoto(
-                ID INTEGER PRIMARY KEY AUTOINCREMENT,
-                gameID INTEGER,
-                picture TEXT,
-                FOREIGN KEY (gameID) REFERENCES game(ID)
-            );
-            `,`
-            CREATE TABLE IF NOT EXISTS game_category(
-                ID INTEGER PRIMARY KEY AUTOINCREMENT,
-                gameID INTEGER,
-                categoryID INTEGER,
-                FOREIGN KEY (gameID) REFERENCES game(ID),
-                FOREIGN KEY (categoryID) REFERENCES category(ID)
-            );
-            `,`
-            CREATE TABLE IF NOT EXISTS game_publisher(
-                ID INTEGER PRIMARY KEY AUTOINCREMENT,
-                gameID INTEGER,
-                publisherID INTEGER,
-                FOREIGN KEY (gameID) REFERENCES game(ID),
-                FOREIGN KEY (publisherID) REFERENCES publisher(ID)
-            );
-            `]
+			const sql =[`CREATE TABLE IF NOT EXISTS game(ID INTEGER PRIMARY KEY AUTOINCREMENT,
+				title TEXT,summary TEXT,desc TEXT);
+			`,`CREATE TABLE IF NOT EXISTS gamePhoto(ID INTEGER PRIMARY KEY AUTOINCREMENT,gameID INTEGER,picture TEXT,
+            	FOREIGN KEY (gameID) REFERENCES game(ID));
+            `,`CREATE TABLE IF NOT EXISTS game_category(ID INTEGER PRIMARY KEY AUTOINCREMENT,
+				gameID INTEGER,categoryID INTEGER,
+                FOREIGN KEY (gameID) REFERENCES game(ID),FOREIGN KEY (categoryID) REFERENCES category(ID));
+			`,`CREATE TABLE IF NOT EXISTS game_publisher(ID INTEGER PRIMARY KEY AUTOINCREMENT,
+                gameID INTEGER,publisherID INTEGER,
+        		FOREIGN KEY (gameID) REFERENCES game(ID),FOREIGN KEY (publisherID) REFERENCES publisher(ID));`]
 
-			for(let i = 0; i < sql.length; i++) {
-				await this.db.run(sql[i])
-			}
+			for(let i = 0; i < sql.length; i++) await this.db.run(sql[i])
 
 			return this
 		})()
@@ -78,12 +49,8 @@ module.exports = class Game {
      */
 	async associateToPublisher(gameID, publisherID) {
 		try{
-			if(gameID === null || isNaN(gameID)) {
-				throw new Error('Must supply gameID')
-			}
-			if(publisherID === null || isNaN(publisherID)) {
-				throw new Error('Must supply publisherID')
-			}
+			this.validator.checkID(gameID, 'gameID')
+			this.validator.checkID(publisherID, 'publisherID')
 
 			await this.getGameByID(gameID)
 			await this.publisher.getPublisherByID(publisherID)
@@ -141,17 +108,10 @@ module.exports = class Game {
      */
 	async uploadPicture(path, mimeType, gameID) {
 		try{
-			if(gameID === null || isNaN(gameID)) {
-				throw new Error('Must supply gameID')
-			}
+			this.validator.checkID(gameID, 'gameID')
 
-			if(path === null || path.length === 0) {
-				throw new Error('Must supply path')
-			}
-
-			if(mimeType === null || mimeType.length === 0) {
-				throw new Error('Must supply type')
-			}
+			this.validator.checkStringExists(path, 'path')
+			this.validator.checkStringExists(mimeType, 'type')
 
 			const extension = mime.extension(mimeType)
 
@@ -160,16 +120,12 @@ module.exports = class Game {
 			let sql = `SELECT COUNT(id) as records FROM gamePhoto WHERE gameID="${gameID}";`
 			const data = await this.db.get(sql)//Set to the amount of pictures saved
 
-			const picPath1 = `game/${gameID}/picture_${data.records}.${extension}`
-			const picPath = `public/game/${gameID}/picture_${data.records}.${extension}`
-			await fs.copy(path, picPath)
+			const picPath = `game/${gameID}/picture_${data.records}.${extension}`
 
-			sql = `
-            INSERT INTO gamePhoto (gameID, picture)
-            VALUES(
-                ${gameID},
-                "${picPath1}"
-            )`
+			await fs.copy(path, `public/${ picPath}`)
+
+			sql = `INSERT INTO gamePhoto (gameID, picture) VALUES(
+                ${gameID},"${picPath}")`
 			await this.db.run(sql)
 
 			return true
@@ -257,24 +213,24 @@ module.exports = class Game {
      * @returns true if all fields are either null or have no problems
      */
 	checkGameFields(title, summary, desc) {
-		if(title !== null) {
-			const checkTitle = this.validator.checkMultipleWordsOnlyAlphaNumberic(title)
-			if(!checkTitle) {
-				throw new Error('Must supply title')
-			}
+
+		const checkTitle = this.validator.checkMultipleWordsOnlyAlphaNumberic(title)
+		if(!checkTitle) {
+			throw new Error('Must supply title')
 		}
-		if(summary !== null) {
-			const checkSummary = this.validator.checkMultipleWordsOnlyAlphaNumberic(summary)
-			if(!checkSummary) {
-				throw new Error('Must supply summary')
-			}
+
+
+		const checkSummary = this.validator.checkMultipleWordsOnlyAlphaNumberic(summary)
+		if(!checkSummary) {
+			throw new Error('Must supply summary')
 		}
-		if(desc !== null) {
-			const checkDesc = this.validator.checkMultipleWordsOnlyAlphaNumberic(desc)
-			if(!checkDesc) {
-				throw new Error('Must supply description')
-			}
+
+
+		const checkDesc = this.validator.checkMultipleWordsOnlyAlphaNumberic(desc)
+		if(!checkDesc) {
+			throw new Error('Must supply description')
 		}
+
 		return true
 	}
 	/**
@@ -286,14 +242,10 @@ module.exports = class Game {
      */
 	async getGameByID(ID) {
 		try {
-			if(ID === null || isNaN(ID)) {
-				throw new Error('Must supply ID')
-			}
+			this.validator.checkID(ID, 'ID')
 			let sql = `SELECT count(ID) AS count FROM game WHERE ID = ${ID};`
 			let records = await this.db.get(sql)
-			if(records.count === 0) {
-				throw new Error('Game not found')
-			}
+			if(records.count === 0) throw new Error('Game not found')
 
 			sql = `SELECT * FROM game WHERE ID = ${ID};`
 
@@ -339,14 +291,12 @@ module.exports = class Game {
      */
 	async getGameByTitle(title) {
 		try {
-			if(!this.validator.checkMultipleWordsOnlyAlphaNumberic(title)) {
-				throw new Error('Must supply a valid title')
-			}
+			if(!this.validator.checkMultipleWordsOnlyAlphaNumberic(title)) throw new Error('Must supply a valid title')
+
 			let sql = `SELECT count(ID) AS count FROM game WHERE title = "${title}";`
 			let records = await this.db.get(sql)
-			if(records.count === 0) {
-				throw new Error(`Game: "${title}" not found`)
-			}
+			if(records.count === 0) throw new Error(`Game: "${title}" not found`)
+
 
 			sql = `SELECT * FROM game WHERE title = "${title}";`
 
@@ -364,70 +314,50 @@ module.exports = class Game {
 			throw err
 		}
 	}
-
+	/**
+     * Function to get update game information based on an ID
+     *
+     * @name updateGameByID
+     * @param ID the ID referring to the game needing update
+	 * @param data the data in an object to apply to the game e.g. data = {title: "This is a new title"}
+     * @returns true if successful
+     */
 	async updateGameByID(id, data) {
-		if(id === null || isNaN(id)) {
-			throw new Error('Must supply ID')
-		}
+		this.validator.checkID(id, 'ID')
 
-		const title = data.title || null
-		const desc = data.desc || null
-		const summary = data.summary || null
-
-		const count = Object.keys(data).length
-		let done = 0
+		const title = data.title
+		const desc = data.desc
+		const summary = data.summary
 
 
 		this.checkGameFields(title,summary,desc)
 
 
-		if(title !== null) {
-			let sql = `SELECT count(ID) AS count FROM game WHERE title = "${title}";`
-			const records = await this.db.get(sql)
-			if(records.count !== 0) {
-				throw new Error(`Game: "${title}" already exists`)
-			}
+		let sql = `SELECT count(ID) AS count FROM game WHERE title = "${title}";`
+		const records = await this.db.get(sql)
+		if(records.count !== 0) throw new Error(`Game: "${title}" already exists`)
 
-			sql = `
-            UPDATE game
-            SET title = "${title}"
-            WHERE ID = ${id};
-            `
-			await this.db.get(sql)
-			done++
-		}
+		sql = `
+		UPDATE game
+		SET desc = "${desc}",
+		summary = "${summary}",
+		title = "${title}"
+		WHERE ID = ${id};
+		`
+		await this.db.get(sql)
 
-		if(summary !== null) {
-			const sql = `
-            UPDATE game
-            SET summary = "${summary}"
-            WHERE ID = ${id};
-            `
-			await this.db.get(sql)
-			done++
-		}
-
-		if(desc !== null) {
-			const sql = `
-            UPDATE game
-            SET desc = "${desc}"
-            WHERE ID = ${id};
-            `
-			await this.db.get(sql)
-			done++
-		}
-
-		if(done === count) {
-			return true
-		}
-		throw new Error('Could not update field(s)')
+		return true
 
 	}
-
+	/**
+     * Function to get delete game information based on an ID
+     *
+     * @name deleteGameByID
+     * @param ID the ID referring to the game needing update
+	 * * @returns true if successful
+     */
 	async deleteGameByID(ID) {
-		if(ID === null || isNaN(ID)) {
-			throw new Error('Must supply ID')
-		}
+		this.validator.checkID(ID, 'ID')
 
 		let sql = `SELECT count(ID) AS count FROM game WHERE ID = ${ID};`
 		const records = await this.db.get(sql)
@@ -435,23 +365,16 @@ module.exports = class Game {
 			throw new Error('ID doesn\'t exist')
 		}
 
-		sql = [`
-            DELETE FROM game_category
+		sql = [`DELETE FROM game_category
             WHERE gameID = ${ID};
-            `,`
-            DELETE FROM gamePhoto
+            `,`DELETE FROM gamePhoto
             WHERE gameID = ${ID};
-            `,`
-            DELETE FROM game_publisher
+            `,`DELETE FROM game_publisher
             WHERE gameID = ${ID};
-            `,`
-            DELETE FROM game
-            WHERE ID = ${ID}`
-		]
+            `,`DELETE FROM game
+            WHERE ID = ${ID}`]
 
-		for(let i = 0; i < sql.length; i++) {
-			await this.db.run(sql[i])
-		}
+		for(let i = 0; i < sql.length; i++) await this.db.run(sql[i])
 
 		return true
 	}

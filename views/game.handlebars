@@ -117,7 +117,7 @@
                         {{#each ratingsReview}}
                         <label>
                             <input type="radio" name="rating" value="{{this.value}}"
-                                {{#if this.checked}} checked="checked" {{/if}}
+                                {{#if_eq this.value @root.userReview.rating}} checked="checked" {{/if_eq}}
                             > {{this.value}}
                         </label>
                         {{/each}}
@@ -211,6 +211,7 @@
                             <div class="images">
 
                             </div>
+                            <p>User: {{this.userID}}</p>
                             <p>Rating: {{this.rating}}</p>
                             <p>Review: {{this.fullText}}</p>
                             
