@@ -75,6 +75,20 @@ module.exports = class Publisher {
 
 	}
 
+	async getAllPublishers() {
+		const sql = 'SELECT * FROM publisher;'
+
+		const data = await this.db.all(sql)
+		const result = { publishers: [] }
+		for(let i = 0; i < Object.keys(data).length; i++) {
+			const curPub = await this.getPublisherByID(data[i].ID)//Retrieve full information
+			data[i].name = curPub.name//Add title to data
+			result.publishers.push(data[i])
+		}
+
+		return result
+	}
+
 	/**
      * Function to get publishers associated to a game
      *
