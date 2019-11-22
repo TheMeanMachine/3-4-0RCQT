@@ -70,10 +70,10 @@ describe('deleteReviewByID()', () => {
 			rating: 4
 		}, retreiveGame.ID)
 		const deleteReview = await review.deleteReviewByID(reviewID)
+		const retreive = await review.getReviewsByGameID(retreiveGame.ID,true, 4)
 
+		expect(retreive.count).toEqual(0)
 
-		await expect(review.getReviewsByGameID(retreiveGame.ID))
-			.rejects.toEqual(new Error('No reviews found'))
 		expect(deleteReview).toBe(true)
 		done()
 	})
@@ -132,7 +132,7 @@ describe('publishReview()', () => {
 
 		const publishResult = await review.publishReview(reviewID, true)
 
-		expect(await review.getReviewsByGameID(retreiveGame.ID))
+		expect(await review.getReviewsByGameID(retreiveGame.ID, true, 4))
 			.toMatchObject(
 				{ reviews:
                 [{
@@ -165,7 +165,7 @@ describe('publishReview()', () => {
 
 		const publishResult = await review.publishReview(reviewID, false)
 
-		expect(await review.getReviewsByGameID(retreiveGame.ID))
+		expect(await review.getReviewsByGameID(retreiveGame.ID,true, 4))
 			.toMatchObject(
 				{ reviews:
                 [{
@@ -203,7 +203,7 @@ describe('updateReview()', () => {
 		const result = await review.updateReview(userID, retreiveGame.ID, changed)
 		expect(result).toBe(true)
 
-		expect(await review.getReviewsByGameID(retreiveGame.ID)).toMatchObject(
+		expect(await review.getReviewsByGameID(retreiveGame.ID, true, 4)).toMatchObject(
 			{ reviews:
                 [changed] }
 
@@ -318,6 +318,7 @@ describe('getReviewsByGameID()', () => {
 		const game = await review.games
 		const user = await review.users
 		const userID = await user.register('Samson', 'Password')
+		const userID2 = await user.register('Namptopn', 'Password')
 		await game.addNewGame('title', 'summary', 'desc')
 		const retreiveGame = await game.getGameByTitle('title')
 		await review.addReview(retreiveGame.ID,
@@ -331,42 +332,67 @@ describe('getReviewsByGameID()', () => {
 			{
 				fullText: 'fulltext2',
 				rating: 3
-			}, userID
+			}, userID2
 		)
 
-		const result = await review.getReviewsByGameID(retreiveGame.ID)
+		const result = await review.getReviewsByGameID(retreiveGame.ID, true, userID)
 
 
 		expect(result).toMatchObject(
 			{ reviews:
-                [ { ID: 1,
-                	gameID: 1,
-                	userID: 1,
-                	fullText: 'fulltext',
-                	rating: 3,
-                	flag: 0 },
-                { ID: 2,
-                	gameID: 1,
-                	userID: 1,
+                [
+                	{
+                	userID: userID2,
                 	fullText: 'fulltext2',
                 	rating: 3,
-                	flag: 0 } ] }
+                	flag: 0 }
+                ],
+			userReview: {
+				userID: userID,
+				fullText: 'fulltext',
+				rating: 3,
+				flag: 0 }
+			}
 
 		)
 
 		done()
 	})
 
-	test('Error if game does not exist', async done => {
+	test('Valid game not admin', async done => {
 		expect.assertions(1)
 
 		const review = await new Reviews()
-
-		await expect(review.getReviewsByGameID(0,
+		const game = await review.games
+		const user = await review.users
+		const userID = await user.register('Samson', 'Password')
+		const userID2 = await user.register('Namptopn', 'Password')
+		await game.addNewGame('title', 'summary', 'desc')
+		const retreiveGame = await game.getGameByTitle('title')
+		await review.addReview(retreiveGame.ID,
 			{
 				fullText: 'fulltext',
 				rating: 3
-			})).rejects.toEqual(Error('Game not found'))
+			}, userID
+		)
+
+		await review.addReview(retreiveGame.ID,
+			{
+				fullText: 'fulltext2',
+				rating: 3
+			}, userID2
+		)
+
+		const result = await review.getReviewsByGameID(retreiveGame.ID, false, userID)
+
+
+		expect(result).toMatchObject(
+			{ reviews: [],
+				count: 2
+
+			}
+
+		)
 
 		done()
 	})
@@ -445,7 +471,7 @@ describe('checkRating()', () => {
 
 describe('addReview()', () => {
 	test('Valid review', async done => {
-		expect.assertions(2)
+		expect.assertions(1)
 
 		const review = await new Reviews()
 		const game = await review.games
@@ -460,16 +486,6 @@ describe('addReview()', () => {
 				rating: 3
 			}, userID)
 		expect(result).toBe(1)
-		const getReview = await review.getReviewsByGameID(retreiveGame.ID)
-
-		expect(getReview.reviews[0]).toEqual({
-			ID: result,
-			gameID: retreiveGame.ID,
-			userID: userID,
-			fullText: 'fulltext',
-			rating: 3,
-			flag: 0
-		})
 
 		done()
 	})

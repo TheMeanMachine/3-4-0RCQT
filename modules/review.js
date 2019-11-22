@@ -162,7 +162,7 @@ module.exports = class Review {
      * @name getReviewsByGameID
      * @param gameID The gameID to find the reviews based on
 	 * @throws If gameID is not supplied
-	 * @throws If game not found
+	 * @throws If userID is not supplied
      * @returns array of objects if successful
      *
      */
@@ -181,12 +181,13 @@ module.exports = class Review {
 		for(let i = 0; i < amtReviews; i++) {
 			if(userID === data[i].userID) {
 				result.userReview = data[i]
-				break
+				continue
 			}
-			console.log(result.userReview)
-			result.reviews.push(data[i])
-			if(admin === false && data[i].flag === 0) result.reviews.splice(i,1)//Remove unchecked reviews, unless admin
+
+			if(admin || data[i].flag === 1) result.reviews.push(data[i])//Remove unchecked reviews, unless admin
+
 		}
+
 		return result
 
 	}

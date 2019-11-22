@@ -89,21 +89,6 @@ router.get('/', async ctx => {
 })
 
 
-router.post('/sortBycategory', async ctx => {
-	try{
-		const body = ctx.request.body
-		if(ctx.session.authorised !== true) {//Ensure authorised access
-			return ctx.redirect('/login?msg=you need to log in')
-		}
-
-		ctx.redirect(`/${body.category}`)
-	} catch(err) {
-		await ctx.render('error', {message: err.message})
-	}
-
-})
-
-
 /**
  * The game main page
  *
@@ -112,7 +97,6 @@ router.post('/sortBycategory', async ctx => {
  * @authentication This route requires cookie-based authentication.
  *
  */
-
 router.get('/game', async ctx => {
 	try {
 		if(ctx.session.authorised !== true || !ctx.query.gameID)return ctx.redirect('/')
@@ -142,7 +126,14 @@ router.get('/game', async ctx => {
 	}
 })
 
-
+/**
+ * Script to handle admin updates to a review
+ *
+ * @name reviewAdminUpdate script
+ * @route {POST} /reviewAdminUpdate
+ * @authentication This route requires cookie-based authentication.
+ *
+ */
 router.post('/reviewAdminUpdate', async ctx => {
 	try{
 		// extract the data from the request
@@ -167,6 +158,15 @@ router.post('/reviewAdminUpdate', async ctx => {
 	}
 })
 
+
+/**
+ * Script to delete a game
+ *
+ * @name deleteGame script
+ * @route {POST} /deleteGame
+ * @authentication This route requires cookie-based authentication.
+ *
+ */
 router.post('/deleteGame', async ctx => {
 	try{
 		// extract the data from the request
@@ -185,6 +185,15 @@ router.post('/deleteGame', async ctx => {
 	}
 })
 
+
+/**
+ * Script to remove a category to a game
+ *
+ * @name removeCategoryFromGame script
+ * @route {POST} /removeCategoryFromGame
+ * @authentication This route requires cookie-based authentication.
+ *
+ */
 router.post('/removeCategoryFromGame', async ctx => {
 	try{
 		const body = ctx.request.body
@@ -205,6 +214,14 @@ router.post('/removeCategoryFromGame', async ctx => {
 	}
 })
 
+/**
+ * Script to add a category to a game
+ *
+ * @name addCategoryToGame script
+ * @route {POST} /addCategoryToGame
+ * @authentication This route requires cookie-based authentication.
+ *
+ */
 router.post('/addCategoryToGame', async ctx => {
 	try {
 		// extract the data from the request
@@ -253,10 +270,18 @@ router.post('/addReview', async ctx => {
 	}
 })
 
+
+/**
+ * The new game form
+ *
+ * @name newGame form
+ * @route {GET} /newGame
+ * @authentication This route requires cookie-based authentication.
+ *
+ */
 router.get('/newGame', async ctx => {
 	try {
 		if(ctx.session.authorised !== true)return ctx.redirect('/login?msg=you need to log in')
-
 
 		await ctx.render('addGame', {
 			helpers
