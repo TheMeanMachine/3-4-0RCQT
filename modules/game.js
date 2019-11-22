@@ -35,77 +35,9 @@ module.exports = class Game {
 		})()
 
 	}
-	/**
-     * Function to upload a picture and associate it to a game
-     *
-     * @name uploadPicture
-     * @param path path is the input path
-     * @param mimeType is the type of the picture
-     * @param gameID gameID refers to the ID in the database
-     * @throws error if params are not given
-     * @returns true if no problems
-     *
-     */
-	async uploadPicture(path, mimeType, gameID) {
-		try{
-			this.validator.checkID(gameID, 'gameID')
 
-			this.validator.checkStringExists(path, 'path')
-			this.validator.checkStringExists(mimeType, 'type')
 
-			const extension = mime.extension(mimeType)
 
-			await this.getGameByID(gameID)
-
-			let sql = `SELECT COUNT(id) as records FROM gamePhoto WHERE gameID="${gameID}";`
-			const data = await this.db.get(sql)//Set to the amount of pictures saved
-
-			const picPath = `game/${gameID}/picture_${data.records}.${extension}`
-
-			await fs.copy(path, `public/${ picPath}`)
-
-			sql = `INSERT INTO gamePhoto (gameID, picture) VALUES(
-                ${gameID},"${picPath}")`
-			await this.db.run(sql)
-
-			return true
-
-		}catch(e) {
-			throw e
-		}
-	}
-
-	/**
-     * Function to get pictures associated with a game
-     *
-     * @name getPictures
-     * @param gameID gameID refers to the ID in the database
-     * @throws error if gameID is not supplied
-     * @returns object containing picture urls
-     */
-	async getPictures(gameID) {
-		try{
-			if(gameID === null || isNaN(gameID)) {
-				throw new Error('Must supply gameID')
-			}
-
-			await this.getGameByID(gameID)
-
-			const sql = `
-            SELECT * FROM gamePhoto
-            WHERE gameID = ${gameID};
-            `
-			const data = await this.db.all(sql)
-			const result = { pictures: [] }
-			for(let i = 0; i < Object.keys(data).length; i++) {
-				result.pictures.push(data[i].picture)
-			}
-			return result
-
-		}catch(e) {
-			throw e
-		}
-	}
 
 	/**
      * Function to add a new game
