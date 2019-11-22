@@ -6,6 +6,104 @@ const mime = require('mime-types')
 const mock = require('mock-fs')
 const fs = require('fs')
 
+describe('associateRole()', () => {
+	test('Valid userID, user', async done => {
+		expect.assertions(1)
+
+		const user = await new Accounts()
+
+
+		const userID = await user.register('Aaron', 'passwordIsNotGood')
+
+		const result = await user.associateRole(1, userID)
+
+		expect(result).toBe(true)
+
+		done()
+	})
+
+	test('Valid userID, admin', async done => {
+		expect.assertions(1)
+
+		const user = await new Accounts()
+
+
+		const userID = await user.register('Aaron', 'passwordIsNotGood')
+
+		const result = await user.associateRole(2, userID)
+
+		expect(result).toBe(true)
+
+		done()
+	})
+
+	test('Error if userID null', async done => {
+		expect.assertions(1)
+
+		const user = await new Accounts()
+
+		await expect(user.associateRole(2, null))
+			.rejects.toEqual(Error('Must supply userID'))
+
+		done()
+	})
+
+	test('Error if userID NaN', async done => {
+		expect.assertions(1)
+
+		const user = await new Accounts()
+
+		await expect(user.associateRole(2, 'Not a number'))
+			.rejects.toEqual(Error('Must supply userID'))
+
+		done()
+	})
+
+	test('Error if userID undefined', async done => {
+		expect.assertions(1)
+
+		const user = await new Accounts()
+
+		await expect(user.associateRole(2, undefined))
+			.rejects.toEqual(Error('Must supply userID'))
+
+		done()
+	})
+
+	test('Error if roleID null', async done => {
+		expect.assertions(1)
+
+		const user = await new Accounts()
+
+		await expect(user.associateRole(null, 1))
+			.rejects.toEqual(Error('Must supply roleID'))
+
+		done()
+	})
+
+	test('Error if roleID NaN', async done => {
+		expect.assertions(1)
+
+		const user = await new Accounts()
+
+		await expect(user.associateRole('Not a number', 1))
+			.rejects.toEqual(Error('Must supply roleID'))
+
+		done()
+	})
+
+	test('Error if roleID undefined', async done => {
+		expect.assertions(1)
+
+		const user = await new Accounts()
+
+		await expect(user.associateRole(undefined,1))
+			.rejects.toEqual(Error('Must supply roleID'))
+
+		done()
+	})
+})
+
 describe('getUserbyID()', () => {
 	test('Get valid User', async done => {
 		expect.assertions(1)
@@ -119,9 +217,11 @@ describe('uploadPicture()', () => {
 			'Aaron',
 			'notAGoodPassword')
 
-		expect(await user.uploadPicture(path,type,userID)).toBe(true)
+		const uploadPhoto = await user.uploadPicture(path,type,userID)
+
 		const extension = await mime.extension(type)
 
+		expect(uploadPhoto).toBe(true)
 		expect( await fs.existsSync(`public/users/${userID}/profile.${extension}`)).toBe(true)
 
 		done()
@@ -297,11 +397,6 @@ describe('checkUserFields()', () => {
 		done()
 	})
 
-})
-
-describe('uploadPicture()', () => {
-	// this would have to be done by mocking the file system
-	// perhaps using mock-fs?
 })
 
 describe('login()', () => {

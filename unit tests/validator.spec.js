@@ -45,7 +45,47 @@ describe('checkMultipleWordsOnlyAlphaNumberic()', () => {
 		const result = validator.checkMultipleWordsOnlyAlphaNumberic(',.\'-')
 		expect(result).toBe(true)
 	})
+})
 
+describe('checkID()', () => {
+	test('ID valid', () => {
+		expect.assertions(1)
+		const validator = new valid()
+		const result = validator.checkID(1, 'gameID')
+		expect(result).toBe(true)
+	})
 
+	test('Error if ID is null', () => {
+		expect.assertions(1)
+		const validator = new valid()
+		const name = 'gameID'
+		try{
+			validator.checkID(null, name)
+		}catch(e) {
+			expect(e).toEqual(Error(`Must supply ${name}`))
+		}
+	})
+
+	test('Error if ID is NaN', () => {
+		expect.assertions(1)
+		const validator = new valid()
+		const name = 'gameID'
+		try{
+			validator.checkID('not a number', name)
+		}catch(e) {
+			expect(e).toEqual(Error(`Must supply ${name}`))
+		}
+	})
+
+	test('Error if ID is undefined', () => {
+		expect.assertions(1)
+		const validator = new valid()
+		const name = 'gameID'
+		try{
+			validator.checkID(undefined, name)
+		}catch(e) {
+			expect(e).toEqual(Error(`Must supply ${name}`))
+		}
+	})
 })
 

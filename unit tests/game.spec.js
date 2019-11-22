@@ -342,7 +342,7 @@ describe('associateToPublisher()', () => {
 		await publisher.addPublisher('Rockstar Games')
 
 		await expect(game.associateToPublisher(retreiveGame.ID, null))
-			.rejects.toEqual(Error('Must supply gameID'))
+			.rejects.toEqual(Error('Must supply publisherID'))
 		done()
 	})
 
@@ -361,7 +361,7 @@ describe('associateToPublisher()', () => {
 		await publisher.addPublisher('Rockstar Games')
 
 		await expect(game.associateToPublisher(retreiveGame.ID, 'Not a number'))
-			.rejects.toEqual(Error('Must supply gameID'))
+			.rejects.toEqual(Error('Must supply publisherID'))
 		done()
 	})
 
@@ -522,7 +522,7 @@ describe('deleteGameByID()', () => {
 })
 
 describe('updateGameByID()', () => {
-	test('Update valid game _ title', async done => {
+	test('Update valid game', async done => {
 		expect.assertions(2)
 
 		const game = await new Games()
@@ -535,7 +535,9 @@ describe('updateGameByID()', () => {
 		await game.addNewGame(title, summary, desc)
 		const retreiveGame = await game.getGameByTitle(title)
 		const updateGame = await game.updateGameByID(retreiveGame.ID,
-			{title: stringToUpdate}
+			{title: stringToUpdate,
+				summary: summary,
+				desc: desc}
 		)
 		expect(updateGame).toBe(true)
 		const retreiveUpdatedGame = await game.getGameByTitle(stringToUpdate)
@@ -548,136 +550,6 @@ describe('updateGameByID()', () => {
 				desc: desc || ''
 			}
 		)
-
-		done()
-	})
-
-	test('Error if invalid game _ title', async done => {
-		expect.assertions(1)
-
-		const game = await new Games()
-		const title = 'Red'
-		const summary = 'A simple summary'
-		const desc = 'Lorem Ipsum and as such this is a game'
-
-		const stringToUpdate = ''
-
-		await game.addNewGame(title, summary, desc)
-		const retreiveGame = await game.getGameByTitle(title)
-		await expect( game.updateGameByID(retreiveGame.ID,
-			{title: stringToUpdate}
-		)).rejects.toEqual(Error('Could not update field(s)'))
-
-		done()
-	})
-
-	test('Update valid game _ summary', async done => {
-		expect.assertions(2)
-
-		const game = await new Games()
-		const title = 'Red'
-		const summary = 'A simple summary'
-		const desc = 'Lorem Ipsum and as such this is a game'
-
-		const stringToUpdate = 'A new simple summary'
-
-		await game.addNewGame(title, summary, desc)
-		const retreiveGame = await game.getGameByTitle(title)
-		const updateGame = await game.updateGameByID(retreiveGame.ID,
-			{summary: stringToUpdate}
-		)
-		expect(updateGame).toBe(true)
-		const retreiveUpdatedGame = await game.getGameByTitle(title)
-
-		expect(retreiveUpdatedGame).toMatchObject(
-			{
-				summary: stringToUpdate || '',
-			}
-		)
-
-		done()
-	})
-
-	test('Error if invalid game _ summary', async done => {
-		expect.assertions(1)
-
-		const game = await new Games()
-		const title = 'Red'
-		const summary = 'A simple summary'
-		const desc = 'Lorem Ipsum and as such this is a game'
-
-		const stringToUpdate = ''
-
-		await game.addNewGame(title, summary, desc)
-		const retreiveGame = await game.getGameByTitle(title)
-		await expect( game.updateGameByID(retreiveGame.ID,
-			{summary: stringToUpdate}
-		)).rejects.toEqual(Error('Could not update field(s)'))
-
-		done()
-	})
-
-	test('Update valid game _ desc', async done => {
-		expect.assertions(2)
-
-		const game = await new Games()
-		const title = 'Red'
-		const summary = 'A simple summary'
-		const desc = 'Lorem Ipsum and as such this is a game'
-
-		const stringToUpdate = 'Lorem Ipsum and as such this is a game 2'
-
-		await game.addNewGame(title, summary, desc)
-		const retreiveGame = await game.getGameByTitle(title)
-		const updateGame = await game.updateGameByID(retreiveGame.ID,
-			{desc: stringToUpdate}
-		)
-		expect(updateGame).toBe(true)
-		const retreiveUpdatedGame = await game.getGameByTitle(title)
-
-		expect(retreiveUpdatedGame).toMatchObject(
-			{
-				desc: stringToUpdate || '',
-			}
-		)
-
-		done()
-	})
-
-	test('Error if invalid game _ desc', async done => {
-		expect.assertions(1)
-
-		const game = await new Games()
-		const title = 'Red'
-		const summary = 'A simple summary'
-		const desc = 'Lorem Ipsum and as such this is a game'
-
-		const stringToUpdate = ''
-
-		await game.addNewGame(title, summary, desc)
-		const retreiveGame = await game.getGameByTitle(title)
-		await expect( game.updateGameByID(retreiveGame.ID,
-			{desc: stringToUpdate}
-		)).rejects.toEqual(Error('Could not update field(s)'))
-
-		done()
-	})
-
-	test('Error if invalid game _ ID', async done => {
-		expect.assertions(1)
-
-		const game = await new Games()
-		const title = 'Red'
-		const summary = 'A simple summary'
-		const desc = 'Lorem Ipsum and as such this is a game'
-
-		const stringToUpdate = ''
-
-		await game.addNewGame(title, summary, desc)
-		await game.getGameByTitle(title)
-		await expect( game.updateGameByID(20,
-			{summary: stringToUpdate}
-		)).rejects.toEqual(Error('Could not update field(s)'))
 
 		done()
 	})
@@ -700,7 +572,9 @@ describe('updateGameByID()', () => {
 		await game.addNewGame(title2, summary2, desc2)
 		const retreiveGame = await game.getGameByTitle(title2)
 		await expect( game.updateGameByID(retreiveGame.ID,
-			{title: stringToUpdate}
+			{title: stringToUpdate,
+				summary: summary,
+				desc: desc}
 		)).rejects.toEqual(Error(`Game: "${stringToUpdate}" already exists`))
 
 		done()

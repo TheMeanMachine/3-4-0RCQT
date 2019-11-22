@@ -1,6 +1,185 @@
 'use strict'
 const Reviews = require('../modules/review.js')
 
+describe('getAverageRating()', () => {
+	test('Valid gameID', async done => {
+		expect.assertions(1)
+
+		const review = await new Reviews()
+		const game = await review.games
+		const user = await review.users
+		const userID = await user.register('Samson', 'Password')
+
+		await game.addNewGame('title', 'summary', 'desc')
+		const retreiveGame = await game.getGameByTitle('title')
+
+		const ratings = [2,1,5,3,3,2]
+		let average = 0
+		for(let i = 0; i < ratings.length; i++) {
+			await review.addReview(retreiveGame.ID,
+				{
+					fullText: 'fulltext',
+					rating: ratings[i]
+				}, userID
+			)
+			average += ratings[i]
+		}
+		average = average / ratings.length
+
+		expect(await review.getAverageRating(retreiveGame.ID)).toEqual(average)
+
+		done()
+	})
+
+	test('Error if gameID is null', async done => {
+		expect.assertions(1)
+
+		const review = await new Reviews()
+
+		await expect( review.getAverageRating(null))
+			.rejects.toEqual(Error('Must supply gameID'))
+
+		done()
+	})
+
+	test('Error if gameID is NaN', async done => {
+		expect.assertions(1)
+
+		const review = await new Reviews()
+		await expect( review.getAverageRating('Not a number'))
+			.rejects.toEqual(Error('Must supply gameID'))
+
+		done()
+	})
+})
+
+describe('deleteReviewByID()', () => {
+	test('Delete valid review', async done => {
+		expect.assertions(2)
+
+		const review = await new Reviews()
+		const user = review.users
+		const game = review.games
+
+		const userID = await user.register('Username', 'Password')
+		await game.addNewGame('title', 'summary', 'desc')
+		const retreiveGame = await game.getGameByTitle('title')
+
+		const reviewID = await review.addReview(userID,{
+			fullText: 'Full!',
+			rating: 4
+		}, retreiveGame.ID)
+		const deleteReview = await review.deleteReviewByID(reviewID)
+		const retreive = await review.getReviewsByGameID(retreiveGame.ID,true, 4)
+
+		expect(retreive.count).toEqual(0)
+
+		expect(deleteReview).toBe(true)
+		done()
+	})
+
+	test('Error if reviewID is null', async done => {
+		expect.assertions(1)
+
+		const review = await new Reviews()
+
+		await expect(review.deleteReviewByID(null))
+			.rejects.toEqual(new Error('Must supply reviewID'))
+
+		done()
+	})
+
+	test('Error if reviewID is NaN', async done => {
+		expect.assertions(1)
+
+		const review = await new Reviews()
+
+		await expect(review.deleteReviewByID('Not a number'))
+			.rejects.toEqual(new Error('Must supply reviewID'))
+
+		done()
+	})
+
+	test('Error if reviewID is undefined', async done => {
+		expect.assertions(1)
+
+		const review = await new Reviews()
+
+		await expect(review.deleteReviewByID(undefined))
+			.rejects.toEqual(new Error('Must supply reviewID'))
+
+		done()
+	})
+})
+
+describe('publishReview()', () => {
+	test('Publish valid review', async done => {
+		expect.assertions(2)
+
+		const review = await new Reviews()
+		const game = await review.games
+		const user = await review.users
+
+		const userID = await user.register('Samson', 'Password')
+		await game.addNewGame('title', 'summary', 'desc')
+		const retreiveGame = await game.getGameByTitle('title')
+		const reviewID = await review.addReview(retreiveGame.ID,
+			{
+				fullText: 'fulltext',
+				rating: 3
+			}, userID
+		)
+
+		const publishResult = await review.publishReview(reviewID, true)
+
+		expect(await review.getReviewsByGameID(retreiveGame.ID, true, 4))
+			.toMatchObject(
+				{ reviews:
+                [{
+                	flag: 1
+                }] }
+
+			)
+
+		expect(publishResult).toBe(true)
+
+		done()
+	})
+
+	test('Unpublish valid review', async done => {
+		expect.assertions(2)
+
+		const review = await new Reviews()
+		const game = await review.games
+		const user = await review.users
+
+		const userID = await user.register('Samson', 'Password')
+		await game.addNewGame('title', 'summary', 'desc')
+		const retreiveGame = await game.getGameByTitle('title')
+		const reviewID = await review.addReview(retreiveGame.ID,
+			{
+				fullText: 'fulltext',
+				rating: 3
+			}, userID
+		)
+
+		const publishResult = await review.publishReview(reviewID, false)
+
+		expect(await review.getReviewsByGameID(retreiveGame.ID,true, 4))
+			.toMatchObject(
+				{ reviews:
+                [{
+                	flag: 0
+                }] }
+
+			)
+
+		expect(publishResult).toBe(true)
+
+		done()
+	})
+})
+
 describe('updateReview()', () => {
 	test('Valid review update', async done => {
 		expect.assertions(2)
@@ -24,7 +203,7 @@ describe('updateReview()', () => {
 		const result = await review.updateReview(userID, retreiveGame.ID, changed)
 		expect(result).toBe(true)
 
-		expect(await review.getReviewsByGameID(retreiveGame.ID)).toMatchObject(
+		expect(await review.getReviewsByGameID(retreiveGame.ID, true, 4)).toMatchObject(
 			{ reviews:
                 [changed] }
 
@@ -33,70 +212,6 @@ describe('updateReview()', () => {
 
 		done()
 	})
-
-	test('Valid review only fulltext', async done => {
-		expect.assertions(2)
-
-		const review = await new Reviews()
-		const game = await review.games
-		const user = await review.users
-		const userID = await user.register('Samson', 'Password')
-		await game.addNewGame('title', 'summary', 'desc')
-		const retreiveGame = await game.getGameByTitle('title')
-		await review.addReview(retreiveGame.ID,
-			{
-				fullText: 'fulltext',
-				rating: 3
-			}, userID
-		)
-		const changed = {
-			fullText: 'This is changed fulltext'
-		}
-		const result = await review.updateReview(userID, retreiveGame.ID, changed)
-
-		expect(result).toBe(true)
-
-		expect(await review.getReviewsByGameID(retreiveGame.ID)).toMatchObject(
-			{ reviews:
-                [changed] }
-
-		)
-
-		done()
-	})
-
-	test('Valid review only rating', async done => {
-		expect.assertions(2)
-
-		const review = await new Reviews()
-		const game = await review.games
-		const user = await review.users
-		const userID = await user.register('Samson', 'Password')
-		await game.addNewGame('title', 'summary', 'desc')
-		const retreiveGame = await game.getGameByTitle('title')
-		await review.addReview(retreiveGame.ID,
-			{
-				fullText: 'fulltext',
-				rating: 3
-			}, userID
-		)
-		const changed = {
-			rating: 4
-		}
-		const result = await review.updateReview(userID,retreiveGame.ID, changed
-		)
-
-		expect(result).toBe(true)
-
-		expect(await review.getReviewsByGameID(retreiveGame.ID)).toMatchObject(
-			{ reviews:
-                [changed] }
-
-		)
-
-		done()
-	})
-
 	test('Error if review does not exist', async done => {
 		expect.assertions(1)
 
@@ -115,7 +230,8 @@ describe('updateReview()', () => {
 
 		await expect(review.updateReview(3,retreiveGame.ID,
 			{
-				rating: 4
+				rating: 4,
+				fullText: 'Hello!'
 			})).rejects.toEqual(Error('Review not found'))
 
 
@@ -177,6 +293,21 @@ describe('updateReview()', () => {
 
 		done()
 	})
+
+	test('Error if fulltext is not valid', async done => {
+		expect.assertions(1)
+
+		const review = await new Reviews()
+
+		await expect(review.updateReview(1,1,
+			{
+				rating: 4,
+				fullText: '@;\';!'
+			})).rejects.toEqual(Error('Must supply fulltext'))
+
+
+		done()
+	})
 })
 
 describe('getReviewsByGameID()', () => {
@@ -187,6 +318,7 @@ describe('getReviewsByGameID()', () => {
 		const game = await review.games
 		const user = await review.users
 		const userID = await user.register('Samson', 'Password')
+		const userID2 = await user.register('Namptopn', 'Password')
 		await game.addNewGame('title', 'summary', 'desc')
 		const retreiveGame = await game.getGameByTitle('title')
 		await review.addReview(retreiveGame.ID,
@@ -200,42 +332,67 @@ describe('getReviewsByGameID()', () => {
 			{
 				fullText: 'fulltext2',
 				rating: 3
-			}, userID
+			}, userID2
 		)
 
-		const result = await review.getReviewsByGameID(retreiveGame.ID)
+		const result = await review.getReviewsByGameID(retreiveGame.ID, true, userID)
 
 
 		expect(result).toMatchObject(
 			{ reviews:
-                [ { ID: 1,
-                	gameID: 1,
-                	userID: 1,
-                	fullText: 'fulltext',
-                	rating: 3,
-                	flag: 0 },
-                { ID: 2,
-                	gameID: 1,
-                	userID: 1,
+                [
+                	{
+                	userID: userID2,
                 	fullText: 'fulltext2',
                 	rating: 3,
-                	flag: 0 } ] }
+                	flag: 0 }
+                ],
+			userReview: {
+				userID: userID,
+				fullText: 'fulltext',
+				rating: 3,
+				flag: 0 }
+			}
 
 		)
 
 		done()
 	})
 
-	test('Error if game does not exist', async done => {
+	test('Valid game not admin', async done => {
 		expect.assertions(1)
 
 		const review = await new Reviews()
-
-		await expect(review.getReviewsByGameID(0,
+		const game = await review.games
+		const user = await review.users
+		const userID = await user.register('Samson', 'Password')
+		const userID2 = await user.register('Namptopn', 'Password')
+		await game.addNewGame('title', 'summary', 'desc')
+		const retreiveGame = await game.getGameByTitle('title')
+		await review.addReview(retreiveGame.ID,
 			{
 				fullText: 'fulltext',
 				rating: 3
-			})).rejects.toEqual(Error('Game not found'))
+			}, userID
+		)
+
+		await review.addReview(retreiveGame.ID,
+			{
+				fullText: 'fulltext2',
+				rating: 3
+			}, userID2
+		)
+
+		const result = await review.getReviewsByGameID(retreiveGame.ID, false, userID)
+
+
+		expect(result).toMatchObject(
+			{ reviews: [],
+				count: 2
+
+			}
+
+		)
 
 		done()
 	})
@@ -271,74 +428,26 @@ describe('getReviewsByGameID()', () => {
 
 })
 
-describe('checkReviewFields()', () => {
-	test('Valid input _ both fields', async done => {
+describe('checkRating()', () => {
+	test('Valid input', async done => {
 		expect.assertions(1)
 
 		const review = await new Reviews()
 
-		const result = await review.checkReviewFields('This is full text', 1)
-
-		expect(result).toBe(true)
-
-		done()
-	})
-	test('Valid input _ just full text', async done => {
-		expect.assertions(1)
-
-		const review = await new Reviews()
-
-		const result = await review.checkReviewFields('This is full text')
+		const result = await review.checkRating(1)
 
 		expect(result).toBe(true)
 
 		done()
 	})
 
-	test('Valid input _ just rating', async done => {
-		expect.assertions(1)
-
-		const review = await new Reviews()
-
-		const result = await review.checkReviewFields(null, 1)
-
-		expect(result).toBe(true)
-
-		done()
-	})
-
-	test('Error if full', async done => {
-		expect.assertions(1)
-
-		const review = await new Reviews()
-		try{
-			await review.checkReviewFields(null, null)
-		}catch(e) {
-			expect(e).toEqual(Error('All fields are null'))
-		}
-
-		done()
-	})
-
-	test('Error if fulltext is not valid', async done => {
-		expect.assertions(1)
-
-		const review = await new Reviews()
-		try{
-			await review.checkReviewFields('($(*(!()_', null)
-		}catch(e) {
-			expect(e).toEqual(Error('Must supply fulltext'))
-		}
-
-		done()
-	})
 
 	test('Error if rating is too low', async done => {
 		expect.assertions(1)
 
 		const review = await new Reviews()
 		try{
-			await review.checkReviewFields('Fulltext', 0)
+			await review.checkRating(0)
 		}catch(e) {
 			expect(e).toEqual(Error('Rating must be 1-5'))
 		}
@@ -351,7 +460,7 @@ describe('checkReviewFields()', () => {
 
 		const review = await new Reviews()
 		try{
-			await review.checkReviewFields('Fulltext', 6)
+			await review.checkRating(6)
 		}catch(e) {
 			expect(e).toEqual(Error('Rating must be 1-5'))
 		}
@@ -362,7 +471,7 @@ describe('checkReviewFields()', () => {
 
 describe('addReview()', () => {
 	test('Valid review', async done => {
-		expect.assertions(2)
+		expect.assertions(1)
 
 		const review = await new Reviews()
 		const game = await review.games
@@ -377,16 +486,6 @@ describe('addReview()', () => {
 				rating: 3
 			}, userID)
 		expect(result).toBe(1)
-		const getReview = await review.getReviewsByGameID(retreiveGame.ID)
-
-		expect(getReview.reviews[0]).toEqual({
-			ID: result,
-			gameID: retreiveGame.ID,
-			userID: userID,
-			fullText: 'fulltext',
-			rating: 3,
-			flag: 0
-		})
 
 		done()
 	})
@@ -532,4 +631,3 @@ describe('addReview()', () => {
 
 
 })
-

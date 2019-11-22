@@ -10,15 +10,6 @@
 		<link href="style.css" type="text/css" rel="stylesheet" />
 	</head>
 	<body>
-        {{#if admin}}
-            <div class="delete">
-                DELETE
-            </div>
-        {{/if}}
-        <div class="backButton" onclick="window.location.href='/'">
-            BACK
-        </div>
-
 		<div class="mainGamePageOuter">
             <div class="cardImg">
                 {{#if game.pictures}}
@@ -30,10 +21,38 @@
                 {{/if}}
                 
                 {{#if admin}}
-                    <form action="addGamePhoto" method="POST" enctype="multipart/form-data">
-                        <p>Add a game picture:<br /><input type="file" name="pic1"></p>
-                        <input type="text" name="gameID" value="{{game.ID}}" style="display:none">
-                        <p><input type="submit"></p>
+                        <table class="adminPanel">
+                            <tr>
+                                <th>Add a game picture
+                                </th>
+                                <th>
+                                    Delete
+                                </th>
+                            </tr>
+                            <tr>
+                                <th>
+                                    <form action="addGamePhoto" method="POST" enctype="multipart/form-data">
+                                        <input type="text" name="gameID" value="{{game.ID}}" style="display:none">
+                                        <input type="file" name="pic1"> <br> 
+                                        <button type="submit">SUBMIT</button> 
+                                    </form>
+                                </th>
+                                <th>
+                                    <form action="deleteGame" method="POST">
+                                     <input type="text" name="gameID" value="{{game.ID}}" style="display:none">
+                                        <input type="checkbox" name="delete" value="true"><br> 
+                                        <button type="submit">SUBMIT</button> 
+                                    </form>
+                                </th>
+                            </tr>
+                            <tr>
+                                <th colspan="2">
+                                    
+                                    
+                                </th>
+                            </tr>
+                            
+                        </table>
                     </form>
                 {{/if}}
             </div>
@@ -42,6 +61,45 @@
                 <p>{{game.summary}}</p>
                 
                 <p>{{game.desc}}</p>
+                <p>Average rating: {{averageRating}} / 5</p>
+                {{#if game.category}}
+                    <div class="bubbles">
+                    {{#each game.category}}
+                        <div class="bubble_long">
+                            <div class="bubble_longInner">
+                                {{this.title}}
+                            </div>
+                            {{#if @root.admin}}
+                            <form action="/removeCategoryFromGame" method="POST" class="actionForm">
+                                <input type="text" name="gameID" value="{{@root.game.ID}}" style="display:none">
+                                <input type="text" name="categoryID" value="{{this.categoryID}}" style="display:none">
+                                <button type="submit" class="bubbleAction">X</button>  
+                            </form>
+                            {{/if}}
+                        </div>
+                    
+                    {{/each}}
+                    </div>
+                {{/if}}
+                
+                {{#if game.otherCategories}}
+                    {{#if @root.admin}}
+                    <form action="addCategoryToGame" method="POST">
+                        <br>
+                        <p></p>
+                        <select name="category">
+                            {{#each game.otherCategories}}
+                                <option value="{{this.ID}}">{{this.title}}</option>
+                            {{/each}}
+                        </select>
+                        <input type="text" name="gameID" value="{{game.ID}}" style="display:none">
+                        
+                        <button type="submit" class="">
+                            Add category
+                        </button>
+                    </form>
+                    {{/if}}
+                {{/if}}
                 <hr>
             </div>
             
@@ -49,7 +107,9 @@
                 {{#if userReview}}
                 <form action="/updateReview" method="post" id="review"> 
                     <h4>Your review</h4>
-                    
+                    {{#if_eq userReview.flag 0}}
+                        <p>Your review is being checked</p>
+                    {{/if_eq}}
                     <textarea rows="4" cols="50" name="fullText" form="review" placeholder="Write your review">{{userReview.fullText}}</textarea>
                     <br>
                     <div class="rating">
@@ -57,7 +117,7 @@
                         {{#each ratingsReview}}
                         <label>
                             <input type="radio" name="rating" value="{{this.value}}"
-                                {{#if this.checked}} checked="checked" {{/if}}
+                                {{#if_eq this.value @root.userReview.rating}} checked="checked" {{/if_eq}}
                             > {{this.value}}
                         </label>
                         {{/each}}
@@ -72,7 +132,44 @@
 
 
                 </form>
-                
+                {{#if @root.admin}}
+                    <form action="/reviewAdminUpdate" method="POST">
+
+                        <table class="adminPanel">
+                            <tr>
+                                <th>Published
+                                    {{#if userReview.flag}}
+                                        (true)
+                                    {{else}}
+                                        (false)
+                                    {{/if}}
+                                </th>
+                                <th>Delete?</th>
+                            </tr>
+                            <tr>
+                                <th>
+                                    <input type="checkbox" name="flag" value="true"
+                                    {{#if userReview.flag}}
+                                        checked="checked"
+                                    {{/if}}>
+                                </th>
+                                <th>
+                                    <input type="text" name="gameID" value="{{@root.game.ID}}" style="display:none">
+                                    <input type="text" name="reviewID" value="{{userReview.ID}}" style="display:none">
+                                    <input type="checkbox" name="delete" value="true">
+                                    
+                                </th>
+                            </tr>
+                            <tr>
+                                <th colspan="2">
+                                    
+                                    <button type="submit">SUBMIT</button>
+                                </th>
+                            </tr>
+                            
+                        </table>
+                    </form>
+                {{/if}}
                 {{else}}
                 <form action="/addReview" method="post" id="review"> 
                     <h4>Your review</h4>
@@ -97,24 +194,70 @@
 
 
                 </form>
-                
                 {{/if}}
+                
+                
                 <hr>
+
+                
 
                 {{#if allReview}}
                 {{#each allReview}}
-                <div class="reviewCard">
-                    <div class="reviewCardInner">
-                        <div class="images">
-
-                        </div>
-                        <p>Rating: {{this.rating}}</p>
-                        <p>Review: {{this.fullText}}</p>
+                    {{#if_EqOREq @root.admin this.flag 1}}
                         
-                    </div>
-                </div>
                     
+                    <div class="reviewCard">
+                        <div class="reviewCardInner">
+                            <div class="images">
+
+                            </div>
+                            <p>User: {{this.userID}}</p>
+                            <p>Rating: {{this.rating}}</p>
+                            <p>Review: {{this.fullText}}</p>
+                            
+                            {{#if @root.admin}}
+                                <form action="/reviewAdminUpdate" method="POST">
+
+                                    <table class="adminPanel">
+                                        <tr>
+                                            <th>Published
+                                                {{#if this.flag}}
+                                                    (true)
+                                                {{else}}
+                                                    (false)
+                                                {{/if}}
+                                            </th>
+                                            <th>Delete?</th>
+                                        </tr>
+                                        <tr>
+                                            <th>
+                                                <input type="checkbox" name="flag" value="true"
+                                                {{#if this.flag}}
+                                                    checked="checked"
+                                                {{/if}}>
+                                            </th>
+                                            <th>
+                                                <input type="text" name="gameID" value="{{@root.game.ID}}" style="display:none">
+                                                <input type="text" name="reviewID" value="{{this.ID}}" style="display:none">
+                                                <input type="checkbox" name="delete" value="true">
+                                                
+                                            </th>
+                                        </tr>
+                                        <tr>
+                                            <th colspan="2">
+                                                
+                                                <button type="submit">SUBMIT</button>
+                                            </th>
+                                        </tr>
+                                        
+                                    </table>
+                                </form>
+                            {{/if}}
+                        </div>
+                    </div>
+                    {{/if_EqOREq}}
                 {{/each}}
+                
                 {{/if}}
             </div>
             
@@ -122,7 +265,32 @@
         </div>
         
 		
-        <p><a href="/logout">log out</a></p>
+        <div class="optionsContainer">
+            <div class="optionsOuter">
+                <div class="options">
+                        
+                    <a href="/">
+                    <div class="card">
+                        
+                        <h2>Back home</h2>
+                        
+                    </div>
+                    </a>
+                </div>
+            </div>
+            <div class="optionsOuter">
+                <div class="options">
+                        
+                    <a href="/logout">
+                    <div class="card">
+                        
+                        <h2>Logout</h2>
+                        
+                    </div>
+                    </a>
+                </div>
+            </div>
+        </div>
 		<p>{{message}}</p>
 		
 </html>
