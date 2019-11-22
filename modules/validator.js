@@ -29,4 +29,11 @@ module.exports = class Validator {
 		}
 		return true
 	}
+
+	checkStringExists(test, name) {
+		if(test === null || test === undefined || test.length === 0) {
+			throw new Error(`Must supply ${name}`)
+		}
+		return false
+	}
 }

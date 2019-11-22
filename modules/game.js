@@ -332,8 +332,8 @@ module.exports = class Game {
 		sql = `
 		UPDATE game
 		SET desc = "${desc}",
-		SET summary = "${summary}",
-		SET title = "${title}"
+		summary = "${summary}",
+		title = "${title}"
 		WHERE ID = ${id};
 		`
 		await this.db.get(sql)

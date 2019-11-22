@@ -1,5 +1,3 @@
-
-
 'use strict'
 
 const sqlite = require('sqlite-async')
@@ -20,8 +18,7 @@ module.exports = class Review {
 			this.users = await new Users(this.dbName)
 			const sql =
 			[`CREATE TABLE IF NOT EXISTS reviewScreenshot(ID INTEGER PRIMARY KEY AUTOINCREMENT,
-				reviewID INTEGER,picture TEXT,
-                FOREIGN KEY (reviewID) REFERENCES review(ID));`,`
+				reviewID INTEGER,picture TEXT, FOREIGN KEY (reviewID) REFERENCES review(ID));`,`
 			CREATE TABLE IF NOT EXISTS review(ID INTEGER PRIMARY KEY AUTOINCREMENT,
 				gameID INTEGER,userID INTEGER,fullText TEXT,rating INTEGER,flag INTEGER,
             	FOREIGN KEY (gameID) REFERENCES game(ID),
@@ -185,9 +182,8 @@ module.exports = class Review {
 			for(let i = 0; i < amtReviews; i++) {
 				result.reviews.push(data[i])
 			}
-			if(amtReviews === 0) {
-				throw new Error('No reviews found')
-			}
+			if(amtReviews === 0) throw new Error('No reviews found')
+
 			return result
 		}catch(e) {
 			throw e

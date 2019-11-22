@@ -1,7 +1,5 @@
 #!/usr/bin/env node
-/* eslint-disable complexity */
-/* eslint-disable max-statements */
-/* eslint-disable max-lines-per-function */
+
 //Routes File
 
 'use strict'
@@ -67,7 +65,6 @@ const helpers ={
  */
 router.get('/', async ctx => {
 	try {
-		const body = ctx.request.body
 		if(ctx.session.authorised !== true)return ctx.redirect('/login?msg=you need to log in')
 		const user = await new User(dbName)
 		const userInfo = user.getUserByID(ctx.session.userID)
