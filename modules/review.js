@@ -166,28 +166,29 @@ module.exports = class Review {
      * @returns array of objects if successful
      *
      */
-	async getReviewsByGameID(gameID) {
-		try{
-			this.validator.checkID(gameID, 'gameID')
+	async getReviewsByGameID(gameID, admin, userID) {
 
-			await this.games.getGameByID(gameID)//Checks if game exists
+		this.validator.checkID(gameID, 'gameID')
+		this.validator.checkID(userID, 'userID')
 
-			const sql = `
-            SELECT * FROM review
-            WHERE gameID = ${gameID};`
+		const sql = `
+		SELECT * FROM review
+		WHERE gameID = ${gameID};`
 
-			const data = await this.db.all(sql)
-			const amtReviews = Object.keys(data).length
-			const result = {reviews: [], count: amtReviews}
-			for(let i = 0; i < amtReviews; i++) {
-				result.reviews.push(data[i])
+		const data = await this.db.all(sql)
+		const amtReviews = Object.keys(data).length
+		const result = {reviews: [], count: amtReviews}
+		for(let i = 0; i < amtReviews; i++) {
+			if(userID === data[i].userID) {
+				result.userReview = data[i]
+				break
 			}
-			if(amtReviews === 0) throw new Error('No reviews found')
-
-			return result
-		}catch(e) {
-			throw e
+			console.log(result.userReview)
+			result.reviews.push(data[i])
+			if(admin === false && data[i].flag === 0) result.reviews.splice(i,1)//Remove unchecked reviews, unless admin
 		}
+		return result
+
 	}
 
 	async getAverageRating(gameID) {

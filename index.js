@@ -1,5 +1,4 @@
 #!/usr/bin/env node
-
 //Routes File
 
 'use strict'
@@ -66,8 +65,7 @@ const helpers ={
 router.get('/', async ctx => {
 	try {
 		if(ctx.session.authorised !== true)return ctx.redirect('/login?msg=you need to log in')
-		const user = await new User(dbName)
-		const userInfo = user.getUserByID(ctx.session.userID)
+
 		const games = await new Games(dbName)
 
 		const review = await new Review(dbName)
@@ -75,26 +73,16 @@ router.get('/', async ctx => {
 		let gamesList = (await games.getGames()).games
 
 		if(ctx.request.query.category) gamesList = (await category.getGamesOfCategory(ctx.request.query.category)).games
-
-		for(let i = 0; i < gamesList.length; i++) {//Set the list of games with their pictures
-			const curID = gamesList[i].ID
-			const tempPic = await games.getPictures(curID)
-			const pic = tempPic.pictures
-			if(pic === undefined)pic = []
-
-			gamesList[i].pictures = pic
-			gamesList[i].avgRating = Math.round(await review.getAverageRating(curID))
-			gamesList[i].category = (await category.getCategories(curID)).categories//Get all other categories
-		}
-
 		const categories = (await category.getAllCategories()).categories
 
+		for(let i = 0; i < gamesList.length; i++) {//Set the list of games with their pictures
+			gamesList[i].pictures = (await games.getPictures(gamesList[i].ID)).pictures
+			gamesList[i].avgRating = Math.round(await review.getAverageRating(gamesList[i].ID))
+			gamesList[i].category = (await category.getCategories(gamesList[i].ID)).categories//Get all other categories
+		}
 		//Render the home page
-		await ctx.render('index', { games: gamesList,
-			categories: categories,
-			user: userInfo,
-			selectedCat: ctx.request.query.category,
-			helpers})
+		await ctx.render('index', {games: gamesList,categories: categories,
+			selectedCat: ctx.request.query.category,helpers})
 	} catch(err) {
 		await ctx.render('error', {message: err.message})
 	}
@@ -127,82 +115,33 @@ router.post('/sortBycategory', async ctx => {
 
 router.get('/game', async ctx => {
 	try {
-
-		if(ctx.session.authorised !== true)return ctx.redirect('/login?msg=you need to log in')
+		if(ctx.session.authorised !== true || !ctx.query.gameID)return ctx.redirect('/')
 		const games = await new Games(dbName)
 		const review = await new Review(dbName)
 		const category = await new Category(dbName)
 
-		if(!ctx.query.gameID) return ctx.redirect('/')//Make sure gameID is supplied
 
 		const gameID = ctx.query.gameID
 		const thisGame = await games.getGameByID(gameID)
 
-		let temp= await games.getPictures(gameID)//Get pictures for the game
-		let pic = temp.pictures
-		if(pic === undefined)pic = []
-		thisGame.pictures = pic
+		thisGame.pictures = (await games.getPictures(gameID)).pictures//Get pictures for the game
 
-		try{
-			temp = await review.getReviewsByGameID(gameID)//Get all reviews
-		}catch(e) {//If no reviews
-			temp = {}
-		}
+		const reviews = await review.getReviewsByGameID(gameID, ctx.session.admin, ctx.session.userID)//Get all reviews
 
-		const reviews = temp.reviews || []
 
-		const categories = (await category.getCategories(gameID)).categories//get all categories
-		thisGame.category = categories
-
+		thisGame.category = (await category.getCategories(gameID)).categories//get all categories
 		thisGame.otherCategories = (await category.getOtherCategories(gameID)).categories//Get all other categories
 
-		let uReview
-		for(let i = 0; i < reviews.length; i++) {//Remove user's review from main list
-			if(reviews[i].userID === ctx.session.userID) {
-				uReview = reviews[i]
-				reviews.splice(i,1)
-				break
-			}
-
-		}
-
-		for(let i = 0; i < reviews.length; i++) {//Remove unchecked review
-
-			if(ctx.session.admin === false && reviews[i].flag === 0) {
-				reviews.splice(i,1)
-			}
-
-
-		}
-
-		const ratingsMax = 5
-		const ratingsReviews = []
-		//Set ratings, an array of objs with value and checked
-		for(let i = 1; i <= ratingsMax; i++) {
-			ratingsReviews[i] = {value: i}
-
-			// eslint-disable-next-line eqeqeq
-			if(uReview && i == uReview.rating) {
-				ratingsReviews[i].checked = true//set to true if user picked this rating
-			}
-		}
-
+		const ratingsReviews = [{value: 1},{value: 2},{value: 3},{value: 4},{value: 5}]//Set ratings
 		const avgRating = await review.getAverageRating(gameID)
 		//Render game main page
-		await ctx.render('game', {
-			game: thisGame,
-			admin: ctx.session.admin,
-			ratingsReview: ratingsReviews,
-			allReview: reviews,
-			userReview: uReview,
-			averageRating: Math.round(avgRating),
-			helpers
-		})
+		await ctx.render('game', {game: thisGame,admin: ctx.session.admin,ratingsReview: ratingsReviews,
+			allReview: reviews.reviews,userReview: reviews.userReview,averageRating: Math.round(avgRating),helpers})
 	} catch(err) {
-		if(err.message === 'Game not found') await ctx.redirect('/')
 		await ctx.render('error', {message: err.message})
 	}
 })
+
 
 router.post('/reviewAdminUpdate', async ctx => {
 	try{
@@ -214,17 +153,13 @@ router.post('/reviewAdminUpdate', async ctx => {
 
 		const gameID = body.gameID
 		const reviewID = body.reviewID
-		console.log(reviewID)
-
-		const flag = body.flag ? true : false
-		const del = body.delete ? true : false
-
-		console.log(del)
-		console.log(flag)
 
 
-		if(!del) await review.publishReview(reviewID, flag)
-		if(del) await review.deleteReviewByID(reviewID)
+		if(body.delete) {
+			await review.deleteReviewByID(reviewID)
+		}else{
+			await review.publishReview(reviewID, body.flag )
+		}
 
 		ctx.redirect(`game?gameID=${gameID}`)
 	} catch(err) {
@@ -242,10 +177,7 @@ router.post('/deleteGame', async ctx => {
 
 		const gameID = body.gameID
 
-
-		const del = body.delete ? true : false
-
-		if(del) await game.deleteGameByID(gameID)
+		if(body.delete) await game.deleteGameByID(gameID)
 
 		ctx.redirect('/')
 	} catch(err) {
@@ -479,7 +411,8 @@ router.post('/login', async ctx => {
 		ctx.session.authorised = true
 		ctx.session.userID = ID
 		ctx.session.admin = false
-		if(authUser.roleID === 2)ctx.session.admin = true
+		const adminRoleID = 2
+		if(authUser.roleID === adminRoleID)ctx.session.admin = true
 
 		return ctx.redirect('/?msg=you are now logged in...')
 	} catch(err) {
