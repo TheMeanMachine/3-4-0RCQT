@@ -130,29 +130,28 @@ router.post('/sortBycategory', async ctx => {
 
 router.get('/game', async ctx => {
 	try {
-		console.log(-5)
+
 		if(ctx.session.authorised !== true)return ctx.redirect('/login?msg=you need to log in')
-		console.log(-4)
 		const games = await new Games(dbName)
 		const review = await new Review(dbName)
 		const category = await new Category(dbName)
-		console.log(-3)
+
 		if(!ctx.query.gameID) return ctx.redirect('/')//Make sure gameID is supplied
-		console.log(-2)
+
 		const gameID = ctx.query.gameID
 		const thisGame = await games.getGameByID(gameID)
-		console.log(-1)
+
 		let temp= await games.getPictures(gameID)//Get pictures for the game
 		let pic = temp.pictures
 		if(pic === undefined)pic = []
 		thisGame.pictures = pic
-		console.log(1)
+
 		try{
 			temp = await review.getReviewsByGameID(gameID)//Get all reviews
 		}catch(e) {//If no reviews
 			temp = {}
 		}
-		console.log(2)
+
 		const reviews = temp.reviews || []
 
 		const categories = (await category.getCategories(gameID)).categories//get all categories
@@ -169,7 +168,7 @@ router.get('/game', async ctx => {
 			}
 
 		}
-		console.log(3)
+
 		for(let i = 0; i < reviews.length; i++) {//Remove unchecked review
 
 			if(ctx.session.admin === false && reviews[i].flag === 0) {
@@ -178,19 +177,19 @@ router.get('/game', async ctx => {
 
 
 		}
-		console.log(4)
+
 		const ratingsMax = 5
 		const ratingsReviews = []
 		//Set ratings, an array of objs with value and checked
 		for(let i = 1; i <= ratingsMax; i++) {
-			ratingsReviews[i] ={
-				value: i
-			}
-			if(uReview && i === uReview.rating) {
+			ratingsReviews[i] = {value: i}
+
+			// eslint-disable-next-line eqeqeq
+			if(uReview && i == uReview.rating) {
 				ratingsReviews[i].checked = true//set to true if user picked this rating
 			}
 		}
-		console.log(5)
+
 		const avgRating = await review.getAverageRating(gameID)
 		//Render game main page
 		await ctx.render('game', {
