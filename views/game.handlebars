@@ -63,7 +63,7 @@
                     {{#each game.publishers}}
                         <div class="bubble_long">
                             <div class="bubble_longInner">
-                                {{this.title}}
+                                {{this.name}}
                             </div>
                             {{#if @root.admin}}
                             <form action="/removePublisherFromGame" method="POST" class="actionForm">
@@ -78,14 +78,14 @@
                     </div>
                 {{/if}}
                 
-                {{#if game.otherPublisher}}
+                {{#if game.otherPublishers}}
                     {{#if @root.admin}}
                     <form action="addPublisherToGame" method="POST">
                         <br>
                         <p></p>
-                        <select name="category">
-                            {{#each game.otherPublisher}}
-                                <option value="{{this.ID}}">{{this.title}}</option>
+                        <select name="publisher">
+                            {{#each game.otherPublishers}}
+                                <option value="{{this.ID}}">{{this.name}}</option>
                             {{/each}}
                         </select>
                         <input type="text" name="gameID" value="{{game.ID}}" style="display:none">

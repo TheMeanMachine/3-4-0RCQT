@@ -83,7 +83,7 @@ router.get('/', async ctx => {
 		}
 		//Render the home page
 		await ctx.render('index', {games: gamesList,categories: categories,
-			selectedCat: ctx.request.query.category,helpers})
+			selectedCat: ctx.request.query.category,helpers, admin: ctx.session.admin})
 	} catch(err) {
 		await ctx.render('error', {message: err.message})
 	}
@@ -98,13 +98,14 @@ router.get('/', async ctx => {
  * @authentication This route requires cookie-based authentication.
  *
  */
+// eslint-disable-next-line max-lines-per-function
 router.get('/game', async ctx => {
 	try {
 		if(ctx.session.authorised !== true || !ctx.query.gameID)return ctx.redirect('/')
 		const games = await new Games(dbName)
 		const review = await new Review(dbName)
 		const category = await new Category(dbName)
-		const publishers = await new Publisher()
+		const publishers = await new Publisher(dbName)
 
 
 		const gameID = ctx.query.gameID
@@ -119,7 +120,7 @@ router.get('/game', async ctx => {
 		thisGame.otherCategories = (await category.getOtherCategories(gameID)).categories//Get all other categories
 		thisGame.publishers = (await publishers.getPublishers(gameID)).publishers
 		thisGame.otherPublishers = (await publishers.getAllPublishers()).publishers
-
+		console.log(thisGame.publishers)
 		const ratingsReviews = [{value: 1},{value: 2},{value: 3},{value: 4},{value: 5}]//Set ratings
 		const avgRating = await review.getAverageRating(gameID)
 		//Render game main page
@@ -245,6 +246,23 @@ router.post('/addCategoryToGame', async ctx => {
 	}
 })
 
+router.post('/addPublisherToGame', async ctx => {
+	try {
+		// extract the data from the request
+		const body = ctx.request.body
+		if(ctx.session.authorised !== true || !ctx.session.admin)return ctx.redirect('/')
+
+		const publisher = await new Publisher(dbName)
+		const gameID = body.gameID
+
+		await publisher.associateToPublisher(gameID, body.publisher)
+		//refresh
+		ctx.redirect(`game?gameID=${gameID}`)
+	} catch(err) {
+		await ctx.render('error', {message: err.message})
+	}
+})
+
 /**
  * Script to add a review to a game
  *
@@ -290,6 +308,35 @@ router.get('/newGame', async ctx => {
 		await ctx.render('addGame', {
 			helpers
 		})
+	} catch(err) {
+		await ctx.render('error', {message: err.message})
+	}
+})
+
+router.get('/newPublisher', async ctx => {
+	try {
+		if(ctx.session.authorised !== true || !ctx.session.admin)return ctx.redirect('/')
+
+		await ctx.render('addPublisher', {
+			helpers
+		})
+	} catch(err) {
+		await ctx.render('error', {message: err.message})
+	}
+})
+
+router.post('/newPublisher', async ctx => {
+	try {
+		// extract the data from the request
+		const body = ctx.request.body
+		if(ctx.session.authorised !== true || !ctx.session.admin)return ctx.redirect('/')
+		const publisher = await new Publisher(dbName)
+
+		//Add the new game
+		await publisher.addPublisher(body.name)
+
+		//Go back to home
+		ctx.redirect('/')
 	} catch(err) {
 		await ctx.render('error', {message: err.message})
 	}

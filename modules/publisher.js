@@ -127,7 +127,8 @@ module.exports = class Publisher {
 			const data = await this.db.all(sql)
 			const result = { publishers: [] }
 			for(let i = 0; i < Object.keys(data).length; i++) {
-				result.publishers.push(data[i].ID)
+				data[i].name = (await this.getPublisherByID(data[i].publisherID)).name
+				result.publishers.push(data[i])
 			}
 
 			return result
