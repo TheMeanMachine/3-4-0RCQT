@@ -18,6 +18,7 @@ const User = require('./modules/user')
 const Review = require('./modules/review')
 const Games = require('./modules/game')
 const Category = require('./modules/category')
+const Publisher = require('./modules/publisher')
 const app = new Koa()
 const router = new Router()
 
@@ -103,6 +104,7 @@ router.get('/game', async ctx => {
 		const games = await new Games(dbName)
 		const review = await new Review(dbName)
 		const category = await new Category(dbName)
+		const publishers = await new Publisher()
 
 
 		const gameID = ctx.query.gameID
@@ -115,7 +117,8 @@ router.get('/game', async ctx => {
 
 		thisGame.category = (await category.getCategories(gameID)).categories//get all categories
 		thisGame.otherCategories = (await category.getOtherCategories(gameID)).categories//Get all other categories
-		thisGame.publishers = (await games.getPublishers(gameID)).publishers
+		thisGame.publishers = (await publishers.getPublishers(gameID)).publishers
+		thisGame.otherPublishers = (await publishers.getAllPublishers()).publishers
 
 		const ratingsReviews = [{value: 1},{value: 2},{value: 3},{value: 4},{value: 5}]//Set ratings
 		const avgRating = await review.getAverageRating(gameID)
