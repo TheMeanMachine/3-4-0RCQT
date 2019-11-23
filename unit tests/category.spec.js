@@ -58,6 +58,29 @@ describe('game - category intergration', () => {
 
 })
 
+describe('searchCategories()', () => {
+	test('Valid category', async done => {
+		expect.assertions(1)
+
+		const category = await new Category()
+
+		await category.addCategory('Comedy')
+		await category.addCategory('Horror')
+		await category.addCategory('Needy')
+
+		const result = await category.searchCategories('edy')
+
+		expect(result).toMatchObject({
+			categories: [
+				{title: 'Comedy'},
+				{title: 'Needy'}
+			]
+		})
+
+		done()
+	})
+})
+
 
 describe('getAllCategories()', () => {
 	test('Gets all categories', async done => {
