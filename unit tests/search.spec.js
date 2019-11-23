@@ -10,9 +10,9 @@ describe('search', () => {
 		const review = search.review
 		const game = search.game
 
-		game.addNewGame('Title', 'Summary', 'Description')
+		await game.addNewGame('Title', 'Summary', 'Description')
 
-		review.addReview(1, {fullText: 'Hello', rating: 3}, 1)
+		await review.addReview(1, {fullText: 'Hello', rating: 3}, 1)
 
 		const result = search.search('hel')
 
@@ -49,11 +49,11 @@ describe('search', () => {
 		const publisher = search.publisher
 		const game = search.game
 
-		game.addNewGame('Title', 'Summary', 'Description')
+		await game.addNewGame('Title', 'Summary', 'Description')
 
-		publisher.addPublisher('Rocky')
+		await publisher.addPublisher('Rocky')
 
-		publisher.associateToPublisher(1, 1)
+		await publisher.associateToPublisher(1, 1)
 
 		const result = search.search('rock')
 
@@ -71,11 +71,11 @@ describe('search', () => {
 		const category = search.category
 		const game = search.game
 
-		game.addNewGame('Title', 'Summary', 'Description')
+		await game.addNewGame('Title', 'Summary', 'Description')
 
-		category.addCategory('Horror')
+		await category.addCategory('Horror')
 
-		category.associateToCategory(1, 1)
+		await category.associateToCategory(1, 1)
 
 		const result = search.search('orr')
 

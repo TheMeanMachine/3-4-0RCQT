@@ -21,9 +21,17 @@ module.exports = class Search {
 			this.category = await new Category(this.dbName)
 			this.publisher = await new Publisher(this.dbName)
 
-
 			return this
 		})()
 
+	}
+
+	async search(toSearch) {
+		this.validator.checkStringExists(toSearch, 'toSearch')
+
+		const gameSearch = await this.game.searchGame(toSearch)
+
+
+		return gameSearch
 	}
 }
