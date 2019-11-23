@@ -2,6 +2,33 @@
 
 const Search = require('../modules/search.js')
 
+describe('removeDuplicates()', () => {
+	test('removes two duplicates', async done => {
+		expect.assertions(1)
+
+		const search = await new Search()
+
+		const result = search.removeDuplicates(
+			{
+				ID: 1
+			},
+			{
+				ID: 2
+			},
+			{
+				ID: 1
+			},
+			{
+				ID: 1
+			}
+		)
+
+		expect(result).toEqual(
+			[{ID: 1}, {ID: 2}]
+		)
+	})
+})
+
 describe('gamesSearch', () => {
 	test('Search with keyword in review', async done => {
 		expect.assertions(1)
