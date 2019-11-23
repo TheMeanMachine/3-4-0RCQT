@@ -160,6 +160,7 @@ module.exports = class Game {
 		const result = { games: [] }
 		for(let i = 0; i < Object.keys(data).length; i++) {
 			data[i].pictures =(await this.image.getPicturesByGameID(data[i].ID)).pictures//Get pictures for the game
+
 			result.games.push(data[i])
 		}
 

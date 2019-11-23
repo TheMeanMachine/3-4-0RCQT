@@ -7,14 +7,14 @@
 		<title>Home Page</title>
 		<meta name="description" content="form to add new books">
 		<meta name="author" content="Aaron Machin">
-		<link href="style.css" type="text/css" rel="stylesheet" />
+		<link href="/style.css" type="text/css" rel="stylesheet" />
 	</head>
 	<body>
 		<div class="mainGamePageOuter">
             <div class="cardImg">
                 {{#if game.pictures}}
                     {{#each game.pictures}}
-                        <img class="cardImgInner" src="{{this}}">
+                        <img class="cardImgInner" src="/{{this}}">
                     {{/each}}
                 {{else}}
                     <p>No pictures found</p>
@@ -149,7 +149,7 @@
 
                     {{#if userReview.pictures}}
                             {{#each userReview.pictures}}
-                                <img class="cardImgInner" src="{{this}}">
+                                <img class="cardImgInner" src="/{{this}}">
                             {{/each}}
                                 
                     {{/if}}
@@ -254,7 +254,15 @@
                 <hr>
 
                 
-
+                <form action="/game/searchReview" method="GET">
+                    <br>
+                    <p></p>
+                    <input type="text" name="gameID" value="{{game.ID}}" style="display:none">
+                    <input type="text" name="search" placeholder="Search a review..." value="{{@root.search}}">
+                    <button type="submit">
+                        Search
+                    </button>
+                </form>
                 {{#if allReview}}
                 {{#each allReview}}
                     {{#if_EqOREq @root.admin this.flag 1}}
@@ -266,7 +274,7 @@
                                 
                                 {{#if this.pictures}}
                                     {{#each this.pictures}}
-                                        <img class="cardImgInner" src="{{this}}">
+                                        <img class="cardImgInner" src="/{{this}}">
                                     {{/each}}
                                 
                                 {{/if}}

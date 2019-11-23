@@ -54,13 +54,13 @@
 			{{/if}}
 
 			<form action="/gameSearch" method="GET">
-					<br>
-					<p></p>
-					<input type="text" name="gameSearch" placeholder="Search a game...">
-					<button type="submit">
-						Search
-					</button>
-				</form>
+				<br>
+				<p></p>
+				<input type="text" name="gameSearch" placeholder="Search a game..." value="{{@root.search}}">
+				<button type="submit">
+					Search
+				</button>
+			</form>
 			{{#each games}}
 				<div class="cardOuter">
 					<a href="/game?gameID={{this.ID}}">

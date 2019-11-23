@@ -100,7 +100,6 @@ module.exports = class Review {
 			result.reviewIDs.push(data[i].ID)
 			data[i].pictures = (await this.image.getPicturesByReviewID(data[i].ID)).pictures
 			if(admin || data[i].flag === 1) result.reviews.push(data[i])//Remove unchecked reviews, unless admin
-
 		}
 		result.userReview = (await this.getReviewsByGameID(gameID,admin, userID)).userReview
 

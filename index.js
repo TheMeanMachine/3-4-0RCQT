@@ -101,7 +101,7 @@ router.get('/gameSearch', async ctx => {
 		gamesList[i].publishers = (await publisher.getPublishers(gamesList[i].ID)).publishers
 	}
 	await ctx.render('index', {games: gamesList,categories: categories,publishers: publishers,
-		selectedCat: ctx.request.query.category,gameSearch:ctx.request.query.gameSearch,
+		selectedCat: ctx.request.query.category,search: ctx.request.query.gameSearch,
 		selectedPub: ctx.request.query.publisher,helpers, admin: ctx.session.admin})
 })
 
@@ -188,7 +188,7 @@ router.get('/game/searchReview', async ctx => {
 		if(!ctx.request.query.search) return ctx.redirect(`/game?gameID=${gameID}`)
 		const thisGame = await games.getGameByID(gameID)
 
-		const reviews = await review.searchReviews(gameID, ctx.request.query.search, ctx.session.userID)//Get all reviews
+		const reviews = await review.searchReview(gameID, ctx.session.userID, ctx.request.query.search, ctx.session.admin)//Get all reviews
 
 		thisGame.category = (await category.getCategories(gameID)).categories//get all categories
 		thisGame.otherCategories = (await category.getOtherCategories(gameID)).categories//Get all other categories
@@ -197,7 +197,7 @@ router.get('/game/searchReview', async ctx => {
 		const ratingsReviews = [{value: 1},{value: 2},{value: 3},{value: 4},{value: 5}]//Set ratings
 		//Render game main page
 		await ctx.render('game', {game: thisGame,admin: ctx.session.admin,ratingsReview: ratingsReviews,
-			allReview: reviews.reviews,userReview: reviews.userReview,
+			allReview: reviews.reviews,userReview: reviews.userReview,search: ctx.request.query.search,
 			averageRating: Math.round(thisGame.avgRating),helpers})
 	} catch(err) {
 		await ctx.render('error', {message: err.message})
