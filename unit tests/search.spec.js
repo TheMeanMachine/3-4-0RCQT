@@ -30,12 +30,13 @@ describe('search', () => {
 
 		const game = search.game
 
-		game.addNewGame('Title', 'Summary', 'Description')
+		await game.addNewGame('Title', 'Summary', 'Description')
 
-		const result = search.search('sum')
+		const result = await search.search('ummar')
 
-		expect(result).toMatchObject({
-			title: 'Title'
+		expect(result).toMatchObject({games: [
+			{title: 'Title'}
+		]
 		})
 
 		done()

@@ -10,7 +10,6 @@ describe('searchGame()', () => {
 		const game = await new Games()
 
 
-
 		await game.addNewGame('Title', 'Summary', 'Description')
 
 		const result = await game.searchGame('ummar')
@@ -29,7 +28,6 @@ describe('searchGame()', () => {
 		const game = await new Games()
 
 
-
 		await game.addNewGame('Title', 'Summary', 'Description')
 
 		const result = await game.searchGame('esc')
@@ -46,7 +44,6 @@ describe('searchGame()', () => {
 		expect.assertions(1)
 
 		const game = await new Games()
-
 
 
 		await game.addNewGame('Title', 'Summary', 'Description')
