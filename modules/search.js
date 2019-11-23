@@ -34,7 +34,6 @@ module.exports = class Search {
 		const category = await this.category.searchCategory(toSearch)
 
 		return gameSearch
-    }
-    
-    removeDuplicates(...arrays)
+	}
+
 }
