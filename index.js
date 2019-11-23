@@ -70,10 +70,8 @@ router.get('/', async ctx => {
 
 		const games = await new Games(dbName)
 
-		const review = await new Review(dbName)
 		const category = await new Category(dbName)
 		const publisher = await new Publisher(dbName)
-		const image = await new Image(dbName)
 		let gamesList = (await games.getGames()).games
 
 		if(ctx.request.query.category) gamesList = (await category.getGamesOfCategory(ctx.request.query.category)).games
@@ -82,8 +80,6 @@ router.get('/', async ctx => {
 		const categories = (await category.getAllCategories()).categories
 		const publishers = (await publisher.getAllPublishers()).publishers
 		for(let i = 0; i < gamesList.length; i++) {//Set the list of games with their pictures
-			gamesList[i].pictures = (await image.getPicturesByGameID(gamesList[i].ID)).pictures
-			gamesList[i].avgRating = Math.round(await review.getAverageRating(gamesList[i].ID))
 			gamesList[i].category = (await category.getCategories(gamesList[i].ID)).categories//Get all other categories
 			gamesList[i].publishers = (await publisher.getPublishers(gamesList[i].ID)).publishers
 		}
@@ -112,22 +108,11 @@ router.get('/game', async ctx => {
 		const review = await new Review(dbName)
 		const category = await new Category(dbName)
 		const publishers = await new Publisher(dbName)
-		const image = await new Image(dbName)
-
 
 		const gameID = ctx.query.gameID
 		const thisGame = await games.getGameByID(gameID)
 
-		thisGame.pictures = (await image.getPicturesByGameID(gameID)).pictures//Get pictures for the game
-
 		const reviews = await review.getReviewsByGameID(gameID, ctx.session.admin, ctx.session.userID)//Get all reviews
-
-		for(let i = 0; i < reviews.reviews.length; i++) {
-			reviews.reviews[i].pictures = (await image.getPicturesByReviewID(reviews.reviews[i].ID)).pictures
-
-		}
-		if(reviews.userReview) reviews.userReview.pictures =(await image.getPicturesByReviewID(reviews.userReview.ID)).pictures
-
 
 		thisGame.category = (await category.getCategories(gameID)).categories//get all categories
 		thisGame.otherCategories = (await category.getOtherCategories(gameID)).categories//Get all other categories
@@ -135,10 +120,9 @@ router.get('/game', async ctx => {
 		thisGame.otherPublishers = (await publishers.getAllPublishers()).publishers
 		//console.log(thisGame.publishers)
 		const ratingsReviews = [{value: 1},{value: 2},{value: 3},{value: 4},{value: 5}]//Set ratings
-		const avgRating = await review.getAverageRating(gameID)
 		//Render game main page
 		await ctx.render('game', {game: thisGame,admin: ctx.session.admin,ratingsReview: ratingsReviews,
-			allReview: reviews.reviews,userReview: reviews.userReview,averageRating: Math.round(avgRating),helpers})
+			allReview: reviews.reviews,userReview: reviews.userReview,averageRating: Math.round(thisGame.avgRating),helpers})
 	} catch(err) {
 		await ctx.render('error', {message: err.message})
 	}

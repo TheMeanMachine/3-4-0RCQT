@@ -1,21 +1,20 @@
 
 'use strict'
 
-const mime = require('mime-types')
 const sqlite = require('sqlite-async')
-const fs = require('fs-extra')
 //const sharp = require('sharp')
 //Custom modules
 const valid = require('./validator')
-
-
+const Image = require('./image')
+const Review = require('./review')
 module.exports = class Game {
 	constructor(dbName) {
 		this.validator = new valid()
 
 		return (async() => {
 			this.dbName = dbName || ':memory:'
-
+			this.image = await new Image(this.dbName)
+			this.review = await new Review(this.dbName)
 			this.db = await sqlite.open(this.dbName)
 
 			const sql =[`CREATE TABLE IF NOT EXISTS game(ID INTEGER PRIMARY KEY AUTOINCREMENT,
@@ -35,8 +34,6 @@ module.exports = class Game {
 		})()
 
 	}
-
-
 
 
 	/**
@@ -115,21 +112,19 @@ module.exports = class Game {
 	async getGameByID(ID) {
 		try {
 			this.validator.checkID(ID, 'ID')
-			let sql = `SELECT count(ID) AS count FROM game WHERE ID = ${ID};`
-			let records = await this.db.get(sql)
-			if(records.count === 0) throw new Error('Game not found')
 
-			sql = `SELECT * FROM game WHERE ID = ${ID};`
-
-			records = await this.db.get(sql)
+			const sql = `SELECT * FROM game WHERE ID = ${ID};`
+			const records = await this.db.get(sql)
 
 			const data = {
 				ID: ID,
 				title: records.title,
 				summary: records.summary,
-				desc: records.desc
+				desc: records.desc,
+				pictures: (await this.image.getPicturesByGameID(ID)).pictures,
+				avgRating: Math.round(await this.review.getAverageRating(ID))
 			}
-
+			console.log(data)
 			return data
 		} catch(err) {
 			throw err
@@ -147,6 +142,7 @@ module.exports = class Game {
 		const data = await this.db.all(sql)
 		const result = { games: [] }
 		for(let i = 0; i < Object.keys(data).length; i++) {
+			data[i].pictures =(await this.image.getPicturesByGameID(data[i].ID)).pictures//Get pictures for the game
 			result.games.push(data[i])
 		}
 
@@ -178,7 +174,8 @@ module.exports = class Game {
 				ID: records.ID,
 				title: title,
 				summary: records.summary,
-				desc: records.desc
+				desc: records.desc,
+				pictures: (await this.image.getPicturesByGameID(records.ID)).pictures//Get pictures for the game
 			}
 
 			return data

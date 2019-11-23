@@ -3,8 +3,9 @@
 const sqlite = require('sqlite-async')
 //Custom modules
 const valid = require('./validator')
-const Games = require('./game')
+
 const Users = require('./user')
+const Image = require('./image')
 
 module.exports = class Review {
 	constructor(dbName) {
@@ -14,15 +15,14 @@ module.exports = class Review {
 
 			this.dbName = dbName || ':memory:'
 			this.db = await sqlite.open(this.dbName)
-			this.games = await new Games(this.dbName)
 			this.users = await new Users(this.dbName)
+			this.image = await new Image(this.dbName)
 			const sql =
 			[`CREATE TABLE IF NOT EXISTS reviewScreenshot(ID INTEGER PRIMARY KEY AUTOINCREMENT,
 				reviewID INTEGER,picture TEXT, FOREIGN KEY (reviewID) REFERENCES review(ID));`,`
 			CREATE TABLE IF NOT EXISTS review(ID INTEGER PRIMARY KEY AUTOINCREMENT,
 				gameID INTEGER,userID INTEGER,fullText TEXT,rating INTEGER,flag INTEGER,
-            	FOREIGN KEY (gameID) REFERENCES game(ID),
-				FOREIGN KEY (userID) REFERENCES user(ID));`]
+            	FOREIGN KEY (gameID) REFERENCES game(ID),FOREIGN KEY (userID) REFERENCES user(ID));`]
 
 			for(let i = 0; i < sql.length; i++) {
 				await this.db.run(sql[i])
@@ -168,7 +168,6 @@ module.exports = class Review {
 		if(!this.validator.checkMultipleWordsOnlyAlphaNumberic(fullText)) throw new Error('Must supply fulltext')
 		this.validator.checkID(gameID, 'gameID')
 
-		await this.games.getGameByID(gameID)//Checks if game exists
 
 		this.validator.checkID(userID, 'userID')
 
@@ -195,8 +194,7 @@ module.exports = class Review {
 		this.validator.checkID(gameID, 'gameID')
 		this.validator.checkID(userID, 'userID')
 
-		const sql = `
-		SELECT * FROM review
+		const sql = `SELECT * FROM review
 		WHERE gameID = ${gameID};`
 
 		const data = await this.db.all(sql)
@@ -206,9 +204,10 @@ module.exports = class Review {
 			result.reviewIDs.push(data[i].ID)
 			if(userID === data[i].userID) {
 				result.userReview = data[i]
+				result.userReview.pictures = (await this.image.getPicturesByReviewID(result.userReview.ID)).pictures
 				continue
 			}
-
+			data[i].pictures = (await this.image.getPicturesByReviewID(data[i].ID)).pictures
 			if(admin || data[i].flag === 1) result.reviews.push(data[i])//Remove unchecked reviews, unless admin
 
 		}
@@ -229,8 +228,6 @@ module.exports = class Review {
 	async getAverageRating(gameID) {
 
 		this.validator.checkID(gameID, 'gameID')
-
-		await this.games.getGameByID(gameID)//Checks if game exists
 
 		const sql = `
 		SELECT AVG(rating) as average FROM review
