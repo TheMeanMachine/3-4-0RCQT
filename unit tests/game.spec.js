@@ -3,10 +3,6 @@
 
 const Games = require('../modules/game.js')
 
-const mock = require('mock-fs')
-const fs = require('fs')
-const mime = require('mime-types')
-
 
 describe('checkGameFields()', () => {
 	test('Valid fields', async done => {
@@ -261,15 +257,6 @@ describe('getGameByID()', () => {
 			}
 		)
 
-		done()
-	})
-
-	test('Error if game does not exist', async done => {
-		expect.assertions(1)
-		const game = await new Games()
-
-		await expect(game.getGameByID(0))
-			.rejects.toEqual(Error('Game not found'))
 		done()
 	})
 

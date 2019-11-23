@@ -217,33 +217,6 @@ describe('associateToCategory', () => {
 		done()
 	})
 
-	test('Error if game does not exist', async done => {
-		expect.assertions(1)
-
-		const category = await new Category()
-
-		const catID = await category.addCategory('Horror')
-
-		await expect( category.associateToCategory(1, catID))
-			.rejects.toEqual(Error('Game not found'))
-
-		done()
-	})
-
-	test('Error if category does not exist', async done => {
-		expect.assertions(1)
-
-		const category = await new Category()
-		const game = category.game
-
-		await game.addNewGame('Red', 'Summary', 'Description')
-		const retGame = await game.getGameByTitle('Red')
-
-		await expect( category.associateToCategory(retGame.ID, 1))
-			.rejects.toEqual(Error('Category not found'))
-
-		done()
-	})
 
 	test('Error if gameID null', async done => {
 		expect.assertions(1)
@@ -351,15 +324,6 @@ describe('getCategories()', () => {
 		done()
 	})
 
-	test('Error if game does not exist', async done => {
-		expect.assertions(1)
-
-		const category = await new Category()
-
-		await expect(category.getCategories(1))
-			.rejects.toEqual(Error('Game not found'))
-		done()
-	})
 
 })
 
