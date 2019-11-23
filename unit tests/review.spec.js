@@ -92,7 +92,6 @@ describe('searchReview()', () => {
 
 		done()
 	})
-	
 })
 
 describe('getAverageRating()', () => {
