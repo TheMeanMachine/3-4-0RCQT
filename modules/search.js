@@ -26,12 +26,15 @@ module.exports = class Search {
 
 	}
 
-	async search(toSearch) {
+	async gamesSearch(toSearch) {
 		this.validator.checkStringExists(toSearch, 'toSearch')
 
 		const gameSearch = await this.game.searchGame(toSearch)
-
+		const publisher = await this.publisher.searchPublishers(toSearch)
+		const category = await this.category.searchCategory(toSearch)
 
 		return gameSearch
-	}
+    }
+    
+    removeDuplicates(...arrays)
 }

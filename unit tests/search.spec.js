@@ -2,7 +2,7 @@
 
 const Search = require('../modules/search.js')
 
-describe('search', () => {
+describe('gamesSearch', () => {
 	test('Search with keyword in review', async done => {
 		expect.assertions(1)
 
@@ -14,7 +14,7 @@ describe('search', () => {
 
 		await review.addReview(1, {fullText: 'Hello', rating: 3}, 1)
 
-		const result = search.search('hel')
+		const result = search.gamesSearch('hel')
 
 		expect(result).toMatchObject({
 			title: 'Title'
@@ -32,7 +32,7 @@ describe('search', () => {
 
 		await game.addNewGame('Title', 'Summary', 'Description')
 
-		const result = await search.search('ummar')
+		const result = await search.gamesSearch('ummar')
 
 		expect(result).toMatchObject({games: [
 			{title: 'Title'}
@@ -55,7 +55,7 @@ describe('search', () => {
 
 		await publisher.associateToPublisher(1, 1)
 
-		const result = search.search('rock')
+		const result = search.gamesSearch('rock')
 
 		expect(result).toMatchObject({
 			title: 'Title'
@@ -77,7 +77,7 @@ describe('search', () => {
 
 		await category.associateToCategory(1, 1)
 
-		const result = search.search('orr')
+		const result = search.gamesSearch('orr')
 
 		expect(result).toMatchObject({
 			title: 'Title'
@@ -91,7 +91,7 @@ describe('search', () => {
 
 		const search = await new Search()
 
-		const result = search.search('orr')
+		const result = search.gamesSearch('orr')
 
 		expect(result).toMatchObject()
 

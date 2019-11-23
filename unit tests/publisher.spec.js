@@ -58,6 +58,29 @@ describe('game - publisher intergration', () => {
 
 })
 
+describe('searchPublishers()', () => {
+	test('valid name', async done => {
+		expect.assertions(1)
+
+		const publisher = await new Publishers()
+
+		await publisher.addPublisher('Rockstar Games')
+		await publisher.addPublisher('Pop Star Games')
+
+		const result = await publisher.searchPublishers('star')
+
+		expect(result).toMatchObject({
+			publishers: [
+				{name: 'Rockstar Games'},
+				{name: 'Pop Star Games'}
+
+			]
+		})
+
+		done()
+	})
+})
+
 describe('getAllPublishers()', () => {
 	test('Gets all Publishers', async done => {
 		expect.assertions(1)
