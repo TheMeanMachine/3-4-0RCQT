@@ -30,8 +30,7 @@ describe('getAverageRating()', () => {
 		average = average / ratings.length
 
 		expect(await review.getAverageRating(retreiveGame.ID)).toEqual(average)
-		gameSpy.mockRestore()
-		userSpy.mockRestore()
+
 		done()
 	})
 
