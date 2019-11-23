@@ -2,8 +2,8 @@
 const Reviews = require('../modules/review.js')
 const Games = require('../modules/game.js')
 const Users = require('../modules/user.js')
-describe('searchReview()', ()=>{
-	test('valid gameID, userID - does not show user review', async done =>{
+describe('searchReview()', () => {
+	test('valid gameID, userID - does not show user review, admin', async done => {
 		expect.assertions(1)
 
 		const review = await new Reviews()
@@ -11,9 +11,9 @@ describe('searchReview()', ()=>{
 		const user = await new Users()
 		const userSpy = jest.spyOn(user, 'register').mockImplementation(() => 1)
 		const gameSpy = jest.spyOn(game, 'getGameByTitle').mockImplementation(() => ({ID: 1}))
-		
+
 		const userID = await user.register('Samson', 'Password')
-		
+
 
 		const retreiveGame = await game.getGameByTitle('title')
 		await review.addReview(retreiveGame.ID,
@@ -30,7 +30,7 @@ describe('searchReview()', ()=>{
 			}, 2
 		)
 
-		const result = await result.searchReview(retreiveGame.ID, userID, 'is')
+		const result = await review.searchReview(retreiveGame.ID, userID, 'is', true)
 
 		expect(result).toMatchObject(
 			{ reviews:
@@ -44,7 +44,55 @@ describe('searchReview()', ()=>{
 			}
 
 		)
+		gameSpy.mockRestore()
+		userSpy.mockRestore()
+		done()
 	})
+
+	test('valid gameID, userID not admin', async done => {
+		expect.assertions(1)
+
+		const review = await new Reviews()
+		const game = await new Games()
+		const user = await new Users()
+		const userSpy = jest.spyOn(user, 'register').mockImplementation(() => 1)
+		const gameSpy = jest.spyOn(game, 'getGameByTitle').mockImplementation(() => ({ID: 1}))
+
+		const userID = await user.register('Samson', 'Password')
+
+
+		const retreiveGame = await game.getGameByTitle('title')
+		await review.addReview(retreiveGame.ID,
+			{
+				fullText: 'What is this game',
+				rating: 1
+			}, userID
+		)
+
+		await review.addReview(retreiveGame.ID,
+			{
+				fullText: 'This is a review',
+				rating: 3
+			}, 2
+		)
+
+		const result = await review.searchReview(retreiveGame.ID, userID, 'is', false)
+
+		expect(result).toMatchObject(
+			{ reviews:
+                [
+
+
+                ]
+			}
+
+		)
+		gameSpy.mockRestore()
+		userSpy.mockRestore()
+
+		done()
+	})
+	
 })
 
 describe('getAverageRating()', () => {
