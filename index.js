@@ -19,6 +19,7 @@ const Review = require('./modules/review')
 const Games = require('./modules/game')
 const Category = require('./modules/category')
 const Publisher = require('./modules/publisher')
+const Image = require('./modules/image')
 const app = new Koa()
 const router = new Router()
 
@@ -69,7 +70,6 @@ router.get('/', async ctx => {
 
 		const games = await new Games(dbName)
 
-		const review = await new Review(dbName)
 		const category = await new Category(dbName)
 		const publisher = await new Publisher(dbName)
 		let gamesList = (await games.getGames()).games
@@ -80,8 +80,6 @@ router.get('/', async ctx => {
 		const categories = (await category.getAllCategories()).categories
 		const publishers = (await publisher.getAllPublishers()).publishers
 		for(let i = 0; i < gamesList.length; i++) {//Set the list of games with their pictures
-			gamesList[i].pictures = (await games.getPictures(gamesList[i].ID)).pictures
-			gamesList[i].avgRating = Math.round(await review.getAverageRating(gamesList[i].ID))
 			gamesList[i].category = (await category.getCategories(gamesList[i].ID)).categories//Get all other categories
 			gamesList[i].publishers = (await publisher.getPublishers(gamesList[i].ID)).publishers
 		}
@@ -111,25 +109,20 @@ router.get('/game', async ctx => {
 		const category = await new Category(dbName)
 		const publishers = await new Publisher(dbName)
 
-
 		const gameID = ctx.query.gameID
 		const thisGame = await games.getGameByID(gameID)
 
-		thisGame.pictures = (await games.getPictures(gameID)).pictures//Get pictures for the game
-
 		const reviews = await review.getReviewsByGameID(gameID, ctx.session.admin, ctx.session.userID)//Get all reviews
-
 
 		thisGame.category = (await category.getCategories(gameID)).categories//get all categories
 		thisGame.otherCategories = (await category.getOtherCategories(gameID)).categories//Get all other categories
 		thisGame.publishers = (await publishers.getPublishers(gameID)).publishers
 		thisGame.otherPublishers = (await publishers.getAllPublishers()).publishers
-		console.log(thisGame.publishers)
+		//console.log(thisGame.publishers)
 		const ratingsReviews = [{value: 1},{value: 2},{value: 3},{value: 4},{value: 5}]//Set ratings
-		const avgRating = await review.getAverageRating(gameID)
 		//Render game main page
 		await ctx.render('game', {game: thisGame,admin: ctx.session.admin,ratingsReview: ratingsReviews,
-			allReview: reviews.reviews,userReview: reviews.userReview,averageRating: Math.round(avgRating),helpers})
+			allReview: reviews.reviews,userReview: reviews.userReview,averageRating: Math.round(thisGame.avgRating),helpers})
 	} catch(err) {
 		await ctx.render('error', {message: err.message})
 	}
@@ -403,13 +396,13 @@ router.post('/addGamePhoto',koaBody, async ctx => {
 		const body = ctx.request.body
 		if(ctx.session.authorised !== true || !ctx.session.admin)return ctx.redirect('/login?msg=you need to log in')
 
-		const game = await new Games(dbName)
+		const image = await new Image(dbName)
 
 		const gameID = body.gameID
 		//Destructure to retrieve path and type
 		const {path, type} = ctx.request.files.pic1
 		//Upload picture
-		await game.uploadPicture(path, type, gameID)
+		await image.uploadPictureToGame(path, type, gameID)
 		//Refresh
 		ctx.redirect(`/game?gameID=${gameID}`)
 	} catch(err) {
@@ -417,6 +410,26 @@ router.post('/addGamePhoto',koaBody, async ctx => {
 	}
 })
 
+
+router.post('/addReviewScreenshot',koaBody, async ctx => {
+	try {
+		// extract the data from the request
+		const body = ctx.request.body
+		if(ctx.session.authorised !== true)return ctx.redirect('/login?msg=you need to log in')
+
+		const image = await new Image(dbName)
+		const gameID = body.gameID
+		const reviewID = body.reviewID
+		//Destructure to retrieve path and type
+		const {path, type} = ctx.request.files.pic1
+		//Upload picture
+		await image.uploadPictureToReview(path, type, reviewID)
+		//Refresh
+		ctx.redirect(`/game?gameID=${gameID}`)
+	} catch(err) {
+		await ctx.render('error', {message: err.message})
+	}
+})
 /**
  * Script to update reviews where users have had a review before
  *
