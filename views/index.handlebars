@@ -14,7 +14,7 @@
 		<div class="cards">
 			{{#if categories}}
 				
-				<form action="/" method="GET">
+				<form action="/categorySearch" method="GET">
 					<br>
 					<p></p>
 					<select name="category">
@@ -34,7 +34,7 @@
 			{{/if}}
 			{{#if publishers}}
 				
-				<form action="/" method="GET">
+				<form action="/publisherSearch" method="GET">
 					<br>
 					<p></p>
 					<select name="publisher">
@@ -52,6 +52,15 @@
 				</form>
 				
 			{{/if}}
+
+			<form action="/gameSearch" method="GET">
+					<br>
+					<p></p>
+					<input type="text" name="gameSearch" placeholder="Search a game...">
+					<button type="submit">
+						Search
+					</button>
+				</form>
 			{{#each games}}
 				<div class="cardOuter">
 					<a href="/game?gameID={{this.ID}}">

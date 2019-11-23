@@ -72,9 +72,7 @@ router.get('/', async ctx => {
 
 		const category = await new Category(dbName)
 		const publisher = await new Publisher(dbName)
-		let gamesList = (await games.getGames()).games
-
-		if(ctx.request.query.publisher) gamesList = (await publisher.getGamesOfPublisher(ctx.request.query.publisher)).games
+		const gamesList = (await games.getGames()).games
 
 		const categories = (await category.getAllCategories()).categories
 		const publishers = (await publisher.getAllPublishers()).publishers
@@ -90,12 +88,46 @@ router.get('/', async ctx => {
 	}
 })
 
+router.get('/gameSearch', async ctx => {
+	const category = await new Category(dbName)
+	const publisher = await new Publisher(dbName)
+	const games = await new Games(dbName)
+	if(!ctx.request.query.gameSearch) return ctx.redirect('/')
+	const gamesList = (await games.searchGame(ctx.request.query.gameSearch)).games
+	const categories = (await category.getAllCategories()).categories
+	const publishers = (await publisher.getAllPublishers()).publishers
+	for(let i = 0; i < gamesList.length; i++) {//Set the list of games with their pictures
+		gamesList[i].category = (await category.getCategories(gamesList[i].ID)).categories//Get all other categories
+		gamesList[i].publishers = (await publisher.getPublishers(gamesList[i].ID)).publishers
+	}
+	await ctx.render('index', {games: gamesList,categories: categories,publishers: publishers,
+		selectedCat: ctx.request.query.category,gameSearch:ctx.request.query.gameSearch,
+		selectedPub: ctx.request.query.publisher,helpers, admin: ctx.session.admin})
+})
+
 router.get('/categorySearch', async ctx => {
 
 	const category = await new Category(dbName)
 	const publisher = await new Publisher(dbName)
-
+	if(!ctx.request.query.category) return ctx.redirect('/')
 	const gamesList = (await category.getGamesOfCategory(ctx.request.query.category)).games
+	const categories = (await category.getAllCategories()).categories
+	const publishers = (await publisher.getAllPublishers()).publishers
+	for(let i = 0; i < gamesList.length; i++) {//Set the list of games with their pictures
+		gamesList[i].category = (await category.getCategories(gamesList[i].ID)).categories//Get all other categories
+		gamesList[i].publishers = (await publisher.getPublishers(gamesList[i].ID)).publishers
+	}
+	await ctx.render('index', {games: gamesList,categories: categories,publishers: publishers,
+		selectedCat: ctx.request.query.category,
+		selectedPub: ctx.request.query.publisher,helpers, admin: ctx.session.admin})
+})
+
+router.get('/publisherSearch', async ctx => {
+
+	const category = await new Category(dbName)
+	const publisher = await new Publisher(dbName)
+	if(!ctx.request.query.publisher) return ctx.redirect('/')
+	const gamesList = (await publisher.getGamesOfPublisher(ctx.request.query.publisher)).games
 	const categories = (await category.getAllCategories()).categories
 	const publishers = (await publisher.getAllPublishers()).publishers
 	for(let i = 0; i < gamesList.length; i++) {//Set the list of games with their pictures
@@ -129,6 +161,34 @@ router.get('/game', async ctx => {
 		const thisGame = await games.getGameByID(gameID)
 
 		const reviews = await review.getReviewsByGameID(gameID, ctx.session.admin, ctx.session.userID)//Get all reviews
+
+		thisGame.category = (await category.getCategories(gameID)).categories//get all categories
+		thisGame.otherCategories = (await category.getOtherCategories(gameID)).categories//Get all other categories
+		thisGame.publishers = (await publishers.getPublishers(gameID)).publishers
+		thisGame.otherPublishers = (await publishers.getAllPublishers()).publishers
+		const ratingsReviews = [{value: 1},{value: 2},{value: 3},{value: 4},{value: 5}]//Set ratings
+		//Render game main page
+		await ctx.render('game', {game: thisGame,admin: ctx.session.admin,ratingsReview: ratingsReviews,
+			allReview: reviews.reviews,userReview: reviews.userReview,
+			averageRating: Math.round(thisGame.avgRating),helpers})
+	} catch(err) {
+		await ctx.render('error', {message: err.message})
+	}
+})
+
+router.get('/game/searchReview', async ctx => {
+	try {
+		if(ctx.session.authorised !== true || !ctx.query.gameID)return ctx.redirect('/')
+		const games = await new Games(dbName)
+		const review = await new Review(dbName)
+		const category = await new Category(dbName)
+		const publishers = await new Publisher(dbName)
+
+		const gameID = ctx.query.gameID
+		if(!ctx.request.query.search) return ctx.redirect(`/game?gameID=${gameID}`)
+		const thisGame = await games.getGameByID(gameID)
+
+		const reviews = await review.searchReviews(gameID, ctx.request.query.search, ctx.session.userID)//Get all reviews
 
 		thisGame.category = (await category.getCategories(gameID)).categories//get all categories
 		thisGame.otherCategories = (await category.getOtherCategories(gameID)).categories//Get all other categories
