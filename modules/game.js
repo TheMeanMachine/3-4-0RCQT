@@ -2,7 +2,6 @@
 'use strict'
 
 const sqlite = require('sqlite-async')
-//const sharp = require('sharp')
 //Custom modules
 const valid = require('./validator')
 const Image = require('./image')
@@ -172,11 +171,11 @@ module.exports = class Game {
 			records = await this.db.get(sql)
 
 			const data = {
-				ID: records.ID,
-				title: title,
+				ID: records.ID, title: title,
 				summary: records.summary,
 				desc: records.desc,
-				pictures: (await this.image.getPicturesByGameID(records.ID)).pictures//Get pictures for the game
+				pictures: (await this.image.getPicturesByGameID(records.ID)).pictures,
+				avgRating: Math.round(await this.review.getAverageRating(records.ID))
 			}
 
 			return data

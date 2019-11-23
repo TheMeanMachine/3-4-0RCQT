@@ -3,6 +3,60 @@
 
 const Publishers = require('../modules/publisher.js')
 
+describe('game - publisher intergration', () => {
+
+	test('New games, adding into game_publisher', async done => {
+		expect.assertions(1)
+
+		const publisher = await new Publishers()
+		const game = publisher.game
+
+		const catID = await publisher.addPublisher('Runner')
+
+		await game.addNewGame('Green', 'Summary', 'Description')
+		await game.addNewGame('Red', 'Summary', 'Description')
+		const retGame = await game.getGameByTitle('Red')
+
+		await publisher.associateToPublisher(retGame.ID, catID)
+
+		const result = await publisher.getGamesOfPublisher(catID)
+
+		expect(result).toMatchObject(
+			{
+				games: [
+					{
+						title: 'Red',
+						summary: 'Summary',
+						desc: 'Description'
+					}
+				]
+			}
+		)
+		done()
+	})
+
+	test('New games, removing into game_publisher', async done => {
+		expect.assertions(1)
+
+		const publisher = await new Publishers()
+		const game = publisher.game
+
+		const catID = await publisher.addPublisher('Rocky')
+
+		await game.addNewGame('Red', 'Summary', 'Description')
+		const retGame = await game.getGameByTitle('Red')
+
+		await publisher.associateToPublisher(retGame.ID, catID)
+
+		const result = await publisher.unassociateToPublisher(retGame.ID, catID)
+
+		expect(result)
+			.toBe(true)
+
+		done()
+	})
+
+})
 
 describe('getAllPublishers()', () => {
 	test('Gets all Publishers', async done => {
@@ -219,8 +273,6 @@ describe('getPublishers()', () => {
 		expect.assertions(1)
 
 		const publisher = await new Publishers()
-		const game = publisher.game
-
 
 		await expect(publisher.getPublishers('Not a number'))
 			.rejects.toEqual(Error('Must supply gameID'))
@@ -231,8 +283,6 @@ describe('getPublishers()', () => {
 		expect.assertions(1)
 
 		const publisher = await new Publishers()
-		const game = publisher.game
-
 
 		await expect(publisher.getPublishers(null))
 			.rejects.toEqual(Error('Must supply gameID'))

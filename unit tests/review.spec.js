@@ -7,12 +7,14 @@ describe('getAverageRating()', () => {
 		expect.assertions(1)
 
 		const review = await new Reviews()
-
-		const user = await review.users
+		const game = await new Games()
+		const user = await new Users()
+		const userSpy = jest.spyOn(user, 'register').mockImplementation(() => 1)
+		const gameSpy = jest.spyOn(game, 'getGameByTitle').mockImplementation(() => ({ID: 1}))
 		const userID = await user.register('Samson', 'Password')
 
 
-		const retreiveGame = {ID: 1}
+		const retreiveGame = await game.getGameByTitle('title')
 
 		const ratings = [2,1,5,3,3,2]
 		let average = 0
@@ -28,7 +30,8 @@ describe('getAverageRating()', () => {
 		average = average / ratings.length
 
 		expect(await review.getAverageRating(retreiveGame.ID)).toEqual(average)
-
+		gameSpy.mockRestore()
+		userSpy.mockRestore()
 		done()
 	})
 
@@ -59,10 +62,13 @@ describe('deleteReviewByID()', () => {
 		expect.assertions(2)
 
 		const review = await new Reviews()
-		const user = review.users
+		const game = await new Games()
+		const user = await new Users()
+		const userSpy = jest.spyOn(user, 'register').mockImplementation(() => 1)
+		const gameSpy = jest.spyOn(game, 'getGameByTitle').mockImplementation(() => ({ID: 1}))
 
 		const userID = await user.register('Username', 'Password')
-		const retreiveGame = {ID: 1}
+		const retreiveGame = await game.getGameByTitle('title')
 
 		const reviewID = await review.addReview(userID,{
 			fullText: 'Full!',
@@ -74,6 +80,8 @@ describe('deleteReviewByID()', () => {
 		expect(retreive.count).toEqual(0)
 
 		expect(deleteReview).toBe(true)
+		gameSpy.mockRestore()
+		userSpy.mockRestore()
 		done()
 	})
 
@@ -567,7 +575,8 @@ describe('addReview()', () => {
 				rating: 6
 			},userID))
 			.rejects.toEqual(Error('Rating must be 1-5'))
-
+		userSpy.mockRestore()
+		gameSpy.mockRestore()
 		done()
 	})
 
