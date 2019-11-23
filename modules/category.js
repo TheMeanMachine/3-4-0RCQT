@@ -44,10 +44,6 @@ module.exports = class Category {
 		this.validator.checkID(gameID, 'gameID')
 		this.validator.checkID(categoryID, 'categoryID')
 
-		await this.game.getGameByID(gameID)
-
-		await this.getCategoryByID(categoryID)
-
 		const sql = `INSERT INTO game_category (gameID, categoryID)
 		VALUES(
 			${gameID},
@@ -92,18 +88,17 @@ module.exports = class Category {
 		try{
 			this.validator.checkID(gameID, 'gameID')//Check gameID is valid
 
-			await this.game.getGameByID(gameID)//Check game exists
-
 			const sql = `
 			SELECT * FROM game_category
 			WHERE gameID = ${gameID};`
 
 			const data = await this.db.all(sql)
-			const result = { categories: [] }
+			const result = { categories: []}
 			for(let i = 0; i < Object.keys(data).length; i++) {
 
 				const curCat = await this.getCategoryByID(data[i].categoryID)//Retrieve full information
 				data[i].title = curCat.title//Add title to data
+
 				result.categories.push(data[i])
 			}
 
@@ -152,9 +147,7 @@ module.exports = class Category {
      */
 	async getCategoryByID(catID) {
 
-		if(catID === null || isNaN(catID)) {
-			throw new Error('Must supply catID')
-		}
+		this.validator.checkID(catID, 'catID')
 
 		let sql = `SELECT count(ID) AS count FROM category WHERE ID = ${catID};`
 		let records = await this.db.get(sql)

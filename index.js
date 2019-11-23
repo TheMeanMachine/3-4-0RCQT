@@ -118,11 +118,11 @@ router.get('/game', async ctx => {
 		thisGame.otherCategories = (await category.getOtherCategories(gameID)).categories//Get all other categories
 		thisGame.publishers = (await publishers.getPublishers(gameID)).publishers
 		thisGame.otherPublishers = (await publishers.getAllPublishers()).publishers
-		//console.log(thisGame.publishers)
 		const ratingsReviews = [{value: 1},{value: 2},{value: 3},{value: 4},{value: 5}]//Set ratings
 		//Render game main page
 		await ctx.render('game', {game: thisGame,admin: ctx.session.admin,ratingsReview: ratingsReviews,
-			allReview: reviews.reviews,userReview: reviews.userReview,averageRating: Math.round(thisGame.avgRating),helpers})
+			allReview: reviews.reviews,userReview: reviews.userReview,
+			averageRating: Math.round(thisGame.avgRating),helpers})
 	} catch(err) {
 		await ctx.render('error', {message: err.message})
 	}

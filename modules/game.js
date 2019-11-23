@@ -8,6 +8,7 @@ const valid = require('./validator')
 const Image = require('./image')
 const Review = require('./review')
 module.exports = class Game {
+	// eslint-disable-next-line max-lines-per-function
 	constructor(dbName) {
 		this.validator = new valid()
 
