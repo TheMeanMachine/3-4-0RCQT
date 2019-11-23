@@ -2,6 +2,63 @@
 
 const Category = require('../modules/category.js')
 
+
+describe('game - category intergration', () => {
+
+	test('New games, adding into game_category', async done => {
+		expect.assertions(1)
+
+		const category = await new Category()
+		const game = category.game
+
+		const catID = await category.addCategory('Runner')
+
+		await game.addNewGame('Green', 'Summary', 'Description')
+		await game.addNewGame('Red', 'Summary', 'Description')
+		const retGame = await game.getGameByTitle('Red')
+
+		await category.associateToCategory(retGame.ID, catID)
+
+		const result = await category.getGamesOfCategory(catID)
+
+		expect(result).toMatchObject(
+			{
+				games: [
+					{
+						title: 'Red',
+						summary: 'Summary',
+						desc: 'Description'
+					}
+				]
+			}
+		)
+		done()
+	})
+
+	test('New games, removing into game_category', async done => {
+		expect.assertions(1)
+
+		const category = await new Category()
+		const game = category.game
+
+		const catID = await category.addCategory('Horror')
+
+		await game.addNewGame('Red', 'Summary', 'Description')
+		const retGame = await game.getGameByTitle('Red')
+
+		await category.associateToCategory(retGame.ID, catID)
+
+		const result = await category.unassociateToCategory(retGame.ID, catID)
+
+		expect(result)
+			.toBe(true)
+
+		done()
+	})
+
+})
+
+
 describe('getAllCategories()', () => {
 	test('Gets all categories', async done => {
 		expect.assertions(1)

@@ -567,7 +567,8 @@ describe('addReview()', () => {
 				rating: 6
 			},userID))
 			.rejects.toEqual(Error('Rating must be 1-5'))
-
+		userSpy.mockRestore()
+		gameSpy.mockRestore()
 		done()
 	})
 

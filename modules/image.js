@@ -17,12 +17,12 @@ module.exports = class image {
 
 			this.db = await sqlite.open(this.dbName)
 
-			const sql =[`CREATE TABLE IF NOT EXISTS gamePhoto(ID INTEGER PRIMARY KEY AUTOINCREMENT,gameID INTEGER,picture TEXT,
+			const sql =[`CREATE TABLE IF NOT EXISTS gamePhoto(ID INTEGER PRIMARY KEY AUTOINCREMENT,
+				gameID INTEGER,picture TEXT,
             	FOREIGN KEY (gameID) REFERENCES game(ID));
             `,`
             CREATE TABLE IF NOT EXISTS reviewScreenshot(ID INTEGER PRIMARY KEY AUTOINCREMENT,
-                reviewID INTEGER,
-                picture TEXT,
+                reviewID INTEGER,picture TEXT,
                 FOREIGN KEY (reviewID) REFERENCES review(ID)
             );`]
 

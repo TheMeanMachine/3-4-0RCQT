@@ -3,6 +3,29 @@
 
 const Games = require('../modules/game.js')
 
+describe('game - review intergration', () => {
+	test('Retrieve average rating ', async done => {
+		expect.assertions(1)
+
+		const game = await new Games()
+		const review = game.review
+
+		const titleToTest = 'Red'
+		const summary = 'A simple summary'
+		const desc = 'Lorem Ipsum and as such this is a game'
+
+		await game.addNewGame(titleToTest, summary, desc)
+		const retreiveGame = await game.getGameByTitle(titleToTest)
+		await review.addReview(retreiveGame.ID, {fullText: 'sometext', rating: 4},1)
+		await review.addReview(retreiveGame.ID, {fullText: 'sometext', rating: 1},1)
+		await review.addReview(retreiveGame.ID, {fullText: 'sometext', rating: 3},1)
+		const expectedAvg = (1 + 4 + 3) /3
+		const averageRating = await review.getAverageRating(retreiveGame.ID)
+		expect(averageRating).toEqual(expectedAvg)
+
+		done()
+	})
+})
 
 describe('checkGameFields()', () => {
 	test('Valid fields', async done => {
