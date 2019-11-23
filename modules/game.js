@@ -35,6 +35,23 @@ module.exports = class Game {
 
 	}
 
+	async searchGame(toSearch) {
+		this.validator.checkStringExists(toSearch, 'toSearch')
+
+		const sql = `
+        SELECT * FROM game
+		WHERE (summary LIKE "%${toSearch}%") OR
+		(desc LIKE "%${toSearch}%") OR
+		(title LIKE "%${toSearch}%");`
+		const data = await this.db.all(sql)
+		const result = { games: [] }
+		for(let i = 0; i < Object.keys(data).length; i++) {
+			data[i].pictures =(await this.image.getPicturesByGameID(data[i].ID)).pictures//Get pictures for the game
+			result.games.push(data[i])
+		}
+		return result
+	}
+
 
 	/**
      * Function to add a new game
@@ -143,6 +160,7 @@ module.exports = class Game {
 		const result = { games: [] }
 		for(let i = 0; i < Object.keys(data).length; i++) {
 			data[i].pictures =(await this.image.getPicturesByGameID(data[i].ID)).pictures//Get pictures for the game
+
 			result.games.push(data[i])
 		}
 

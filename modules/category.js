@@ -30,6 +30,25 @@ module.exports = class Category {
 
 	}
 
+	async searchCategories(toSearch) {
+		this.validator.checkStringExists(toSearch, 'toSearch')
+
+		const sql = `
+        SELECT * FROM category
+		WHERE (title LIKE "%${toSearch}%");`
+		const data = await this.db.all(sql)
+		const result = { categories: []}
+		for(let i = 0; i < Object.keys(data).length; i++) {
+			const curCat = await this.getCategoryByID(data[i].ID)//Retrieve full information
+			data[i].title = curCat.title//Add title to data
+			data[i].games = (await this.getGamesOfCategory(data[i].ID)).games
+			result.categories.push(data[i])
+		}
+
+
+		return result
+	}
+
 	/**
      * Function to associate a game with a category
      *

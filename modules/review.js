@@ -83,6 +83,29 @@ module.exports = class Review {
 
 	}
 
+	// eslint-disable-next-line max-lines-per-function
+	async searchReview(gameID, userID, toSearch, admin) {
+		this.validator.checkID(gameID, 'gameID')
+		this.validator.checkID(userID, 'userID')
+		this.validator.checkStringExists(toSearch, 'query')
+
+		const sql = `
+        SELECT * FROM review
+		WHERE (fullText LIKE "%${toSearch}%")
+		AND (gameID = ${gameID}) AND (userID != ${userID});`
+		const data = await this.db.all(sql)
+		const amtReviews = Object.keys(data).length
+		const result = {reviews: [], count: amtReviews, reviewIDs: []}
+		for(let i = 0; i < amtReviews; i++) {
+			result.reviewIDs.push(data[i].ID)
+			data[i].pictures = (await this.image.getPicturesByReviewID(data[i].ID)).pictures
+			if(admin || data[i].flag === 1) result.reviews.push(data[i])//Remove unchecked reviews, unless admin
+		}
+		result.userReview = (await this.getReviewsByGameID(gameID,admin, userID)).userReview
+
+		return result
+	}
+
 	/**
      * Function to publish or unpublish a review
      *

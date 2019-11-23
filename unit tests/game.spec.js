@@ -3,6 +3,63 @@
 
 const Games = require('../modules/game.js')
 
+describe('searchGame()', () => {
+	test('Search with keyword in summary', async done => {
+		expect.assertions(1)
+
+		const game = await new Games()
+
+
+		await game.addNewGame('Title', 'Summary', 'Description')
+
+		const result = await game.searchGame('ummar')
+
+		expect(result).toMatchObject({games: [
+			{title: 'Title'}
+		]
+		})
+
+		done()
+	})
+
+	test('Search with keyword in description', async done => {
+		expect.assertions(1)
+
+		const game = await new Games()
+
+
+		await game.addNewGame('Title', 'Summary', 'Description')
+
+		const result = await game.searchGame('esc')
+
+		expect(result).toMatchObject({games: [
+			{title: 'Title'}
+		]
+		})
+
+		done()
+	})
+
+	test('Search with keyword in title', async done => {
+		expect.assertions(1)
+
+		const game = await new Games()
+
+
+		await game.addNewGame('Title', 'Summary', 'Description')
+
+		const result = await game.searchGame('itl')
+
+		expect(result).toMatchObject({games: [
+			{title: 'Title'}
+		]
+		})
+
+		done()
+	})
+
+})
+
 describe('game - review intergration', () => {
 	test('Retrieve average rating ', async done => {
 		expect.assertions(1)
