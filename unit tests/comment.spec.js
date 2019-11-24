@@ -4,8 +4,33 @@ const Comments = require('../modules/comment.js')
 const Users = require('../modules/user.js')
 const sqlite = require('sqlite-async')
 
+describe('comment - review intergration', () => {
+	test('Test review returns comment along', async done => {
+		const db = await sqlite.open(':memory:')
+		const comment = await new Users()
+		const review = await new Reviews()
+		jest.spyOn(sqlite, 'open').mockImplementation(() => db)
 
-describe('deleteCommentByID()', () => {
+		const reviewID = await review.addReview(1, {fullText: 'sa', rating: 3}, 1)
+		const commentID = await comment.addComment(reviewID, 1, 'This is a comment')
+
+		const result = await review.getReviewsByGameID(1)
+
+		expect(result).toMatchObject({
+			reviews: [
+				{comments:
+                    [
+                    	{fullText: 'This is a comment'}
+                    ]
+				}
+			]
+		})
+		done()
+	})
+})
+
+
+describe('getCommentsByReviewID()', () => {
 	test('Valid comment', async done => {
 		expect.assertions(1)
 
