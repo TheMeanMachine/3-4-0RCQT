@@ -112,9 +112,11 @@ module.exports = class Game {
 
 			this.validator.checkStringExists(path, 'path')
 			this.validator.checkStringExists(mimeType, 'type')
-
 			if(!mimeType.match(/.(jpg|jpeg|png|gif)$/i)) throw new Error('Not an image')
+
 			const extension = mime.extension(mimeType)
+
+			await this.getGameByID(gameID)
 
 			let sql = `SELECT COUNT(id) as records FROM gamePhoto WHERE gameID="${gameID}";`
 			const data = await this.db.get(sql)//Set to the amount of pictures saved
