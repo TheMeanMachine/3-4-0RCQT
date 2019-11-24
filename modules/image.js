@@ -49,7 +49,7 @@ module.exports = class image {
 
 		this.validator.checkStringExists(path, 'path')
 		this.validator.checkStringExists(mimeType, 'type')
-
+		if(!mimeType.match(/.(jpg|jpeg|png|gif)$/i)) throw new Error('Not an image')
 		const extension = mime.extension(mimeType)
 
 		let sql = `SELECT COUNT(id) as records FROM gamePhoto WHERE gameID="${gameID}";`
@@ -73,7 +73,7 @@ module.exports = class image {
 
 		this.validator.checkStringExists(path, 'path')
 		this.validator.checkStringExists(mimeType, 'type')
-
+		if(!mimeType.match(/.(jpg|jpeg|png|gif)$/i)) throw new Error('Not an image')
 		const extension = mime.extension(mimeType)
 
 		let sql = `SELECT COUNT(id) as records FROM reviewScreenshot WHERE reviewID="${reviewID}";`
