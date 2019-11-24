@@ -161,6 +161,16 @@ describe('uploadPictureToGame()', () => {
 		done()
 	})
 
+	test('Error if invalid file', async done => {
+		expect.assertions(1)
+
+		const image = await new Image()
+
+		await expect( image.uploadPictureToGame('user/text/test.txt','text/plain',1))
+			.rejects.toEqual(Error('Not an image'))
+		done()
+	})
+
 	test('Error if gameID is null', async done => {
 		expect.assertions(1)
 
@@ -266,6 +276,16 @@ describe('uploadPictureToReview()', () => {
 		expect( await fs.existsSync(`public/review/1/picture_0.${extension}`)).toBe(true)
 
 
+		done()
+	})
+
+	test('Error if invalid file', async done => {
+		expect.assertions(1)
+
+		const image = await new Image()
+
+		await expect( image.uploadPictureToReview('user/text/test.txt','text/plain',1))
+			.rejects.toEqual(Error('Not an image'))
 		done()
 	})
 
