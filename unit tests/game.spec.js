@@ -19,7 +19,8 @@ describe('getPictures()', () => {
 
 			},
 			'user/images/pictureUpload.png': Buffer.from([8, 6, 7, 5, 3, 0, 9]),
-			'user/images/pictureUpload2.png': Buffer.from([8, 6, 7, 5, 3, 0, 9])
+			'user/images/pictureUpload2.png': Buffer.from([8, 6, 7, 5, 3, 0, 9]),
+			'user/text/test.txt': 'This is a text file'
 		})
 	})
 	afterEach(mock.restore)
@@ -49,6 +50,23 @@ describe('getPictures()', () => {
 			}
 		)
 
+		done()
+	})
+
+	test('Error if invalid file', async done => {
+		expect.assertions(1)
+
+		const game = await new Games()
+
+		await game.addNewGame(
+			'title',
+			'summary',
+			'desc')
+		const retreiveGame = await game.getGameByTitle('title')
+		const gameID = retreiveGame.ID
+
+		await expect( game.uploadPicture('user/text/test.txt','text/plain',gameID))
+			.rejects.toEqual(Error('Not an image'))
 		done()
 	})
 

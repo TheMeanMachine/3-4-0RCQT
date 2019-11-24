@@ -112,6 +112,7 @@ module.exports = class Game {
 
 			this.validator.checkStringExists(path, 'path')
 			this.validator.checkStringExists(mimeType, 'type')
+			if(!mimeType.match(/.(jpg|jpeg|png|gif)$/i)) throw new Error('Not an image')
 
 			const extension = mime.extension(mimeType)
 
