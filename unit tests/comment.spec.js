@@ -9,7 +9,8 @@ describe('comment - review intergration', () => {
 		const db = await sqlite.open(':memory:')
 		const comment = await new Users()
 		const review = await new Reviews()
-		jest.spyOn(sqlite, 'open').mockImplementation(() => db)
+		const spy = jest.spyOn(sqlite, 'open').mockImplementation(() => db)
+		spy.mockRestore()
 
 		const reviewID = await review.addReview(1, {fullText: 'sa', rating: 3}, 1)
 		const commentID = await comment.addComment(reviewID, 1, 'This is a comment')
@@ -25,6 +26,7 @@ describe('comment - review intergration', () => {
 				}
 			]
 		})
+
 		done()
 	})
 })
@@ -286,7 +288,7 @@ describe('addComment()', () => {
 		const fullText = 'I do not think this review is true'
 
 		await expect( comment.addComment(reviewID, userID, fullText))
-			.rejects.toEqual(Error('ReviewID must be supplied'))
+			.rejects.toEqual(Error('Must supply reviewID'))
 
 
 		userSpy.mockRestore()
@@ -310,7 +312,7 @@ describe('addComment()', () => {
 		const fullText = 'I do not think this review is true'
 
 		await expect( comment.addComment(reviewID, userID, fullText))
-			.rejects.toEqual(Error('ReviewID must be supplied'))
+			.rejects.toEqual(Error('Must supply reviewID'))
 
 
 		userSpy.mockRestore()
@@ -334,7 +336,7 @@ describe('addComment()', () => {
 		const fullText = 'I do not think this review is true'
 
 		await expect( comment.addComment(reviewID, userID, fullText))
-			.rejects.toEqual(Error('ReviewID must be supplied'))
+			.rejects.toEqual(Error('Must supply reviewID'))
 
 
 		userSpy.mockRestore()
@@ -358,7 +360,7 @@ describe('addComment()', () => {
 		const fullText = 'I do not think this review is true'
 
 		await expect( comment.addComment(reviewID, userID, fullText))
-			.rejects.toEqual(Error('userID must be supplied'))
+			.rejects.toEqual(Error('Must supply userID'))
 
 
 		userSpy.mockRestore()
@@ -382,7 +384,7 @@ describe('addComment()', () => {
 		const fullText = 'I do not think this review is true'
 
 		await expect( comment.addComment(reviewID, userID, fullText))
-			.rejects.toEqual(Error('userID must be supplied'))
+			.rejects.toEqual(Error('Must supply userID'))
 
 
 		userSpy.mockRestore()
@@ -404,7 +406,7 @@ describe('addComment()', () => {
 		const fullText = 'I do not think this review is true'
 
 		await expect( comment.addComment(reviewID, userID, fullText))
-			.rejects.toEqual(Error('userID must be supplied'))
+			.rejects.toEqual(Error('Must supply userID'))
 
 
 		userSpy.mockRestore()
@@ -426,7 +428,7 @@ describe('addComment()', () => {
 		const fullText = null
 
 		await expect( comment.addComment(reviewID, userID, fullText))
-			.rejects.toEqual(Error('userID must be supplied'))
+			.rejects.toEqual(Error('Must supply fulltext'))
 
 
 		userSpy.mockRestore()
@@ -448,7 +450,7 @@ describe('addComment()', () => {
 		const fullText = ''
 
 		await expect( comment.addComment(reviewID, userID, fullText))
-			.rejects.toEqual(Error('userID must be supplied'))
+			.rejects.toEqual(Error('Must supply fulltext'))
 
 
 		userSpy.mockRestore()
