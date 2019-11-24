@@ -66,7 +66,7 @@ describe('getPictures()', () => {
 		const gameID = retreiveGame.ID
 
 		await expect( game.uploadPicture('user/text/test.txt','text/plain',gameID))
-			.rejects.toEqual('Not an image')
+			.rejects.toEqual(Error('Not an image'))
 		done()
 	})
 
