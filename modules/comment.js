@@ -14,17 +14,28 @@ module.exports = class Review {
 			this.db = await sqlite.open(this.dbName)
 
 			const sql =
-			[`CREATE TABLE IF NOT EXISTS comments(
+			`CREATE TABLE IF NOT EXISTS comments(
                 ID INTEGER PRIMARY KEY AUTOINCREMENT,
                 userID INTEGER,reviewID INTEGER,fullText,
                 FOREIGN KEY (userID) REFERENCES user(ID),
                 FOREIGN KEY (reviewID) REFERENCES review(ID)
-            );`]
+            );`
 
-			for(let i = 0; i < sql.length; i++) await this.db.run(sql[i])
+			await this.db.run(sql)
 
 			return this
 		})()
 	}
+	async addComment(reviewID, userID, fullText) {
+		this.validator.checkID(reviewID, 'reviewID')
+		this.validator.checkID(userID, 'userID')
+		if(!this.validator.checkMultipleWordsOnlyAlphaNumberic(fullText))throw new Error('Must supply fulltext')
 
+		const sql = `INSERT INTO comments (reviewID, userID, fullText) VALUES (
+            ${reviewID},${userID},"${fullText}");`
+
+		const result = await this.db.run(sql)
+		console.log(result)
+		return result.lastID
+	}
 }
