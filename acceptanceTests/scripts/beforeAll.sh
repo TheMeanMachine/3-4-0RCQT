@@ -4,9 +4,9 @@ set -e
 echo beforeAll
 
 #Make backups of the databases.
-FILE=website.db
+FILE=gameReview.db
 if test -f "$FILE"; then
-    cp website.db websiteBackup.db
-    rm -rf website.db
+    cp gameReview.db gameReviewBackup.db
+    rm -rf gameReview.db
 fi
 
