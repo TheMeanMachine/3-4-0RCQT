@@ -192,7 +192,7 @@ module.exports = class Category {
 			SELECT * FROM category;`
 
 		const data = await this.db.all(sql)
-		if(Object.keys(data).length === 0) throw new Error('No categories found')
+
 		const result = { categories: [] }
 		for(let i = 0; i < Object.keys(data).length; i++) {
 			const curCat = await this.getCategoryByID(data[i].ID)//Retrieve full information

@@ -205,7 +205,5 @@ module.exports = class User {
 		}
 	}
 
-	async tearDown() {
-		await this.db.close()
-	}
+
 }
