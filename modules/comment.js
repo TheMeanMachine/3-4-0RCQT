@@ -35,7 +35,18 @@ module.exports = class Review {
             ${reviewID},${userID},"${fullText}");`
 
 		const result = await this.db.run(sql)
-		console.log(result)
+
 		return result.lastID
 	}
+
+	async deleteCommentByID(commentID) {
+		this.validator.checkID(commentID, 'commentID')
+
+		const sql = `DELETE FROM comments
+		WHERE ID = ${commentID};`
+
+		await this.db.run(sql)
+	}
+
+
 }
