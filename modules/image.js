@@ -4,7 +4,8 @@
 const mime = require('mime-types')
 const sqlite = require('sqlite-async')
 const fs = require('fs-extra')
-//const sharp = require('sharp')
+
+const sharp = require('sharp')
 //Custom modules
 const valid = require('./validator')
 
@@ -53,11 +54,16 @@ module.exports = class image {
 		const extension = mime.extension(mimeType)
 
 		let sql = `SELECT COUNT(id) as records FROM gamePhoto WHERE gameID="${gameID}";`
-		const data = await this.db.get(sql)//Set to the amount of pictures saved
+		const sqlReturn = await this.db.get(sql)//Set to the amount of pictures saved
 
-		const picPath = `game/${gameID}/picture_${data.records}.${extension}`
+		const picPath = `game/${gameID}/picture_${sqlReturn.records}.${extension}`
+		const resizeAmt = 300
+		await sharp(path)
+			.resize(resizeAmt, resizeAmt)
+	  		.toFile(`public/${ picPath}`)
+	  	.catch((err) => console.log(err))
 
-		await fs.copy(path, `public/${ picPath}`)
+		//await fs.copy(path, `public/${ picPath}`)
 
 		sql = `INSERT INTO gamePhoto (gameID, picture) VALUES(
             ${gameID},"${picPath}")`
@@ -77,16 +83,20 @@ module.exports = class image {
 		const extension = mime.extension(mimeType)
 
 		let sql = `SELECT COUNT(id) as records FROM reviewScreenshot WHERE reviewID="${reviewID}";`
-		const data = await this.db.get(sql)//Set to the amount of pictures saved
+		const sqlReturn = await this.db.get(sql)//Set to the amount of pictures saved
 
-		const picPath = `review/${reviewID}/picture_${data.records}.${extension}`
+		const picPath = `review/${reviewID}/picture_${sqlReturn.records}.${extension}`
+		const resizeAmt = 300
 
-		await fs.copy(path, `public/${ picPath}`)
+		await sharp(path)
+  			  .resize(resizeAmt, resizeAmt)
+			  .toFile(`public/${ picPath}`)
+			  .catch((err) => console.log(err))
 
+		//await fs.copy(path, `public/${ picPath}`)
 		sql = `INSERT INTO reviewScreenshot (reviewID, picture) VALUES(
-            ${reviewID},"${picPath}")`
+		${reviewID},"${picPath}")`
 		await this.db.run(sql)
-
 		return true
 
 	}
