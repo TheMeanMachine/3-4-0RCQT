@@ -4,7 +4,7 @@ const sqlite = require('sqlite-async')
 //Custom modules
 const valid = require('./validator')
 
-module.exports = class Review {
+module.exports = class Comment {
 	constructor(dbName) {
 		this.validator = new valid()
 
@@ -46,7 +46,22 @@ module.exports = class Review {
 		WHERE ID = ${commentID};`
 
 		await this.db.run(sql)
+
+		return true
 	}
 
+	async getCommentsByReviewID(reviewID) {
+		this.validator.checkID(reviewID, 'reviewID')
 
+		const sql = `SELECT * FROM comments
+		WHERE reviewID = ${reviewID};`
+
+		const data = await this.db.all(sql)
+
+		const result = {comments: []}
+		for(let i = 0; i < Object.keys(data).length; i++) {
+			result.comments.push(data[i])
+		}
+		return result
+	}
 }
