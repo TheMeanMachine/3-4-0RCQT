@@ -141,7 +141,6 @@ module.exports = class Game {
 				pictures: (await this.image.getPicturesByGameID(ID)).pictures,
 				avgRating: Math.round(await this.review.getAverageRating(ID))
 			}
-			console.log(data)
 			return data
 		} catch(err) {
 			throw err
