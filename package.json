@@ -31,6 +31,8 @@
     "koa-static": "^5.0.0",
     "koa-views": "^6.1.5",
     "mime-types": "^2.1.22",
+    "puppeteer": "^2.0.0",
+    "puppeteer-har": "^1.1.1",
     "remark-cli": "^7.0.0",
     "remark-lint": "^6.0.5",
     "remark-preset-lint-markdown-style-guide": "^2.1.3",

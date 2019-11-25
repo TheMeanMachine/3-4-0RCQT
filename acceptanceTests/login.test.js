@@ -41,7 +41,8 @@ describe('Registering', () => {
 	test('Register a user', async done => {
 		//start generating a trace file.
 		await page.tracing.start({path: 'trace/registering_user_har.json',screenshots: true})
-		await har.start({path: 'trace/registering_user_trace.har'})
+		await har.start({path: 'trace/results.har'})
+
 		//ARRANGE
 		await page.goto('http://localhost:8080/register', { timeout: 30000, waitUntil: 'load' })
 		//ACT
@@ -55,12 +56,14 @@ describe('Registering', () => {
 		//ASSERT
 		//check that the user is taken to the homepage after attempting to login as the new user:
 		await page.waitForSelector('h1')
+
 		expect( await page.evaluate( () => document.querySelector('h1').innerText ) )
 			.toBe('Home')
 
 		// grab a screenshot
 		const image = await page.screenshot()
 		// compare to the screenshot from the previous test run
+
 		expect(image).toMatchImageSnapshot()
 		// stop logging to the trace files
 		await page.tracing.stop()
