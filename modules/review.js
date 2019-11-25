@@ -3,7 +3,7 @@
 const sqlite = require('sqlite-async')
 //Custom modules
 const valid = require('./validator')
-
+const Comments = require('./comment')
 const Users = require('./user')
 const Image = require('./image')
 
@@ -17,6 +17,7 @@ module.exports = class Review {
 			this.db = await sqlite.open(this.dbName)
 			this.users = await new Users(this.dbName)
 			this.image = await new Image(this.dbName)
+			this.comments = await new Comments(this.dbName)
 			const sql =
 			[`CREATE TABLE IF NOT EXISTS reviewScreenshot(ID INTEGER PRIMARY KEY AUTOINCREMENT,
 				reviewID INTEGER,picture TEXT, FOREIGN KEY (reviewID) REFERENCES review(ID));`,`
@@ -124,7 +125,6 @@ module.exports = class Review {
 		UPDATE review 
 		SET flag = ${publish}
 		WHERE ID = ${reviewID};`
-		console.log(sql)
 		await this.db.run(sql)
 
 		return true
@@ -217,20 +217,20 @@ module.exports = class Review {
 		this.validator.checkID(gameID, 'gameID')
 		this.validator.checkID(userID, 'userID')
 
-		const sql = `SELECT * FROM review
-		WHERE gameID = ${gameID};`
+		const sql = `SELECT * FROM review WHERE gameID = ${gameID};`
 
 		const data = await this.db.all(sql)
-		const amtReviews = Object.keys(data).length
-		const result = {reviews: [], count: amtReviews, reviewIDs: []}
-		for(let i = 0; i < amtReviews; i++) {
+
+		const result = {reviews: [], count: Object.keys(data).length, reviewIDs: []}
+		for(let i = 0; i < Object.keys(data).length; i++) {
 			result.reviewIDs.push(data[i].ID)
+			data[i].comments = (await this.comments.getCommentsByReviewID(data[i].ID)).comments
+			data[i].pictures = (await this.image.getPicturesByReviewID(data[i].ID)).pictures
 			if(userID === data[i].userID) {
 				result.userReview = data[i]
-				result.userReview.pictures = (await this.image.getPicturesByReviewID(result.userReview.ID)).pictures
 				continue
 			}
-			data[i].pictures = (await this.image.getPicturesByReviewID(data[i].ID)).pictures
+
 			if(admin || data[i].flag === 1) result.reviews.push(data[i])//Remove unchecked reviews, unless admin
 
 		}
