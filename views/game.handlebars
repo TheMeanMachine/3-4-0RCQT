@@ -273,7 +273,28 @@
                             <p>User: {{this.userID}}</p>
                             <p id="comment{{this.ID}}">{{this.fullText}}</p>
 
-                            
+                            {{#if_EqOREq @root.admin @root.userID this.userID}}
+                                <form action="/commentDelete" method="POST">
+                                    <table class="userAdminPanel">
+                                        <tr>
+                                            <th>Delete?</th>
+                                        </tr>
+                                        <tr>
+                                            <th>
+                                                <input type="text" name="gameID" value="{{@root.game.ID}}" style="display:none">
+                                                <input type="text" name="commentID" value="{{this.ID}}" style="display:none">
+                                                <input type="checkbox" name="delete" value="true" id="commentDelete{{this.ID}}">
+                                            </th>
+                                        </tr>
+                                        <tr>
+                                            <th colspan="2">
+                                                <button type="submit" id="commentDelete{{this.ID}}">SUBMIT</button>
+                                            </th>
+                                        </tr>
+                                    
+                                    </table>
+                                </form>
+                            {{/if_EqOREq}}
                         </div>
                     </div>
                 {{/each}}
@@ -310,7 +331,22 @@
                             <p>User: {{this.userID}}</p>
                             <p>Rating: {{this.rating}}</p>
                             <p>Review: {{this.fullText}}</p>
-                            
+                            <form action="/addComment" method="post" id="commentReview{{this.ID}}"> 
+                                <h4>Add comment</h4>
+                                <textarea rows="2" cols="50" name="fullText" form="commentReview{{this.ID}}" placeholder="Write your review"></textarea>
+                                <br>
+                                
+                                <input type="text" name="gameID" value="{{@root.game.ID}}" style="display:none">
+                                <input type="text" name="reviewID" value="{{this.ID}}" style="display:none">
+
+                                
+                                <br>
+                                <button type="submit" class="" id="commentSubmit{{this.ID}}"> 
+                                    SUBMIT COMMENT
+                                </button>
+
+
+                            </form>
                             {{#if @root.admin}}
                                 <form action="/reviewAdminUpdate" method="POST">
 
@@ -349,7 +385,37 @@
                                     </table>
                                 </form>
                             {{/if}}
-                           
+                           {{#each this.comments}}
+                                <div class="reviewCard">
+                                    <div class="reviewCardInner" >
+                                        <p>User: {{this.userID}}</p>
+                                        <p id="comment{{this.ID}}">{{this.fullText}}</p>
+    
+                                        {{#if_EqOREq @root.admin @root.userID this.userID}}
+                                        <form action="/commentDelete" method="POST">
+                                            <table class="userAdminPanel">
+                                                <tr>
+                                                    <th>Delete?</th>
+                                                </tr>
+                                                <tr>
+                                                    <th>
+                                                        <input type="text" name="gameID" value="{{@root.game.ID}}" style="display:none">
+                                                        <input type="text" name="commentID" value="{{this.ID}}" style="display:none">
+                                                        <input type="checkbox" name="delete" value="true" id="commentDelete{{this.ID}}">
+                                                    </th>
+                                                </tr>
+                                                <tr>
+                                                    <th colspan="2">
+                                                        <button type="submit" id="commentDelete{{this.ID}}">SUBMIT</button>
+                                                    </th>
+                                                </tr>
+                                            
+                                            </table>
+                                        </form>
+                                        {{/if_EqOREq}}
+                                    </div>
+                                </div>
+                            {{/each}}
                         </div>
                     </div>
                     {{/if_EqOREq}}

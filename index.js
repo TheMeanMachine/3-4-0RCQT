@@ -286,6 +286,25 @@ router.post('/deleteGame', async ctx => {
 	}
 })
 
+router.post('/commentDelete', async ctx => {
+	try{
+		// extract the data from the request
+		const body = ctx.request.body
+		if(ctx.session.authorised !== true)return ctx.redirect('/login?msg=you need to log in')
+		// call the functions in the module
+		const comment = await new Comment(dbName)
+
+		const gameID = body.gameID
+
+		if(body.delete) await comment.deleteCommentByID(body.commentID)
+
+		//refresh
+		ctx.redirect(`game?gameID=${gameID}`)
+	} catch(err) {
+		await ctx.render('error', {message: err.message})
+	}
+})
+
 
 /**
  * Script to remove a category to a game
