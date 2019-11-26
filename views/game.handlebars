@@ -103,6 +103,7 @@
                 
                 <p>{{game.desc}}</p>
                 <p>Average rating: {{averageRating}} / 5</p>
+                <div id="categoryContent">
                 {{#if game.category}}
                     <div class="bubbles">
                     {{#each game.category}}
@@ -122,7 +123,7 @@
                     {{/each}}
                     </div>
                 {{/if}}
-                
+                </div>
                 {{#if game.otherCategories}}
                     {{#if @root.admin}}
                     <form action="addCategoryToGame" method="POST">
@@ -135,7 +136,7 @@
                         </select>
                         <input type="text" name="gameID" value="{{game.ID}}" style="display:none">
                         
-                        <button type="submit" class="">
+                        <button type="submit" id="addCategorySubmit" class="">
                             Add category
                         </button>
                     </form>
