@@ -80,7 +80,6 @@ describe('Adding Category', () => {
 		expect( await page.evaluate( () => document.querySelector('select[name=category]').children.length ) )
 			.toBe(2)
 
-		await page.goto('http://localhost:8080/logout', { timeout: 30000, waitUntil: 'load' })
 		// grab a screenshot
 		const image = await page.screenshot()
 		// compare to the screenshot from the previous test run
