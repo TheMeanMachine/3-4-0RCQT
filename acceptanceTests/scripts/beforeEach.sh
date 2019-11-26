@@ -3,7 +3,7 @@
 set -e
 echo beforeEach
 #Delete the database files.
-FILE=website.db
+FILE=gameReview.db
 if test -f "$FILE"; then
-    rm -rf website.db
+    rm -rf gameReview.db
 fi
