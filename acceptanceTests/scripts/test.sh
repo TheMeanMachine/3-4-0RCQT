@@ -1,7 +1,7 @@
 #!/usr/bin/env bash
 
 set -e
-echo hello
+echo acceptanceTests running
 mkdir -p screenshots
 mkdir -p trace
 # [ ! -d "node_modules" ] && echo "INSTALLING MODULES" && npm install

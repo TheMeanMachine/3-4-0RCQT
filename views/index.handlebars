@@ -57,12 +57,13 @@
 				<br>
 				<p></p>
 				<input type="text" name="gameSearch" placeholder="Search a game..." value="{{@root.search}}">
-				<button type="submit">
+				<button type="submit" id="submitSearch">
 					Search
 				</button>
 			</form>
+			<div id="games">
 			{{#each games}}
-				<div class="cardOuter">
+				<div class="cardOuter" id="game{{this.ID}}">
 					<a href="/game?gameID={{this.ID}}">
 					<div class="cardImg">
 						{{#if this.pictures}}
@@ -86,7 +87,7 @@
 							{{/each}}
 						</div>
 						{{/if}}
-						<h2>{{this.title}}</h2>
+						<h2 id="gameTitle{{this.ID}}">{{this.title}}</h2>
 						<p>{{this.summary}}</p>
 						<p>Rating: {{this.avgRating}} / 5</p>
 
@@ -107,6 +108,8 @@
 				</div>
 				
 			{{/each}}
+			</div>
+
 			<br>
 			<div class="optionsContainer">
 				<div class="optionsOuter">
