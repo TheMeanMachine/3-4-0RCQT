@@ -44,6 +44,10 @@ a:active {
   
 }
 
+.userAdminPanel{
+  margin: 0 auto;
+}
+
 .options{
   background: whitesmoke;
   border-radius: 10px;
