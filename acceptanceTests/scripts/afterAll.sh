@@ -2,6 +2,7 @@
 
 set -e
 echo afterAll
+
 #Delete the databases that were used for the acceptance testing.
 FILE=gameReview.db
 if test -f "$FILE"; then
