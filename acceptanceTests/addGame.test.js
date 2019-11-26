@@ -40,7 +40,7 @@ beforeEach(async() => {
 describe('Adding game', () => {
 	test('Add game', async done => {
 		//start generating a trace file.
-		await page.tracing.start({path: 'trace/registering_user_har.json',screenshots: true})
+		await page.tracing.start({path: 'trace/add_game_har.json',screenshots: true})
 		await har.start({path: 'trace/results.har'})
 
 		//ARRANGE
