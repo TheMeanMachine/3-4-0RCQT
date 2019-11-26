@@ -20,6 +20,7 @@ const Games = require('./modules/game')
 const Category = require('./modules/category')
 const Publisher = require('./modules/publisher')
 const Image = require('./modules/image')
+const Comment = require('./modules/comment')
 const app = new Koa()
 const router = new Router()
 
@@ -171,7 +172,7 @@ router.get('/game', async ctx => {
 		const ratingsReviews = [{value: 1},{value: 2},{value: 3},{value: 4},{value: 5}]//Set ratings
 		//Render game main page
 		await ctx.render('game', {game: thisGame,admin: ctx.session.admin,ratingsReview: ratingsReviews,
-			allReview: reviews.reviews,userReview: reviews.userReview,
+			allReview: reviews.reviews,userReview: reviews.userReview, userID: ctx.session.userID,
 			averageRating: Math.round(thisGame.avgRating),helpers})
 	} catch(err) {
 		await ctx.render('error', {message: err.message})
@@ -231,6 +232,26 @@ router.post('/reviewAdminUpdate', async ctx => {
 		}else{
 			await review.publishReview(reviewID, body.flag )
 		}
+
+		ctx.redirect(`game?gameID=${gameID}`)
+	} catch(err) {
+		await ctx.render('error', {message: err.message})
+	}
+})
+
+router.post('/addComment', async ctx => {
+	try{
+		// extract the data from the request
+		const body = ctx.request.body
+		if(ctx.session.authorised !== true)return ctx.redirect('/login?msg=you need to log in')
+		// call the functions in the module
+		const comment = await new Comment(dbName)
+
+		const gameID = body.gameID
+		const reviewID = body.reviewID
+
+		await comment.addComment(reviewID,ctx.session.userID, body.fullText)
+
 
 		ctx.redirect(`game?gameID=${gameID}`)
 	} catch(err) {

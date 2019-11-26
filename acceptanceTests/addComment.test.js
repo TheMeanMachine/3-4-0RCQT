@@ -67,13 +67,13 @@ describe('Adding review', () => {
 		await page.type('textarea[form=review]', 'Fulltext is here', {delay: 20})
 		await page.click('button[id=reviewSubmit]')
 
-		await page.type('textarea[form=comment]', 'Comment is here', {delay: 20})
+		await page.type('textarea[form=userComment]', 'Comment is here', {delay: 20})
 		await page.click('button[id=commentSubmit]')
 		//ASSERT
 		//check that the user is taken to the homepage after attempting to login as the new user:
-		await page.waitForSelector('textarea[form=comment]')
+		await page.waitForSelector('p[id=comment1]')
 
-		expect( await page.evaluate( () => document.querySelector('textarea[form=comment]').value ) )
+		expect( await page.evaluate( () => document.querySelector('p[id=comment1]').innerHTML ) )
 			.toBe('Comment is here')
 
 
