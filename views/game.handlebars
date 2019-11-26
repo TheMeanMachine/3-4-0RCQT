@@ -176,12 +176,28 @@
                         </label>
                         {{/each}}
                         <br>
-                        <input type="text" name="gameID" value="{{game.ID}}" style="display:none">
+                        <input type="text" name="gameID" value="{{@root.game.ID}}" style="display:none">
 
                     </div>  
                     <br>
-                    <button type="submit" class="">
+                    <button type="submit" class="" id="reviewSubmit">
                         UPDATE REVIEW
+                    </button>
+
+                    
+                </form>
+                <form action="/addComment" method="post" id="userComment"> 
+                    <h4>Add comment</h4>
+                    <textarea rows="2" cols="50" name="fullText" form="userComment" placeholder="Write your review"></textarea>
+                    <br>
+                    
+                    <input type="text" name="gameID" value="{{@root.game.ID}}" style="display:none">
+                    <input type="text" name="reviewID" value="{{@root.userReview.ID}}" style="display:none">
+
+                    
+                    <br>
+                    <button type="submit" class="" id="commentSubmit"> 
+                        SUBMIT COMMENT
                     </button>
 
 
@@ -242,7 +258,7 @@
 
                     </div>  
                     <br>
-                    <button type="submit" class="">
+                    <button type="submit" class="" id="reviewSubmit">
                         SUBMIT REVIEW
                     </button>
 
@@ -250,6 +266,17 @@
                 </form>
                 {{/if}}
                 
+                
+                {{#each userReview.comments}}
+                    <div class="reviewCard">
+                        <div class="reviewCardInner" >
+                            <p>User: {{this.userID}}</p>
+                            <p id="comment{{this.ID}}">{{this.fullText}}</p>
+
+                            
+                        </div>
+                    </div>
+                {{/each}}
                 
                 <hr>
 
@@ -322,6 +349,7 @@
                                     </table>
                                 </form>
                             {{/if}}
+                           
                         </div>
                     </div>
                     {{/if_EqOREq}}
