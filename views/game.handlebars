@@ -333,7 +333,7 @@
                             <p>Review: {{this.fullText}}</p>
                             <form action="/addComment" method="post" id="commentReview{{this.ID}}"> 
                                 <h4>Add comment</h4>
-                                <textarea rows="2" cols="50" name="fullText" form="commentReview{{this.ID}}" placeholder="Write your review"></textarea>
+                                <textarea rows="2" cols="50" name="fullText" form="commentReview{{this.ID}}" placeholder="Write your comment"></textarea>
                                 <br>
                                 
                                 <input type="text" name="gameID" value="{{@root.game.ID}}" style="display:none">
