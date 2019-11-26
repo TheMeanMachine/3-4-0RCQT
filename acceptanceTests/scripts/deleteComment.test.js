@@ -73,11 +73,9 @@ describe('Adding review', () => {
 		await page.click('input[id=commentDelete1]')
 		await page.click('button[id=commentDelete1]')
 		//ASSERT
-		//check that the user is taken to the homepage after attempting to login as the new user:
-		await page.waitForSelector('p[id=comment1]')
 
-		expect( await page.evaluate( () => document.querySelector('p[id=comment1]').innerHTML ) )
-			.toBe(undefined)
+		expect( await page.evaluate( () => document.querySelector('p[id=comment1]') ) )
+			.toBe(null)
 
 
 		// grab a screenshot
