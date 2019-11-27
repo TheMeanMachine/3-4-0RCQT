@@ -7,15 +7,29 @@
 		<title>Create an Account</title>
 		<meta name="description" content="form to add new books">
 		<meta name="author" content="Mark Tyers">
-		<link href="style.css" type="text/css" rel="stylesheet" />
+		<link href="/style.css" type="text/css" rel="stylesheet" />
 	</head>
-	<body>
+	<body class="whiteText">
+		<div class="backgroundImg"></div>
 		<h1>Create an Account</h1>
+		{{#if msg}}
+ 			<p class="msg">{{msg}}</p>
+		{{/if}}
+		<div class="loginForm">
 		<form action="/register" enctype="multipart/form-data" method="post">
-			<p>Username:<br /><input type="text" name="user" placeholder="your preferred username (no spaces)" value=""></p>
-            <p>Password:<br /><input type="password" name="pass" placeholder="your chosen password" value=""></p>
-			<p>Profile Picture:<br /><input type="file" name="avatar"></p>
-			<p><input type="submit" value="Create"></p>
+			<p>Username:<br /><input type="text" name="user" class="loginInput" placeholder="Your preferred username (no spaces)" value=""></p>
+            <p>Password:<br /><input type="password" name="pass" class="loginInput" placeholder="Your chosen password" value=""></p>
+			<p>Profile Picture:<br /><input type="file" class="loginInput" name="avatar"></p>
+			<p><input type="submit" value="Create" class="loginSubmit"></p>
 		</form>
+		
+		<a href="/login">
+		<button class="loginSubmit" id="secondary">
+			<span>
+				Login
+			</span>
+		</button>
+		</a>
+		</div>
 	</body>
 </html>
