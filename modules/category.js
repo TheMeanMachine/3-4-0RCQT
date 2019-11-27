@@ -14,7 +14,7 @@ module.exports = class Category {
 		return (async() => {
 			this.dbName = dbName || ':memory:'
 			this.db = await sqlite.open(this.dbName)
-			this.game = await new Games(this.dbName)
+
 			const sql =
 			[`CREATE TABLE IF NOT EXISTS game_category
 			(ID INTEGER PRIMARY KEY AUTOINCREMENT,gameID INTEGER,categoryID INTEGER,
@@ -252,9 +252,10 @@ module.exports = class Category {
 		const categories = await this.db.all(sql)
 
 		const result = { games: []}
+		const game = await new Games(this.dbName)
 		for(let i = 0; i < Object.keys(categories).length; i++) {
 
-			const gameData = await this.game.getGameByID(categories[i].gameID)
+			const gameData = await game.getGameByID(categories[i].gameID)
 			result.games.push(gameData)
 
 		}
