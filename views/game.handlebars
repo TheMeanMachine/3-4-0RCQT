@@ -57,19 +57,20 @@
                 {{/if}}
             </div>
             <div class="card">
+                <div id="publishersContent">
                 {{#if game.publishers}}
                 <p>Publishers</p>
                     <div class="bubbles">
                     {{#each game.publishers}}
                         <div class="bubble_long">
-                            <div class="bubble_longInner">
-                                {{this.name}}
+                            <div class="bubble_longInner" id="publisherOnGame{{this.ID}}">
+                                <span id="publisherOnGameName{{this.ID}}">{{this.name}}</span>
                             </div>
                             {{#if @root.admin}}
                             <form action="/removePublisherFromGame" method="POST" class="actionForm">
                                 <input type="text" name="gameID" value="{{@root.game.ID}}" style="display:none">
                                 <input type="text" name="publisherID" value="{{this.publisherID}}" style="display:none">
-                                <button type="submit" class="bubbleAction">X</button>  
+                                <button type="submit" class="bubbleAction" id="removePublisherSubmit">X</button>  
                             </form>
                             {{/if}}
                         </div>
@@ -77,6 +78,7 @@
                     {{/each}}
                     </div>
                 {{/if}}
+                </div>
                 
                 {{#if game.otherPublishers}}
                     {{#if @root.admin}}
@@ -90,7 +92,7 @@
                         </select>
                         <input type="text" name="gameID" value="{{game.ID}}" style="display:none">
                         
-                        <button type="submit" class="">
+                        <button type="submit" class="" id="addPublisherSubmit">
                             Add publisher
                         </button>
                     </form>
@@ -101,6 +103,7 @@
                 
                 <p>{{game.desc}}</p>
                 <p>Average rating: {{averageRating}} / 5</p>
+                <div id="categoryContent">
                 {{#if game.category}}
                     <div class="bubbles">
                     {{#each game.category}}
@@ -112,7 +115,7 @@
                             <form action="/removeCategoryFromGame" method="POST" class="actionForm">
                                 <input type="text" name="gameID" value="{{@root.game.ID}}" style="display:none">
                                 <input type="text" name="categoryID" value="{{this.categoryID}}" style="display:none">
-                                <button type="submit" class="bubbleAction">X</button>  
+                                <button type="submit" class="bubbleAction" id="removeCategoryButton">X</button>  
                             </form>
                             {{/if}}
                         </div>
@@ -120,7 +123,7 @@
                     {{/each}}
                     </div>
                 {{/if}}
-                
+                </div>
                 {{#if game.otherCategories}}
                     {{#if @root.admin}}
                     <form action="addCategoryToGame" method="POST">
@@ -133,7 +136,7 @@
                         </select>
                         <input type="text" name="gameID" value="{{game.ID}}" style="display:none">
                         
-                        <button type="submit" class="">
+                        <button type="submit" id="addCategorySubmit" class="">
                             Add category
                         </button>
                     </form>
@@ -170,7 +173,7 @@
                         Rating<br>
                         {{#each ratingsReview}}
                         <label>
-                            <input type="radio" name="rating" value="{{this.value}}"
+                            <input type="radio" id="rating{{this.value}}" name="rating" value="{{this.value}}"
                                 {{#if_eq this.value @root.userReview.rating}} checked="checked" {{/if_eq}}
                             > {{this.value}}
                         </label>
@@ -249,7 +252,7 @@
                         Rating<br>
                         {{#each ratingsReview}}
                         <label>
-                            <input type="radio" name="rating" value="{{this.value}}"
+                            <input type="radio" name="rating" id="rating{{this.value}}" value="{{this.value}}"
                                 {{#if_eq this.value 1}} checked="checked" {{/if_eq}}> {{this.value}}
                         </label>
                         {{/each}}

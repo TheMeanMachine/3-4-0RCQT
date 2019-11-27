@@ -38,24 +38,39 @@ beforeEach(async() => {
 	await shell.exec('acceptanceTests/scripts/beforeEach.sh')
 })
 
-describe('Adding game', () => {
-	test('Add game', async done => {
+describe('Adding Category', () => {
+	test('Add Category', async done => {
 		//start generating a trace file.
-		await page.tracing.start({path: 'trace/registering_user_har.json',screenshots: true})
+		await page.tracing.start({path: 'trace/addComment.json',screenshots: true})
+
 		await har.start({path: 'trace/results.har'})
 
 		//ARRANGE
 		await page.goto('http://localhost:8080/register', { timeout: 30000, waitUntil: 'load' })
+
+		const db = await sqlite.open('gameReview.db')
+
 		//ACT
 		await page.type('input[name=user]', 'NewUser')
 		await page.type('input[name=pass]', 'password')
 		await page.click('input[type=submit]')
+
+
+
+		const sql = `UPDATE user
+            SET roleID = 2
+            WHERE username = 'NewUser';`
+		await db.run(sql)//Sets to admin
+
+		const sql1 = 'SELECT * FROM user;'
+		console.log(await db.all(sql1))
 
 		const db = await sqlite.open('gameReview.db')
 		const sql = `UPDATE user
             SET roleID = 2
             WHERE ID = 1`
 		await db.run(sql)//Sets to admin
+
 
 		await page.goto('http://localhost:8080/login', { timeout: 30000, waitUntil: 'load' })
 		await page.type('input[name=user]', 'NewUser')
@@ -75,7 +90,6 @@ describe('Adding game', () => {
 
 		expect( await page.evaluate( () => document.querySelector('select[name=category]').children.length ) )
 			.toBe(2)
-
 
 		// grab a screenshot
 		const image = await page.screenshot()
