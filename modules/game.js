@@ -6,6 +6,7 @@ const sqlite = require('sqlite-async')
 const valid = require('./validator')
 const Image = require('./image')
 const Review = require('./review')
+const Publisher = require('./publisher')
 module.exports = class Game {
 	// eslint-disable-next-line max-lines-per-function
 	constructor(dbName) {
@@ -15,6 +16,7 @@ module.exports = class Game {
 			this.dbName = dbName || ':memory:'
 			this.image = await new Image(this.dbName)
 			this.review = await new Review(this.dbName)
+			this.publisher = await new Publisher(this.dbName)
 			this.db = await sqlite.open(this.dbName)
 
 			const sql =[`CREATE TABLE IF NOT EXISTS game(ID INTEGER PRIMARY KEY AUTOINCREMENT,
@@ -139,7 +141,8 @@ module.exports = class Game {
 				summary: records.summary,
 				desc: records.desc,
 				pictures: (await this.image.getPicturesByGameID(ID)).pictures,
-				avgRating: Math.round(await this.review.getAverageRating(ID))
+				avgRating: Math.round(await this.review.getAverageRating(ID)),
+				publishers: (await this.publisher.getPublishers(ID)).publishers
 			}
 			return data
 		} catch(err) {
@@ -160,6 +163,7 @@ module.exports = class Game {
 		for(let i = 0; i < Object.keys(data).length; i++) {
 			data[i].pictures =(await this.image.getPicturesByGameID(data[i].ID)).pictures//Get pictures for the game
 			data[i].avgRating = Math.round(await this.review.getAverageRating(data[i].ID))
+			data[i].publishers = (await this.publisher.getPublishers(data[i].ID)).publishers
 			result.games.push(data[i])
 		}
 
@@ -175,30 +179,29 @@ module.exports = class Game {
      * @returns object containing game information
      */
 	async getGameByTitle(title) {
-		try {
-			if(!this.validator.checkMultipleWordsOnlyAlphaNumberic(title)) throw new Error('Must supply a valid title')
 
-			let sql = `SELECT count(ID) AS count FROM game WHERE title = "${title}";`
-			let records = await this.db.get(sql)
-			if(records.count === 0) throw new Error(`Game: "${title}" not found`)
+		if(!this.validator.checkMultipleWordsOnlyAlphaNumberic(title)) throw new Error('Must supply a valid title')
+
+		let sql = `SELECT count(ID) AS count FROM game WHERE title = "${title}";`
+		let records = await this.db.get(sql)
+		if(records.count === 0) throw new Error(`Game: "${title}" not found`)
 
 
-			sql = `SELECT * FROM game WHERE title = "${title}";`
+		sql = `SELECT * FROM game WHERE title = "${title}";`
 
-			records = await this.db.get(sql)
+		records = await this.db.get(sql)
 
-			const data = {
-				ID: records.ID, title: title,
-				summary: records.summary,
-				desc: records.desc,
-				pictures: (await this.image.getPicturesByGameID(records.ID)).pictures,
-				avgRating: Math.round(await this.review.getAverageRating(records.ID))
-			}
-
-			return data
-		} catch(err) {
-			throw err
+		const data = {
+			ID: records.ID, title: title,
+			summary: records.summary,
+			desc: records.desc,
+			pictures: (await this.image.getPicturesByGameID(records.ID)).pictures,
+			avgRating: Math.round(await this.review.getAverageRating(records.ID)),
+			publishers: (await this.publisher.getPublishers(records.ID)).publishers
 		}
+
+		return data
+
 	}
 	/**
      * Function to get update game information based on an ID
