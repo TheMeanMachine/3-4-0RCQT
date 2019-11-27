@@ -37,10 +37,10 @@ beforeEach(async() => {
 	await shell.exec('acceptanceTests/scripts/beforeEach.sh')
 })
 
-describe('Deleting comment', () => {
-	test('Add game, add review, add comment, remove comment', async done => {
+describe('Rating game', () => {
+	test('Add game, add review, rate game', async done => {
 		//start generating a trace file.
-		await page.tracing.start({path: 'trace/deleteComment_har.json',screenshots: true})
+		await page.tracing.start({path: 'trace/rateGame_har.json',screenshots: true})
 		await har.start({path: 'trace/results.har'})
 
 		//ARRANGE
@@ -65,17 +65,13 @@ describe('Deleting comment', () => {
 		await page.goto('http://localhost:8080/game?gameID=1', { timeout: 30000, waitUntil: 'load' })
 
 		await page.type('textarea[form=review]', 'Fulltext is here', {delay: 20})
+		await page.click('input[id=rating4]')
 		await page.click('button[id=reviewSubmit]')
-
-		await page.type('textarea[form=userComment]', 'Comment is here', {delay: 20})
-		await page.click('button[id=commentSubmit]')
-
-		await page.click('input[id=commentDelete1]')
-		await page.click('button[id=commentDelete1]')
 		//ASSERT
+		await page.waitForSelector('input[id=rating4]')
 
-		expect( await page.evaluate( () => document.querySelector('p[id=comment1]') ) )
-			.toBe(null)
+		expect( await page.evaluate( () => document.querySelector('input[id=rating4]').checked ) )
+			.toBe(true)
 
 
 		// grab a screenshot

@@ -37,10 +37,10 @@ beforeEach(async() => {
 	await shell.exec('acceptanceTests/scripts/beforeEach.sh')
 })
 
-describe('Adding game', () => {
-	test('Add game', async done => {
+describe('Search game', () => {
+	test('Add 2 games, search for game', async done => {
 		//start generating a trace file.
-		await page.tracing.start({path: 'trace/registering_user_har.json',screenshots: true})
+		await page.tracing.start({path: 'trace/search_game_har.json',screenshots: true})
 		await har.start({path: 'trace/results.har'})
 
 		//ARRANGE

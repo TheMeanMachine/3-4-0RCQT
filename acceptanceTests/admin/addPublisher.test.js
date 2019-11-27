@@ -4,6 +4,7 @@ const puppeteer = require('puppeteer')
 const { configureToMatchImageSnapshot } = require('jest-image-snapshot')
 const PuppeteerHar = require('puppeteer-har')
 const shell = require('shelljs')
+const sqlite = require('sqlite-async')
 
 const width = 800
 const height = 600
@@ -37,47 +38,49 @@ beforeEach(async() => {
 	await shell.exec('acceptanceTests/scripts/beforeEach.sh')
 })
 
-describe('Deleting comment', () => {
-	test('Add game, add review, add comment, remove comment', async done => {
+describe('Adding publisher', () => {
+	test('Add publisher', async done => {
 		//start generating a trace file.
-		await page.tracing.start({path: 'trace/deleteComment_har.json',screenshots: true})
+		await page.tracing.start({path: 'trace/addPublisher.json',screenshots: true})
 		await har.start({path: 'trace/results.har'})
 
 		//ARRANGE
 		await page.goto('http://localhost:8080/register', { timeout: 30000, waitUntil: 'load' })
+		const db = await sqlite.open('gameReview.db')
 		//ACT
 		await page.type('input[name=user]', 'NewUser')
 		await page.type('input[name=pass]', 'password')
 		await page.click('input[type=submit]')
+
+
+		const sql = `UPDATE user
+            SET roleID = 2
+            WHERE username = 'NewUser';`
+		await db.run(sql)//Sets to admin
+
+		const sql1 = 'SELECT * FROM user;'
+		console.log(await db.all(sql1))
 
 		await page.goto('http://localhost:8080/login', { timeout: 30000, waitUntil: 'load' })
 		await page.type('input[name=user]', 'NewUser')
 		await page.type('input[name=pass]', 'password')
 		await page.click('input[type=submit]')
 
-		await page.goto('http://localhost:8080/newGame', { timeout: 30000, waitUntil: 'load' })
-		await page.type('input[name=title]', 'The world')
-
-		await page.type('textarea[name=summary]', 'Summary')
-		await page.type('textarea[name=desc]', 'Description')
+		await page.goto('http://localhost:8080/newPublisher', { timeout: 30000, waitUntil: 'load' })
+		await page.type('input[name=name]', 'Rocky')
 		await page.click('button[type=submit]')
 
-		await page.goto('http://localhost:8080/game?gameID=1', { timeout: 30000, waitUntil: 'load' })
+		await page.goto('http://localhost:8080/', { timeout: 30000, waitUntil: 'load' })
 
-		await page.type('textarea[form=review]', 'Fulltext is here', {delay: 20})
-		await page.click('button[id=reviewSubmit]')
 
-		await page.type('textarea[form=userComment]', 'Comment is here', {delay: 20})
-		await page.click('button[id=commentSubmit]')
-
-		await page.click('input[id=commentDelete1]')
-		await page.click('button[id=commentDelete1]')
 		//ASSERT
+		//check that the user is taken to the homepage after attempting to login as the new user:
+		await page.waitForSelector('select[name=publisher]')
 
-		expect( await page.evaluate( () => document.querySelector('p[id=comment1]') ) )
-			.toBe(null)
+		expect( await page.evaluate( () => document.querySelector('select[name=publisher]').children.length ) )
+			.toBe(2)
 
-
+		await page.goto('http://localhost:8080/logout', { timeout: 30000, waitUntil: 'load' })
 		// grab a screenshot
 		const image = await page.screenshot()
 		// compare to the screenshot from the previous test run
