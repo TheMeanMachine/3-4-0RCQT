@@ -79,13 +79,11 @@ router.get('/', async ctx => {
 
 		const categories = (await category.getAllCategories()).categories
 		const publishers = (await publisher.getAllPublishers()).publishers
-		for(let i = 0; i < gamesList.length; i++) {//Set the list of games with their pictures
-			gamesList[i].category = (await category.getCategories(gamesList[i].ID)).categories//Get all other categories
-			gamesList[i].publishers = (await publisher.getPublishers(gamesList[i].ID)).publishers
-		}
+
 		//Render the home page
 		await ctx.render('index', {games: gamesList,categories: categories,publishers: publishers,
-			selectedCat: ctx.request.query.category,selectedPub: ctx.request.query.publisher,helpers, admin: ctx.session.admin})
+			selectedCat: ctx.request.query.category,selectedPub: ctx.request.query.publisher,
+			helpers, admin: ctx.session.admin})
 	} catch(err) {
 		await ctx.render('error', {message: err.message})
 	}
@@ -99,10 +97,7 @@ router.get('/gameSearch', async ctx => {
 	const gamesList = (await games.searchGame(ctx.request.query.gameSearch)).games
 	const categories = (await category.getAllCategories()).categories
 	const publishers = (await publisher.getAllPublishers()).publishers
-	for(let i = 0; i < gamesList.length; i++) {//Set the list of games with their pictures
-		gamesList[i].category = (await category.getCategories(gamesList[i].ID)).categories//Get all other categories
-		gamesList[i].publishers = (await publisher.getPublishers(gamesList[i].ID)).publishers
-	}
+
 	await ctx.render('index', {games: gamesList,categories: categories,publishers: publishers,
 		selectedCat: ctx.request.query.category,search: ctx.request.query.gameSearch,
 		selectedPub: ctx.request.query.publisher,helpers, admin: ctx.session.admin})
@@ -116,10 +111,7 @@ router.get('/categorySearch', async ctx => {
 	const gamesList = (await category.getGamesOfCategory(ctx.request.query.category)).games
 	const categories = (await category.getAllCategories()).categories
 	const publishers = (await publisher.getAllPublishers()).publishers
-	for(let i = 0; i < gamesList.length; i++) {//Set the list of games with their pictures
-		gamesList[i].category = (await category.getCategories(gamesList[i].ID)).categories//Get all other categories
-		gamesList[i].publishers = (await publisher.getPublishers(gamesList[i].ID)).publishers
-	}
+
 	await ctx.render('index', {games: gamesList,categories: categories,publishers: publishers,
 		selectedCat: ctx.request.query.category,
 		selectedPub: ctx.request.query.publisher,helpers, admin: ctx.session.admin})
@@ -133,10 +125,6 @@ router.get('/publisherSearch', async ctx => {
 	const gamesList = (await publisher.getGamesOfPublisher(ctx.request.query.publisher)).games
 	const categories = (await category.getAllCategories()).categories
 	const publishers = (await publisher.getAllPublishers()).publishers
-	for(let i = 0; i < gamesList.length; i++) {//Set the list of games with their pictures
-		gamesList[i].category = (await category.getCategories(gamesList[i].ID)).categories//Get all other categories
-		gamesList[i].publishers = (await publisher.getPublishers(gamesList[i].ID)).publishers
-	}
 	await ctx.render('index', {games: gamesList,categories: categories,publishers: publishers,
 		selectedCat: ctx.request.query.category,
 		selectedPub: ctx.request.query.publisher,helpers, admin: ctx.session.admin})
