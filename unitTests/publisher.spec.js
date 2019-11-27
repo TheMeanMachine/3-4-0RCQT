@@ -2,14 +2,57 @@
 'use strict'
 
 const Publishers = require('../modules/publisher.js')
+const Games = require('../modules/game')
+
+let game
+let gameSpy
+let gamesList = {games: []}
+
+beforeEach(async() => {
+
+	//Mock Games
+	gamesList = {games: []}
+	game = await new Games()
+	gamesList.games.push()
+
+	gameSpy = jest.spyOn(game, 'addNewGame').mockImplementation((a,b,c) => {
+		gamesList.games.push(
+			{
+				ID: gamesList.games.length+1,
+				title: a,
+				summary: b,
+				desc: c
+			}
+		)
+
+		return true
+	})
+	gameSpy = jest.spyOn(game, 'getGameByTitle').mockImplementation((title) => {
+		for(let i = 0; i < gamesList.games.length; i++) {
+			if(gamesList.games[i].title === title) return gamesList.games[i]
+
+		}
+	})
+	gameSpy = jest.spyOn(Games.prototype, 'getGameByID').mockImplementation((ID) => {
+		for(let i = 0; i < gamesList.games.length; i++) {
+			if(gamesList.games[i].ID === ID) return gamesList.games[i]
+
+		}
+	})
+})
+
+afterEach(async() => {
+	gameSpy.mockRestore()
+})
 
 describe('game - publisher intergration', () => {
 
 	test('New games, adding into game_publisher', async done => {
 		expect.assertions(1)
 
+
 		const publisher = await new Publishers()
-		const game = publisher.game
+
 
 		const catID = await publisher.addPublisher('Runner')
 
@@ -23,12 +66,8 @@ describe('game - publisher intergration', () => {
 
 		expect(result).toMatchObject(
 			{
-				games: [
-					{
-						title: 'Red',
-						summary: 'Summary',
-						desc: 'Description'
-					}
+				gameID: [
+					2
 				]
 			}
 		)
@@ -39,7 +78,6 @@ describe('game - publisher intergration', () => {
 		expect.assertions(1)
 
 		const publisher = await new Publishers()
-		const game = publisher.game
 
 		const catID = await publisher.addPublisher('Rocky')
 
@@ -109,8 +147,6 @@ describe('getGamesOfPublisher()', () => {
 		expect.assertions(1)
 
 		const publisher = await new Publishers()
-		const game = publisher.game
-
 
 		const pubID = await publisher.addPublisher('Rockstar Games')
 		await publisher.addPublisher('Pop Star Games')
@@ -124,13 +160,7 @@ describe('getGamesOfPublisher()', () => {
 
 		expect(result).toMatchObject(
 			{
-				games: [
-					{
-						title: 'Red',
-						summary: 'Summary',
-						desc: 'Description'
-					}
-				]
+				gameID: [2]
 			}
 		)
 		done()
@@ -143,7 +173,6 @@ describe('unassociateToPublisher', () => {
 		expect.assertions(1)
 
 		const publisher = await new Publishers()
-		const game = publisher.game
 
 		const pubID = await publisher.addPublisher('Rocky Games')
 
@@ -166,7 +195,6 @@ describe('associateToPublisher()', () => {
 		expect.assertions(2)
 
 		const publisher = await new Publishers()
-		const game = publisher.game
 
 		await game.addNewGame(
 			'title',
@@ -191,7 +219,6 @@ describe('associateToPublisher()', () => {
 		expect.assertions(1)
 
 		const publisher = await new Publishers()
-		const game = publisher.game
 
 		await game.addNewGame(
 			'title',
@@ -210,7 +237,6 @@ describe('associateToPublisher()', () => {
 		expect.assertions(1)
 
 		const publisher = await new Publishers()
-		const game = publisher.game
 
 		await game.addNewGame(
 			'title',
@@ -229,7 +255,6 @@ describe('associateToPublisher()', () => {
 		expect.assertions(1)
 
 		const publisher = await new Publishers()
-		const game = publisher.game
 
 		await game.addNewGame(
 			'title',
@@ -248,7 +273,6 @@ describe('associateToPublisher()', () => {
 		expect.assertions(1)
 
 		const publisher = await new Publishers()
-		const game = publisher.game
 
 		await game.addNewGame(
 			'title',
@@ -270,7 +294,6 @@ describe('getPublishers()', () => {
 		expect.assertions(1)
 
 		const publisher = await new Publishers()
-		const game = publisher.game
 
 		await game.addNewGame(
 			'title',

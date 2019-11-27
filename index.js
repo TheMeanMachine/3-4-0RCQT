@@ -79,13 +79,11 @@ router.get('/', async ctx => {
 
 		const categories = (await category.getAllCategories()).categories
 		const publishers = (await publisher.getAllPublishers()).publishers
-		for(let i = 0; i < gamesList.length; i++) {//Set the list of games with their pictures
-			gamesList[i].category = (await category.getCategories(gamesList[i].ID)).categories//Get all other categories
-			gamesList[i].publishers = (await publisher.getPublishers(gamesList[i].ID)).publishers
-		}
+
 		//Render the home page
 		await ctx.render('index', {games: gamesList,categories: categories,publishers: publishers,
-			selectedCat: ctx.request.query.category,selectedPub: ctx.request.query.publisher,helpers, admin: ctx.session.admin})
+			selectedCat: ctx.request.query.category,selectedPub: ctx.request.query.publisher,
+			helpers, admin: ctx.session.admin})
 	} catch(err) {
 		await ctx.render('error', {message: err.message})
 	}
@@ -99,44 +97,34 @@ router.get('/gameSearch', async ctx => {
 	const gamesList = (await games.searchGame(ctx.request.query.gameSearch)).games
 	const categories = (await category.getAllCategories()).categories
 	const publishers = (await publisher.getAllPublishers()).publishers
-	for(let i = 0; i < gamesList.length; i++) {//Set the list of games with their pictures
-		gamesList[i].category = (await category.getCategories(gamesList[i].ID)).categories//Get all other categories
-		gamesList[i].publishers = (await publisher.getPublishers(gamesList[i].ID)).publishers
-	}
+
 	await ctx.render('index', {games: gamesList,categories: categories,publishers: publishers,
 		selectedCat: ctx.request.query.category,search: ctx.request.query.gameSearch,
 		selectedPub: ctx.request.query.publisher,helpers, admin: ctx.session.admin})
 })
 
 router.get('/categorySearch', async ctx => {
-
+	const games = await new Games(dbName)
 	const category = await new Category(dbName)
 	const publisher = await new Publisher(dbName)
 	if(!ctx.request.query.category) return ctx.redirect('/')
-	const gamesList = (await category.getGamesOfCategory(ctx.request.query.category)).games
+	const gamesList = (await games.getGamesOfCategory(ctx.request.query.category)).games
 	const categories = (await category.getAllCategories()).categories
 	const publishers = (await publisher.getAllPublishers()).publishers
-	for(let i = 0; i < gamesList.length; i++) {//Set the list of games with their pictures
-		gamesList[i].category = (await category.getCategories(gamesList[i].ID)).categories//Get all other categories
-		gamesList[i].publishers = (await publisher.getPublishers(gamesList[i].ID)).publishers
-	}
+
 	await ctx.render('index', {games: gamesList,categories: categories,publishers: publishers,
 		selectedCat: ctx.request.query.category,
 		selectedPub: ctx.request.query.publisher,helpers, admin: ctx.session.admin})
 })
 
 router.get('/publisherSearch', async ctx => {
-
+	const games = await new Games(dbName)
 	const category = await new Category(dbName)
 	const publisher = await new Publisher(dbName)
 	if(!ctx.request.query.publisher) return ctx.redirect('/')
-	const gamesList = (await publisher.getGamesOfPublisher(ctx.request.query.publisher)).games
+	const gamesList = (await games.getGamesOfPublisher(ctx.request.query.publisher)).games
 	const categories = (await category.getAllCategories()).categories
 	const publishers = (await publisher.getAllPublishers()).publishers
-	for(let i = 0; i < gamesList.length; i++) {//Set the list of games with their pictures
-		gamesList[i].category = (await category.getCategories(gamesList[i].ID)).categories//Get all other categories
-		gamesList[i].publishers = (await publisher.getPublishers(gamesList[i].ID)).publishers
-	}
 	await ctx.render('index', {games: gamesList,categories: categories,publishers: publishers,
 		selectedCat: ctx.request.query.category,
 		selectedPub: ctx.request.query.publisher,helpers, admin: ctx.session.admin})
@@ -446,6 +434,35 @@ router.get('/newGame', async ctx => {
 	}
 })
 
+router.get('/newCategory', async ctx => {
+	try {
+		if(ctx.session.authorised !== true || !ctx.session.admin)return ctx.redirect('/')
+
+		await ctx.render('addCategory', {
+			helpers
+		})
+	} catch(err) {
+		await ctx.render('error', {message: err.message})
+	}
+})
+
+router.post('/newCategory', async ctx => {
+	try {
+		// extract the data from the request
+		const body = ctx.request.body
+		if(ctx.session.authorised !== true || !ctx.session.admin)return ctx.redirect('/')
+		const category = await new Category(dbName)
+
+		//Add the new game
+		await category.addCategory(body.title)
+
+		//Go back to home
+		ctx.redirect('/')
+	} catch(err) {
+		await ctx.render('error', {message: err.message})
+	}
+})
+
 router.get('/newPublisher', async ctx => {
 	try {
 		if(ctx.session.authorised !== true || !ctx.session.admin)return ctx.redirect('/')
@@ -603,7 +620,6 @@ router.post('/register', koaBody, async ctx => {
 		// await user.uploadPicture(path, type)
 		// redirect to the home page
 		ctx.redirect(`/?msg=new user "${body.name}" added`)
-		return
 	} catch(err) {
 		await ctx.render('error', {message: err.message})
 	}
