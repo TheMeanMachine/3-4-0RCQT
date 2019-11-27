@@ -104,18 +104,6 @@ describe('getAllCategories()', () => {
 
 		done()
 	})
-
-	test('Error if no categories', async done => {
-		expect.assertions(1)
-
-		const category = await new Category()
-
-		await expect( category.getAllCategories() )
-			.rejects.toEqual(Error('No categories found'))
-
-
-		done()
-	})
 })
 
 describe('getGamesOfCategory()', () => {
