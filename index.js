@@ -446,35 +446,6 @@ router.get('/newGame', async ctx => {
 	}
 })
 
-router.get('/newCategory', async ctx => {
-	try {
-		if(ctx.session.authorised !== true || !ctx.session.admin)return ctx.redirect('/')
-
-		await ctx.render('addCategory', {
-			helpers
-		})
-	} catch(err) {
-		await ctx.render('error', {message: err.message})
-	}
-})
-
-router.post('/newCategory', async ctx => {
-	try {
-		// extract the data from the request
-		const body = ctx.request.body
-		if(ctx.session.authorised !== true || !ctx.session.admin)return ctx.redirect('/')
-		const category = await new Category(dbName)
-
-		//Add the new game
-		await category.addCategory(body.title)
-
-		//Go back to home
-		ctx.redirect('/')
-	} catch(err) {
-		await ctx.render('error', {message: err.message})
-	}
-})
-
 router.get('/newPublisher', async ctx => {
 	try {
 		if(ctx.session.authorised !== true || !ctx.session.admin)return ctx.redirect('/')
@@ -632,6 +603,7 @@ router.post('/register', koaBody, async ctx => {
 		// await user.uploadPicture(path, type)
 		// redirect to the home page
 		ctx.redirect(`/?msg=new user "${body.name}" added`)
+		return
 	} catch(err) {
 		await ctx.render('error', {message: err.message})
 	}
