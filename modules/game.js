@@ -6,6 +6,8 @@ const sqlite = require('sqlite-async')
 const valid = require('./validator')
 const Image = require('./image')
 const Review = require('./review')
+const Publishers = require('./publisher')
+const Category = require('./category')
 module.exports = class Game {
 	// eslint-disable-next-line max-lines-per-function
 	constructor(dbName) {
@@ -15,6 +17,7 @@ module.exports = class Game {
 			this.dbName = dbName || ':memory:'
 			this.image = await new Image(this.dbName)
 			this.review = await new Review(this.dbName)
+
 			this.db = await sqlite.open(this.dbName)
 
 			const sql =[`CREATE TABLE IF NOT EXISTS game(ID INTEGER PRIMARY KEY AUTOINCREMENT,
@@ -46,7 +49,7 @@ module.exports = class Game {
 		const data = await this.db.all(sql)
 		const result = { games: [] }
 		for(let i = 0; i < Object.keys(data).length; i++) {
-			data[i].pictures =(await this.image.getPicturesByGameID(data[i].ID)).pictures//Get pictures for the game
+			data[i] = await this.getGameByID(data[i].ID)
 			result.games.push(data[i])
 		}
 		return result
@@ -127,25 +130,62 @@ module.exports = class Game {
      * @returns object containing game information
      */
 	async getGameByID(ID) {
-		try {
-			this.validator.checkID(ID, 'ID')
 
-			const sql = `SELECT * FROM game WHERE ID = ${ID};`
-			const records = await this.db.get(sql)
+		this.validator.checkID(ID, 'ID')
 
-			const data = {
-				ID: ID,
-				title: records.title,
-				summary: records.summary,
-				desc: records.desc,
-				pictures: (await this.image.getPicturesByGameID(ID)).pictures,
-				avgRating: Math.round(await this.review.getAverageRating(ID))
-			}
-			return data
-		} catch(err) {
-			throw err
+		const sql = `SELECT * FROM game WHERE ID = ${ID};`
+		const records = await this.db.get(sql)
+		const publisher = await new Publishers(this.dbName)
+		const category = await new Category(this.dbName)
+		const data = {
+			ID: ID,
+			title: records.title,
+			summary: records.summary,
+			desc: records.desc,
+			pictures: (await this.image.getPicturesByGameID(ID)).pictures,
+			avgRating: Math.round(await this.review.getAverageRating(ID)),
+			publishers: (await publisher.getPublishers(ID)).publishers,
+			category: (await category.getCategories(ID)).categories
 		}
+		return data
+
 	}
+
+	async getGamesOfCategory(catID) {
+		this.validator.checkID(catID, 'catID')
+
+		const category = await new Category(this.dbName)
+		const gameIDs = (await category.getGamesOfCategory(catID)).gameID
+		const result = { games: []}
+
+		for(let i = 0; i < gameIDs.length; i++) {
+
+			const gameData = await this.getGameByID(gameIDs[i])
+			result.games.push(gameData)
+
+		}
+
+		return result
+	}
+
+	async getGamesOfPublisher(pubID) {
+		this.validator.checkID(pubID, 'pubID')
+
+		const publisher = await new Publishers(this.dbName)
+		const gameIDs = (await publisher.getGamesOfPublisher(pubID)).gameID
+		const result = { games: []}
+
+		for(let i = 0; i < gameIDs.length; i++) {
+
+			const gameData = await this.getGameByID(gameIDs[i])
+			result.games.push(gameData)
+
+		}
+
+		return result
+	}
+
+
 	/**
      * Function to get all games
      *
@@ -157,9 +197,13 @@ module.exports = class Game {
         SELECT * FROM game;`
 		const data = await this.db.all(sql)
 		const result = { games: [] }
+		const publisher = await new Publishers(this.dbName)
+		const category = await new Category(this.dbName)
 		for(let i = 0; i < Object.keys(data).length; i++) {
 			data[i].pictures =(await this.image.getPicturesByGameID(data[i].ID)).pictures//Get pictures for the game
 			data[i].avgRating = Math.round(await this.review.getAverageRating(data[i].ID))
+			data[i].publishers = (await publisher.getPublishers(data[i].ID)).publishers,
+			data[i].category = (await category.getCategories(data[i].ID)).categories
 			result.games.push(data[i])
 		}
 
@@ -175,30 +219,31 @@ module.exports = class Game {
      * @returns object containing game information
      */
 	async getGameByTitle(title) {
-		try {
-			if(!this.validator.checkMultipleWordsOnlyAlphaNumberic(title)) throw new Error('Must supply a valid title')
 
-			let sql = `SELECT count(ID) AS count FROM game WHERE title = "${title}";`
-			let records = await this.db.get(sql)
-			if(records.count === 0) throw new Error(`Game: "${title}" not found`)
+		if(!this.validator.checkMultipleWordsOnlyAlphaNumberic(title)) throw new Error('Must supply a valid title')
+
+		let sql = `SELECT count(ID) AS count FROM game WHERE title = "${title}";`
+		let records = await this.db.get(sql)
+		if(records.count === 0) throw new Error(`Game: "${title}" not found`)
 
 
-			sql = `SELECT * FROM game WHERE title = "${title}";`
+		sql = `SELECT * FROM game WHERE title = "${title}";`
 
-			records = await this.db.get(sql)
-
-			const data = {
-				ID: records.ID, title: title,
-				summary: records.summary,
-				desc: records.desc,
-				pictures: (await this.image.getPicturesByGameID(records.ID)).pictures,
-				avgRating: Math.round(await this.review.getAverageRating(records.ID))
-			}
-
-			return data
-		} catch(err) {
-			throw err
+		records = await this.db.get(sql)
+		const publisher = await new Publishers(this.dbName)
+		const category = await new Category(this.dbName)
+		const data = {
+			ID: records.ID, title: title,
+			summary: records.summary,
+			desc: records.desc,
+			pictures: (await this.image.getPicturesByGameID(records.ID)).pictures,
+			avgRating: Math.round(await this.review.getAverageRating(records.ID)),
+			publishers: (await publisher.getPublishers(records.ID)).publishers,
+			category: (await category.getCategories(records.ID)).categories
 		}
+
+		return data
+
 	}
 	/**
      * Function to get update game information based on an ID

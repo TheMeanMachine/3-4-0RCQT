@@ -2,6 +2,48 @@
 
 const Category = require('../modules/category.js')
 
+const Games = require('../modules/game')
+
+let game
+let gameSpy
+let gamesList = {games: []}
+
+beforeEach(async() => {
+
+	//Mock Games
+	gamesList = {games: []}
+	game = await new Games()
+	gamesList.games.push()
+
+	gameSpy = jest.spyOn(game, 'addNewGame').mockImplementation((a,b,c) => {
+		gamesList.games.push(
+			{
+				ID: gamesList.games.length+1,
+				title: a,
+				summary: b,
+				desc: c
+			}
+		)
+
+		return true
+	})
+	gameSpy = jest.spyOn(game, 'getGameByTitle').mockImplementation((title) => {
+		for(let i = 0; i < gamesList.games.length; i++) {
+			if(gamesList.games[i].title === title) return gamesList.games[i]
+
+		}
+	})
+	gameSpy = jest.spyOn(Games.prototype, 'getGameByID').mockImplementation((ID) => {
+		for(let i = 0; i < gamesList.games.length; i++) {
+			if(gamesList.games[i].ID === ID) return gamesList.games[i]
+
+		}
+	})
+})
+
+afterAll(async() => {
+	gameSpy.mockRestore()
+})
 
 describe('game - category intergration', () => {
 
@@ -9,7 +51,6 @@ describe('game - category intergration', () => {
 		expect.assertions(1)
 
 		const category = await new Category()
-		const game = category.game
 
 		const catID = await category.addCategory('Runner')
 
@@ -20,16 +61,9 @@ describe('game - category intergration', () => {
 		await category.associateToCategory(retGame.ID, catID)
 
 		const result = await category.getGamesOfCategory(catID)
-
 		expect(result).toMatchObject(
 			{
-				games: [
-					{
-						title: 'Red',
-						summary: 'Summary',
-						desc: 'Description'
-					}
-				]
+				gameID: [2]
 			}
 		)
 		done()
@@ -39,7 +73,7 @@ describe('game - category intergration', () => {
 		expect.assertions(1)
 
 		const category = await new Category()
-		const game = category.game
+
 
 		const catID = await category.addCategory('Horror')
 
@@ -111,7 +145,7 @@ describe('getGamesOfCategory()', () => {
 		expect.assertions(1)
 
 		const category = await new Category()
-		const game = category.game
+
 
 		const catID = await category.addCategory('Horror')
 		await category.addCategory('Cats')
@@ -125,13 +159,7 @@ describe('getGamesOfCategory()', () => {
 
 		expect(result).toMatchObject(
 			{
-				games: [
-					{
-						title: 'Red',
-						summary: 'Summary',
-						desc: 'Description'
-					}
-				]
+				gameID: [2]
 			}
 		)
 		done()
@@ -177,7 +205,7 @@ describe('getOtherCategories()', () => {
 		expect.assertions(1)
 
 		const category = await new Category()
-		const game = category.game
+
 
 		const catID = await category.addCategory('Horror')
 		await category.addCategory('Cats')
@@ -205,7 +233,7 @@ describe('unassociateToCategory', () => {
 		expect.assertions(1)
 
 		const category = await new Category()
-		const game = category.game
+
 
 		const catID = await category.addCategory('Horror')
 
@@ -272,7 +300,7 @@ describe('associateToCategory', () => {
 		expect.assertions(1)
 
 		const category = await new Category()
-		const game = category.game
+
 
 		const catID = await category.addCategory('Horror')
 
@@ -336,7 +364,7 @@ describe('getCategories()', () => {
 		expect.assertions(1)
 
 		const category = await new Category()
-		const game = category.game
+
 
 		const catID1 = await category.addCategory('Cats')
 		const catID2 = await category.addCategory('Runner')

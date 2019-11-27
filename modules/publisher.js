@@ -15,7 +15,6 @@ module.exports = class Publisher {
 		return (async() => {
 			this.dbName = dbName || ':memory:'
 			this.db = await sqlite.open(this.dbName)
-			this.game = await new Games(this.dbName)
 			const sql =
             [`CREATE TABLE IF NOT EXISTS game_publisher(ID INTEGER PRIMARY KEY AUTOINCREMENT,
             	gameID INTEGER,publisherID INTEGER,
@@ -103,11 +102,10 @@ module.exports = class Publisher {
 
 		const publishers = await this.db.all(sql)
 
-		const result = { games: []}
+		const result = { gameID: []}
 		for(let i = 0; i < Object.keys(publishers).length; i++) {
 
-			const gameData = await this.game.getGameByID(publishers[i].gameID)
-			result.games.push(gameData)
+			result.gameID.push(publishers[i].gameID)
 
 		}
 

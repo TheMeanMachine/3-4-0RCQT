@@ -6,11 +6,6 @@
   "engines": {
     "node": "12.x"
   },
-  "jest": {
-    "testPathIgnorePatterns": [
-      "acceptanceTests"
-    ]
-  },
   "scripts": {
     "coverage": "./node_modules/.bin/jest --coverage 'unitTests/' && ./node_modules/.bin/istanbul check-coverage --statement 100 --branch 100 --function 100 --line 100",
     "dependency": "./node_modules/.bin/dependency-check -i bcrypt --unused --no-dev . && node_modules/.bin/dependency-check -i modules --missing .",
