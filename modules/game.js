@@ -7,6 +7,7 @@ const valid = require('./validator')
 const Image = require('./image')
 const Review = require('./review')
 const Publishers = require('./publisher')
+const Category = require('./category')
 module.exports = class Game {
 	// eslint-disable-next-line max-lines-per-function
 	constructor(dbName) {
@@ -48,7 +49,7 @@ module.exports = class Game {
 		const data = await this.db.all(sql)
 		const result = { games: [] }
 		for(let i = 0; i < Object.keys(data).length; i++) {
-			data[i].pictures =(await this.image.getPicturesByGameID(data[i].ID)).pictures//Get pictures for the game
+			data[i] = await this.getGameByID(data[i].ID)
 			result.games.push(data[i])
 		}
 		return result
@@ -129,25 +130,25 @@ module.exports = class Game {
      * @returns object containing game information
      */
 	async getGameByID(ID) {
-		try {
-			this.validator.checkID(ID, 'ID')
 
-			const sql = `SELECT * FROM game WHERE ID = ${ID};`
-			const records = await this.db.get(sql)
-			const publisher = await new Publishers(this.dbName)
-			const data = {
-				ID: ID,
-				title: records.title,
-				summary: records.summary,
-				desc: records.desc,
-				pictures: (await this.image.getPicturesByGameID(ID)).pictures,
-				avgRating: Math.round(await this.review.getAverageRating(ID)),
-				publishers: (await publisher.getPublishers(ID)).publishers
-			}
-			return data
-		} catch(err) {
-			throw err
+		this.validator.checkID(ID, 'ID')
+
+		const sql = `SELECT * FROM game WHERE ID = ${ID};`
+		const records = await this.db.get(sql)
+		const publisher = await new Publishers(this.dbName)
+		const category = await new Category(this.dbName)
+		const data = {
+			ID: ID,
+			title: records.title,
+			summary: records.summary,
+			desc: records.desc,
+			pictures: (await this.image.getPicturesByGameID(ID)).pictures,
+			avgRating: Math.round(await this.review.getAverageRating(ID)),
+			publishers: (await publisher.getPublishers(ID)).publishers,
+			category: (await category.getCategories(ID)).categories
 		}
+		return data
+
 	}
 	/**
      * Function to get all games
@@ -161,10 +162,12 @@ module.exports = class Game {
 		const data = await this.db.all(sql)
 		const result = { games: [] }
 		const publisher = await new Publishers(this.dbName)
+		const category = await new Category(this.dbName)
 		for(let i = 0; i < Object.keys(data).length; i++) {
 			data[i].pictures =(await this.image.getPicturesByGameID(data[i].ID)).pictures//Get pictures for the game
 			data[i].avgRating = Math.round(await this.review.getAverageRating(data[i].ID))
-			data[i].publishers = (await publisher.getPublishers(data[i].ID)).publishers
+			data[i].publishers = (await publisher.getPublishers(data[i].ID)).publishers,
+			data[i].category = (await category.getCategories(data[i].ID)).categories
 			result.games.push(data[i])
 		}
 
@@ -192,13 +195,15 @@ module.exports = class Game {
 
 		records = await this.db.get(sql)
 		const publisher = await new Publishers(this.dbName)
+		const category = await new Category(this.dbName)
 		const data = {
 			ID: records.ID, title: title,
 			summary: records.summary,
 			desc: records.desc,
 			pictures: (await this.image.getPicturesByGameID(records.ID)).pictures,
 			avgRating: Math.round(await this.review.getAverageRating(records.ID)),
-			publishers: (await publisher.getPublishers(records.ID)).publishers
+			publishers: (await publisher.getPublishers(records.ID)).publishers,
+			category: (await category.getCategories(records.ID)).categories
 		}
 
 		return data
