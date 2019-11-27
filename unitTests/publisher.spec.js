@@ -66,12 +66,8 @@ describe('game - publisher intergration', () => {
 
 		expect(result).toMatchObject(
 			{
-				games: [
-					{
-						title: 'Red',
-						summary: 'Summary',
-						desc: 'Description'
-					}
+				gameID: [
+					2
 				]
 			}
 		)
@@ -164,13 +160,7 @@ describe('getGamesOfPublisher()', () => {
 
 		expect(result).toMatchObject(
 			{
-				games: [
-					{
-						title: 'Red',
-						summary: 'Summary',
-						desc: 'Description'
-					}
-				]
+				gameID: [2]
 			}
 		)
 		done()

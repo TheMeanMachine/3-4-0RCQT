@@ -2,6 +2,89 @@
 'use strict'
 
 const Games = require('../modules/game.js')
+const Category = require('../modules/category.js')
+const Publisher = require('../modules/publisher.js')
+
+let category
+let categorySpy
+let categoryList = {categories: []}
+let categoryGameAssoc = {assocs: []}
+let publisher
+let publisherSpy
+let publisherList = {publishers: []}
+let publisherGameAssoc = {assocs: []}
+
+beforeEach(async() => {
+
+	//Mock category
+	categoryGameAssoc = {assocs: []}
+	categoryList = {categories: []}
+	category = await new Category()
+
+	categorySpy = jest.spyOn(category, 'addCategory').mockImplementation((a) => {
+		const newID = categoryList.categories.length+1
+		categoryList.categories.push(
+			{
+				ID: newID,
+				title: a,
+			}
+		)
+
+		return newID
+	})
+	categorySpy = jest.spyOn(category, 'associateToCategory').mockImplementation((game, cat) => {
+		categoryGameAssoc.assocs.push({
+			catID: cat,
+			gameID: game,
+			ID: categoryGameAssoc.assocs.length +1
+		})
+	})
+	categorySpy = jest.spyOn(Category.prototype, 'getGamesOfCategory').mockImplementation((ID) => {
+		const result = {gameID: []}
+		for(let i = 0; i < categoryGameAssoc.assocs.length; i++) {
+			if(categoryGameAssoc.assocs[i].catID === ID) result.gameID.push(categoryGameAssoc.assocs[i].gameID)
+
+		}
+		return result
+	})
+
+	//Mock publisher
+	publisherGameAssoc = {assocs: []}
+	publisherList = {publishers: []}
+	publisher = await new Publisher()
+
+	publisherSpy = jest.spyOn(publisher, 'addPublisher').mockImplementation((a) => {
+		const newID = publisherList.publishers.length+1
+		publisherList.publishers.push(
+			{
+				ID: newID,
+				name: a,
+			}
+		)
+
+		return newID
+	})
+	publisherSpy = jest.spyOn(publisher, 'associateToPublisher').mockImplementation((game, pub) => {
+		publisherGameAssoc.assocs.push({
+			pubID: pub,
+			gameID: game,
+			ID: publisherGameAssoc.assocs.length +1
+		})
+	})
+	publisherSpy = jest.spyOn(Publisher.prototype, 'getGamesOfPublisher').mockImplementation((ID) => {
+		const result = {gameID: []}
+		for(let i = 0; i < publisherGameAssoc.assocs.length; i++) {
+			if(publisherGameAssoc.assocs[i].pubID === ID) result.gameID.push(publisherGameAssoc.assocs[i].gameID)
+
+		}
+		return result
+	})
+})
+
+afterEach(async() => {
+	categorySpy.mockRestore()
+	publisherSpy.mockRestore()
+})
 
 describe('searchGame()', () => {
 	test('Search with keyword in summary', async done => {
@@ -58,6 +141,133 @@ describe('searchGame()', () => {
 		done()
 	})
 
+})
+
+describe('getGamesOfCategory()', () => {
+	test('Valid categoryID', async done => {
+		expect.assertions(1)
+
+		const game = await new Games()
+
+		const catID = await category.addCategory('Horror')
+		await category.addCategory('Cats')
+		await category.addCategory('Comedy')
+		await game.addNewGame('Green', 'Summary', 'Description')
+		await game.addNewGame('Red', 'Summary', 'Description')
+		const retGame = await game.getGameByTitle('Red')
+		await category.associateToCategory(retGame.ID, catID)
+
+		const result = await game.getGamesOfCategory(catID)
+
+		expect(result).toMatchObject(
+			{
+				games: [
+					{
+						title: 'Red',
+						summary: 'Summary',
+						desc: 'Description'
+					}
+				]
+			}
+		)
+		done()
+	})
+
+
+	test('Error if catID is null', async done => {
+		expect.assertions(1)
+		const game = await new Games()
+
+		await expect(game.getGamesOfCategory(null))
+			.rejects.toEqual(Error('Must supply catID'))
+		done()
+	})
+
+	test('Error if catID is NaN', async done => {
+		expect.assertions(1)
+
+		const game = await new Games()
+
+
+		await expect(game.getGamesOfCategory('not a number'))
+			.rejects.toEqual(Error('Must supply catID'))
+		done()
+	})
+
+	test('Error if catID is undefined', async done => {
+		expect.assertions(1)
+
+		const game = await new Games()
+
+
+		await expect(game.getGamesOfCategory(undefined))
+			.rejects.toEqual(Error('Must supply catID'))
+		done()
+	})
+})
+
+
+describe('getGamesOfPublisher()', () => {
+	test('Valid ID', async done => {
+		expect.assertions(1)
+
+		const game = await new Games()
+
+		const pubID = await publisher.addPublisher('Rockstar Games')
+		await publisher.addPublisher('Pop Star Games')
+
+		await game.addNewGame('Green', 'Summary', 'Description')
+		await game.addNewGame('Red', 'Summary', 'Description')
+		const retGame = await game.getGameByTitle('Red')
+		await publisher.associateToPublisher(retGame.ID, pubID)
+
+		const result = await game.getGamesOfPublisher(pubID)
+
+		expect(result).toMatchObject(
+			{
+				games: [
+					{
+						title: 'Red',
+						summary: 'Summary',
+						desc: 'Description'
+					}
+				]
+			}
+		)
+		done()
+	})
+
+
+	test('Error if pubID is null', async done => {
+		expect.assertions(1)
+		const game = await new Games()
+
+		await expect(game.getGamesOfPublisher(null))
+			.rejects.toEqual(Error('Must supply pubID'))
+		done()
+	})
+
+	test('Error if pubID is NaN', async done => {
+		expect.assertions(1)
+
+		const game = await new Games()
+
+
+		await expect(game.getGamesOfPublisher('not a number'))
+			.rejects.toEqual(Error('Must supply pubID'))
+		done()
+	})
+
+	test('Error if pubID is undefined', async done => {
+		expect.assertions(1)
+
+		const game = await new Games()
+
+
+		await expect(game.getGamesOfPublisher(undefined))
+			.rejects.toEqual(Error('Must supply pubID'))
+		done()
+	})
 })
 
 describe('game - review intergration', () => {

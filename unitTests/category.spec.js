@@ -61,16 +61,9 @@ describe('game - category intergration', () => {
 		await category.associateToCategory(retGame.ID, catID)
 
 		const result = await category.getGamesOfCategory(catID)
-
 		expect(result).toMatchObject(
 			{
-				games: [
-					{
-						title: 'Red',
-						summary: 'Summary',
-						desc: 'Description'
-					}
-				]
+				gameID: [2]
 			}
 		)
 		done()
@@ -166,13 +159,7 @@ describe('getGamesOfCategory()', () => {
 
 		expect(result).toMatchObject(
 			{
-				games: [
-					{
-						title: 'Red',
-						summary: 'Summary',
-						desc: 'Description'
-					}
-				]
+				gameID: [2]
 			}
 		)
 		done()
