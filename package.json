@@ -6,14 +6,20 @@
   "engines": {
     "node": "12.x"
   },
+  "jest": {
+    "testPathIgnorePatterns": [
+      "acceptanceTests"
+    ]
+  },
   "scripts": {
-    "coverage": "./node_modules/.bin/jest --coverage 'unit tests/' && ./node_modules/.bin/istanbul check-coverage --statement 100 --branch 100 --function 100 --line 100",
+    "coverage": "./node_modules/.bin/jest --coverage 'unitTests/' && ./node_modules/.bin/istanbul check-coverage --statement 100 --branch 100 --function 100 --line 100",
     "dependency": "./node_modules/.bin/dependency-check -i bcrypt --unused --no-dev . && node_modules/.bin/dependency-check -i modules --missing .",
     "start": "node index.js",
     "jsdoc": "node_modules/.bin/jsdoc -c jsdoc.conf",
     "linter": "node_modules/.bin/eslint .",
-    "test": "./node_modules/.bin/jest --coverage",
-    "acceptance": "acceptanceTests/scripts/test.sh"
+    "test": "./node_modules/.bin/jest --coverage 'unitTests/'",
+    "acceptance": "acceptanceTests/scripts/test.sh",
+    "integration": "integrationTests/scripts/test.sh"
   },
   "author": "",
   "license": "ISC",
@@ -23,7 +29,7 @@
     "faker": "^4.1.0",
     "fs": "0.0.1-security",
     "fs-extra": "^7.0.1",
-    "handlebars": "^4.5.2",
+    "handlebars": "^4.5.3",
     "koa": "^2.6.2",
     "koa-body": "^4.0.8",
     "koa-bodyparser": "^4.2.1",
@@ -57,6 +63,7 @@
     "jsdoc": "^3.6.3",
     "jsdoc-route-plugin": "^0.1.0",
     "markdownlint": "^0.17.0",
-    "mock-fs": "^4.10.3"
+    "mock-fs": "^4.10.3",
+    "supertest": "^4.0.2"
   }
 }
