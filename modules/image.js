@@ -58,12 +58,11 @@ module.exports = class image {
 
 		const picPath = `game/${gameID}/picture_${sqlReturn.records}.${extension}`
 		const resizeAmt = 300
+		await fs.copy(path, `public/${ picPath}`)
 		await sharp(path)
 			.resize(resizeAmt, resizeAmt)
 	  		.toFile(`public/${ picPath}`)
-	  	.catch((err) => console.log(err))
-
-		//await fs.copy(path, `public/${ picPath}`)
+			.catch((err) => {})
 
 		sql = `INSERT INTO gamePhoto (gameID, picture) VALUES(
             ${gameID},"${picPath}")`
@@ -84,16 +83,14 @@ module.exports = class image {
 
 		let sql = `SELECT COUNT(id) as records FROM reviewScreenshot WHERE reviewID="${reviewID}";`
 		const sqlReturn = await this.db.get(sql)//Set to the amount of pictures saved
-
 		const picPath = `review/${reviewID}/picture_${sqlReturn.records}.${extension}`
 		const resizeAmt = 300
-
+		await fs.copy(path, `public/${ picPath}`)
 		await sharp(path)
   			  .resize(resizeAmt, resizeAmt)
-			  .toFile(`public/${ picPath}`)
-			  .catch((err) => console.log(err))
+			  .toFile(`public/${picPath}`)
+			  .catch((err) => {})
 
-		//await fs.copy(path, `public/${ picPath}`)
 		sql = `INSERT INTO reviewScreenshot (reviewID, picture) VALUES(
 		${reviewID},"${picPath}")`
 		await this.db.run(sql)
