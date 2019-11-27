@@ -150,6 +150,42 @@ module.exports = class Game {
 		return data
 
 	}
+
+	async getGamesOfCategory(catID) {
+		this.validator.checkID(catID, 'catID')
+
+		const category = await new Category(this.dbName)
+		const gameIDs = (await category.getGamesOfCategory(catID)).gameID
+		const result = { games: []}
+
+		for(let i = 0; i < gameIDs.length; i++) {
+
+			const gameData = await this.getGameByID(gameIDs[i])
+			result.games.push(gameData)
+
+		}
+
+		return result
+	}
+
+	async getGamesOfPublisher(pubID) {
+		this.validator.checkID(pubID, 'pubID')
+
+		const publisher = await new Publishers(this.dbName)
+		const gameIDs = (await publisher.getGamesOfPublisher(pubID)).gameID
+		const result = { games: []}
+
+		for(let i = 0; i < gameIDs.length; i++) {
+
+			const gameData = await this.getGameByID(gameIDs[i])
+			result.games.push(gameData)
+
+		}
+
+		return result
+	}
+
+
 	/**
      * Function to get all games
      *

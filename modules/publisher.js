@@ -102,12 +102,10 @@ module.exports = class Publisher {
 
 		const publishers = await this.db.all(sql)
 
-		const result = { games: []}
-		const games = await new Games(this.dbName)
+		const result = { gameID: []}
 		for(let i = 0; i < Object.keys(publishers).length; i++) {
 
-			const gameData = await games.getGameByID(publishers[i].gameID)
-			result.games.push(gameData)
+			result.gameID.push(publishers[i].gameID)
 
 		}
 
