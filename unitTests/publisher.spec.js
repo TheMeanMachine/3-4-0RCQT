@@ -41,7 +41,7 @@ beforeEach(async() => {
 	})
 })
 
-afterAll(async() => {
+afterEach(async() => {
 	gameSpy.mockRestore()
 })
 
