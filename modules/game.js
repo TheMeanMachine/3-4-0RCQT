@@ -6,7 +6,7 @@ const sqlite = require('sqlite-async')
 const valid = require('./validator')
 const Image = require('./image')
 const Review = require('./review')
-const Publisher = require('./publisher')
+const Publishers = require('./publisher')
 module.exports = class Game {
 	// eslint-disable-next-line max-lines-per-function
 	constructor(dbName) {
@@ -16,7 +16,7 @@ module.exports = class Game {
 			this.dbName = dbName || ':memory:'
 			this.image = await new Image(this.dbName)
 			this.review = await new Review(this.dbName)
-			this.publisher = await new Publisher(this.dbName)
+
 			this.db = await sqlite.open(this.dbName)
 
 			const sql =[`CREATE TABLE IF NOT EXISTS game(ID INTEGER PRIMARY KEY AUTOINCREMENT,
@@ -134,7 +134,7 @@ module.exports = class Game {
 
 			const sql = `SELECT * FROM game WHERE ID = ${ID};`
 			const records = await this.db.get(sql)
-
+			const publisher = await new Publishers(this.dbName)
 			const data = {
 				ID: ID,
 				title: records.title,
@@ -142,7 +142,7 @@ module.exports = class Game {
 				desc: records.desc,
 				pictures: (await this.image.getPicturesByGameID(ID)).pictures,
 				avgRating: Math.round(await this.review.getAverageRating(ID)),
-				publishers: (await this.publisher.getPublishers(ID)).publishers
+				publishers: (await publisher.getPublishers(ID)).publishers
 			}
 			return data
 		} catch(err) {
@@ -160,10 +160,11 @@ module.exports = class Game {
         SELECT * FROM game;`
 		const data = await this.db.all(sql)
 		const result = { games: [] }
+		const publisher = await new Publishers(this.dbName)
 		for(let i = 0; i < Object.keys(data).length; i++) {
 			data[i].pictures =(await this.image.getPicturesByGameID(data[i].ID)).pictures//Get pictures for the game
 			data[i].avgRating = Math.round(await this.review.getAverageRating(data[i].ID))
-			data[i].publishers = (await this.publisher.getPublishers(data[i].ID)).publishers
+			data[i].publishers = (await publisher.getPublishers(data[i].ID)).publishers
 			result.games.push(data[i])
 		}
 
@@ -190,14 +191,14 @@ module.exports = class Game {
 		sql = `SELECT * FROM game WHERE title = "${title}";`
 
 		records = await this.db.get(sql)
-
+		const publisher = await new Publishers(this.dbName)
 		const data = {
 			ID: records.ID, title: title,
 			summary: records.summary,
 			desc: records.desc,
 			pictures: (await this.image.getPicturesByGameID(records.ID)).pictures,
 			avgRating: Math.round(await this.review.getAverageRating(records.ID)),
-			publishers: (await this.publisher.getPublishers(records.ID)).publishers
+			publishers: (await publisher.getPublishers(records.ID)).publishers
 		}
 
 		return data
