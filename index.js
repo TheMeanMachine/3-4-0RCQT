@@ -104,11 +104,11 @@ router.get('/gameSearch', async ctx => {
 })
 
 router.get('/categorySearch', async ctx => {
-
+	const games = await new Games(dbName)
 	const category = await new Category(dbName)
 	const publisher = await new Publisher(dbName)
 	if(!ctx.request.query.category) return ctx.redirect('/')
-	const gamesList = (await category.getGamesOfCategory(ctx.request.query.category)).games
+	const gamesList = (await games.getGamesOfCategory(ctx.request.query.category)).games
 	const categories = (await category.getAllCategories()).categories
 	const publishers = (await publisher.getAllPublishers()).publishers
 
@@ -118,11 +118,11 @@ router.get('/categorySearch', async ctx => {
 })
 
 router.get('/publisherSearch', async ctx => {
-
+	const games = await new Games(dbName)
 	const category = await new Category(dbName)
 	const publisher = await new Publisher(dbName)
 	if(!ctx.request.query.publisher) return ctx.redirect('/')
-	const gamesList = (await publisher.getGamesOfPublisher(ctx.request.query.publisher)).games
+	const gamesList = (await games.getGamesOfPublisher(ctx.request.query.publisher)).games
 	const categories = (await category.getAllCategories()).categories
 	const publishers = (await publisher.getAllPublishers()).publishers
 	await ctx.render('index', {games: gamesList,categories: categories,publishers: publishers,
