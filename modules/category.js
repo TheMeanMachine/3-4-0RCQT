@@ -251,12 +251,10 @@ module.exports = class Category {
 
 		const categories = await this.db.all(sql)
 
-		const result = { games: []}
-		const game = await new Games(this.dbName)
+		const result = { gameID: []}
 		for(let i = 0; i < Object.keys(categories).length; i++) {
 
-			const gameData = await game.getGameByID(categories[i].gameID)
-			result.games.push(gameData)
+			result.gameID.push(categories[i].gameID)
 
 		}
 
