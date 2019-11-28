@@ -58,7 +58,7 @@ module.exports = class image {
 
 		const picPath = `game/${gameID}/picture_${sqlReturn.records}.${extension}`
 		const resizeAmt = 300
-		await fs.copy(path, `public/${ picPath}`)
+		await fs.copy(path, `public/${ picPath}`)//Failsafe
 		await sharp(path)
 			.resize(resizeAmt, resizeAmt)
 	  		.toFile(`public/${ picPath}`)
@@ -71,7 +71,17 @@ module.exports = class image {
 		return true
 
 	}
-
+	/**
+     * Function to upload a picture and associate it to a review
+     *
+     * @name uploadPictureToReview
+     * @param path path is the input path
+     * @param mimeType is the type of the picture
+     * @param reviewID reviewID refers to the ID in the database
+     * @throws error if params are not given
+     * @returns true if no problems
+     *
+     */
 	async uploadPictureToReview(path, mimeType, reviewID) {
 
 		this.validator.checkID(reviewID, 'reviewID')
@@ -85,7 +95,7 @@ module.exports = class image {
 		const sqlReturn = await this.db.get(sql)//Set to the amount of pictures saved
 		const picPath = `review/${reviewID}/picture_${sqlReturn.records}.${extension}`
 		const resizeAmt = 300
-		await fs.copy(path, `public/${ picPath}`)
+		await fs.copy(path, `public/${ picPath}`)//Failsafe
 		await sharp(path)
   			  .resize(resizeAmt, resizeAmt)
 			  .toFile(`public/${picPath}`)
@@ -101,7 +111,7 @@ module.exports = class image {
 	/**
      * Function to get pictures associated with a game
      *
-     * @name getPictures
+     * @name getPicturesByGameID
      * @param gameID gameID refers to the ID in the database
      * @throws error if gameID is not supplied
      * @returns object containing picture urls
@@ -125,7 +135,14 @@ module.exports = class image {
 			throw e
 		}
 	}
-
+	/**
+     * Function to get pictures associated with a game
+     *
+     * @name getPicturesByReviewID
+     * @param reviewID reviewID refers to the ID in the database
+     * @throws error if gameID is not supplied
+     * @returns object containing picture urls
+     */
 	async getPicturesByReviewID(reviewID) {
 		try{
 			this.validator.checkID(reviewID, 'reviewID')

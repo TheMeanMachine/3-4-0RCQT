@@ -4,8 +4,6 @@ const sqlite = require('sqlite-async')
 
 //Custom modules
 const valid = require('./validator')
-const Games = require('./game')
-
 
 module.exports = class Category {
 	constructor(dbName) {
@@ -30,6 +28,14 @@ module.exports = class Category {
 
 	}
 
+
+	/**
+	 * Function to search all categories for associated games
+	 *
+	 * @name searchCategories
+	 * @param {String} toSearch
+	 * @returns games based on the category
+	 */
 	async searchCategories(toSearch) {
 		this.validator.checkStringExists(toSearch, 'toSearch')
 
@@ -240,7 +246,7 @@ module.exports = class Category {
      * @name getGamesOfCategory
      * @param catID the category ID to get games based on
 	 * @throws If catID not supplied
-     * @returns games associated with a category
+     * @returns gameIDs associated with a category
      */
 	async getGamesOfCategory(catID) {
 		this.validator.checkID(catID, 'catID')

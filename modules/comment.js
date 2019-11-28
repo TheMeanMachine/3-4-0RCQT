@@ -26,6 +26,16 @@ module.exports = class Comment {
 			return this
 		})()
 	}
+
+	/**
+	 * Function to add a comment
+	 *
+	 * @param {int} reviewID
+	 * @param {int} userID
+	 * @param {string} fullText
+	 *
+	 * @returns ID of new comment
+	 */
 	async addComment(reviewID, userID, fullText) {
 		this.validator.checkID(reviewID, 'reviewID')
 		this.validator.checkID(userID, 'userID')
@@ -39,6 +49,11 @@ module.exports = class Comment {
 		return result.lastID
 	}
 
+	/**
+	 * Function to delete a comment based on its ID
+	 * @param {int} commentID
+	 * @returns true if successful
+	 */
 	async deleteCommentByID(commentID) {
 		this.validator.checkID(commentID, 'commentID')
 
@@ -50,6 +65,10 @@ module.exports = class Comment {
 		return true
 	}
 
+	/**
+	 * Gets all comments associated to a specific reviewID
+	 * @param {int} reviewID
+	 */
 	async getCommentsByReviewID(reviewID) {
 		this.validator.checkID(reviewID, 'reviewID')
 

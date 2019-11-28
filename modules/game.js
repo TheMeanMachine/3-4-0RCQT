@@ -38,6 +38,12 @@ module.exports = class Game {
 
 	}
 
+	/**
+	 * Function to search games based on a string
+	 * @param {string} toSearch
+	 *
+	 * @returns array of games
+	 */
 	async searchGame(toSearch) {
 		this.validator.checkStringExists(toSearch, 'toSearch')
 
@@ -151,6 +157,12 @@ module.exports = class Game {
 
 	}
 
+
+	/**
+	 * Function to get all games based on a category
+	 * @param {Int} catID
+	 * @return array of games
+	 */
 	async getGamesOfCategory(catID) {
 		this.validator.checkID(catID, 'catID')
 
@@ -167,7 +179,11 @@ module.exports = class Game {
 
 		return result
 	}
-
+	/**
+	 * Function to get all games based on a publisher
+	 * @param {Int} pubID
+	 * @return array of games
+	 */
 	async getGamesOfPublisher(pubID) {
 		this.validator.checkID(pubID, 'pubID')
 

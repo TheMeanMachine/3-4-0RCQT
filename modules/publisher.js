@@ -4,7 +4,6 @@ const sqlite = require('sqlite-async')
 
 //Custom modules
 const valid = require('./validator')
-const Games = require('./game')
 
 module.exports = class Publisher {
 
@@ -73,7 +72,11 @@ module.exports = class Publisher {
 		}
 
 	}
-
+	/**
+	 * Searches for games associated with publisher
+	 * @param {string} toSearch
+	 * @returns gameIDs associated with publisher
+	 */
 	async searchPublishers(toSearch) {
 		this.validator.checkStringExists(toSearch, 'toSearch')
 
@@ -93,6 +96,11 @@ module.exports = class Publisher {
 		return result
 	}
 
+	/**
+	 * Gets games associated with publisher
+	 * @param {int} pubID
+	 * @returns gameIDs associated with publisher
+	 */
 	async getGamesOfPublisher(pubID) {
 		this.validator.checkID(pubID, 'pubID')
 
@@ -112,6 +120,10 @@ module.exports = class Publisher {
 		return result
 	}
 
+	/**
+	 * Gets all publishers
+	 * @returns array of publishers
+	 */
 	async getAllPublishers() {
 		const sql = 'SELECT * FROM publisher;'
 
@@ -182,6 +194,15 @@ module.exports = class Publisher {
 		}
 	}
 
+	/**
+     * Function to unassociate a publisher to a game
+     *
+     * @name unassociateToPublisher
+     * @param gameID gameID refers to the ID in the database
+     * @param publisherID publisherID refers to the publisher being unassociated to the game
+     * @throws if params not supplied
+     * @returns true if successful
+     */
 	async unassociateToPublisher(gameID, publisherID) {
 		this.validator.checkID(gameID, 'gameID')
 		this.validator.checkID(publisherID, 'publisherID')

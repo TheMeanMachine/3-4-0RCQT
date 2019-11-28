@@ -84,6 +84,14 @@ module.exports = class Review {
 
 	}
 
+	/**
+	 * Searches reviews and comments based on toSearch string
+	 * @param {int} gameID
+	 * @param {int} userID
+	 * @param {string} toSearch
+	 * @param {boolean} admin
+	 * @returns object of reviews matching query
+	 */
 	// eslint-disable-next-line max-lines-per-function
 	async searchReview(gameID, userID, toSearch, admin) {
 		this.validator.checkID(gameID, 'gameID')
