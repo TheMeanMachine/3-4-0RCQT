@@ -3,50 +3,50 @@ image: node:latest
 stages:
   - code-testing
   - staging-server
-  - integration-testing
   - acceptance-testing
+  - integration-testing
   
 
 linting:
   stage: code-testing
   script:
-    - npm install --dev
+    - npm install
     - npm run linter
 
 dependency-checks:
   stage: code-testing
   script:
-    - npm install --dev
+    - npm install
     - npm run dependency
 
 unit-testing:
   stage: code-testing
   script:
-  - npm install --dev
+  - npm install
   - npm test
 
 code-coverage:
   stage: code-testing
   script:
-    - npm install --dev
+    - npm install
     - npm run coverage
 
 acceptance-testing:
   stage: acceptance-testing
   script:
-    - npm install --dev
+    - npm install
     - npm run acceptance
 
 integration-testing:
   stage: integration-testing
   script:
-   - npm install --dev
+   - npm install
    - npm run integration
 
 coverage-report:
   stage: staging-server
   script:
-    - npm install --dev
+    - npm install
     - npm run coverage
   artifacts:
     paths:
