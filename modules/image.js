@@ -62,7 +62,7 @@ module.exports = class image {
 		await sharp(path)
 			.resize(resizeAmt, resizeAmt)
 	  		.toFile(`public/${ picPath}`)
-			.catch((err) => {})
+			.catch((err) => err)
 
 		sql = `INSERT INTO gamePhoto (gameID, picture) VALUES(
             ${gameID},"${picPath}")`
@@ -99,7 +99,7 @@ module.exports = class image {
 		await sharp(path)
   			  .resize(resizeAmt, resizeAmt)
 			  .toFile(`public/${picPath}`)
-			  .catch((err) => {})
+			  .catch((err) => err)
 
 		sql = `INSERT INTO reviewScreenshot (reviewID, picture) VALUES(
 		${reviewID},"${picPath}")`

@@ -4,6 +4,7 @@ stages:
   - code-testing
   - staging-server
   - acceptance-testing
+  - integration-testing
 
 linting:
   stage: code-testing
@@ -28,6 +29,18 @@ code-coverage:
   script:
     - npm install
     - npm run coverage
+
+acceptance-testing:
+  stage: acceptance-testing
+  script:
+    - npm install
+    - npm run acceptance
+
+integration-testing:
+  stage: integration-testing
+  script:
+   - npm install
+   - npm run integration
 
 coverage-report:
   stage: staging-server
