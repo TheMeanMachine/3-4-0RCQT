@@ -20,12 +20,13 @@ const toMatchImageSnapshot = configureToMatchImageSnapshot({
 })
 expect.extend({ toMatchImageSnapshot })
 
-beforeAll( async() => {
+beforeAll( async done => {
 	browser = await puppeteer.launch({ headless: true, slowMo: delayMS, args: [`--window-size=${width},${height}`] })
 	page = await browser.newPage()
 	har = new PuppeteerHar(page)
 	await page.setViewport({ width, height })
 	await shell.exec('acceptanceTests/scripts/beforeAll.sh')
+	done()
 })
 
 afterAll( async() => {

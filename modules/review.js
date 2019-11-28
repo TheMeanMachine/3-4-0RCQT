@@ -105,7 +105,6 @@ module.exports = class Review {
 		OR (comments.fullText LIKE "%${toSearch}%");`
 
 		const data = await this.db.all(sql)
-		console.log(data)
 		const amtReviews = Object.keys(data).length
 		const result = {reviews: [], count: amtReviews, reviewIDs: []}
 		for(let i = 0; i < amtReviews; i++) {
