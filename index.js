@@ -89,6 +89,13 @@ router.get('/', async ctx => {
 	}
 })
 
+/**
+ * The game search based on a query string
+ *
+ * @name gameSearch page - displays results
+ * @route {GET} /gameSearch
+ * @authentication This route requires cookie-based authentication.
+ */
 router.get('/gameSearch', async ctx => {
 	const category = await new Category(dbName)
 	const publisher = await new Publisher(dbName)
@@ -102,7 +109,13 @@ router.get('/gameSearch', async ctx => {
 		selectedCat: ctx.request.query.category,search: ctx.request.query.gameSearch,
 		selectedPub: ctx.request.query.publisher,helpers, admin: ctx.session.admin})
 })
-
+/**
+ * The categorySearch based on a query string
+ *
+ * @name categorySearch page - displays results
+ * @route {GET} /categorySearch
+ * @authentication This route requires cookie-based authentication.
+ */
 router.get('/categorySearch', async ctx => {
 	const games = await new Games(dbName)
 	const category = await new Category(dbName)
@@ -116,7 +129,13 @@ router.get('/categorySearch', async ctx => {
 		selectedCat: ctx.request.query.category,
 		selectedPub: ctx.request.query.publisher,helpers, admin: ctx.session.admin})
 })
-
+/**
+ * The publisherSearch based on a query string
+ *
+ * @name publisherSearch page - displays results
+ * @route {GET} /publisherSearch
+ * @authentication This route requires cookie-based authentication.
+ */
 router.get('/publisherSearch', async ctx => {
 	const games = await new Games(dbName)
 	const category = await new Category(dbName)
@@ -167,6 +186,14 @@ router.get('/game', async ctx => {
 	}
 })
 
+/**
+ * The searchReview based on a gameID & query string
+ *
+ * @name searchReview page - displays results
+ * @route {GET} /game/searchReview
+ * @authentication This route requires cookie-based authentication.
+ */
+// eslint-disable-next-line max-lines-per-function
 router.get('/game/searchReview', async ctx => {
 	try {
 		if(ctx.session.authorised !== true || !ctx.query.gameID)return ctx.redirect('/')
@@ -227,6 +254,13 @@ router.post('/reviewAdminUpdate', async ctx => {
 	}
 })
 
+/**
+ * Script to add a comment to a review
+ *
+ * @name addComment script
+ * @route {POST} /addComment
+ * @authentication This route requires cookie-based authentication.
+ */
 router.post('/addComment', async ctx => {
 	try{
 		// extract the data from the request
@@ -274,6 +308,13 @@ router.post('/deleteGame', async ctx => {
 	}
 })
 
+/**
+ * Script to remove a comment to a review
+ *
+ * @name commentDelete script
+ * @route {POST} /commentDelete
+ * @authentication This route requires cookie-based authentication.
+ */
 router.post('/commentDelete', async ctx => {
 	try{
 		// extract the data from the request
@@ -322,6 +363,14 @@ router.post('/removeCategoryFromGame', async ctx => {
 	}
 })
 
+/**
+ * Script to remove a Publisher to a game
+ *
+ * @name removePublisherFromGame script
+ * @route {POST} /removePublisherFromGame
+ * @authentication This route requires cookie-based authentication.
+ *
+ */
 router.post('/removePublisherFromGame', async ctx => {
 	try{
 		const body = ctx.request.body
@@ -367,6 +416,14 @@ router.post('/addCategoryToGame', async ctx => {
 	}
 })
 
+/**
+ * Script to add a Publisher to a game
+ *
+ * @name addPublisherToGame script
+ * @route {POST} /addPublisherToGame
+ * @authentication This route requires cookie-based authentication.
+ *
+ */
 router.post('/addPublisherToGame', async ctx => {
 	try {
 		// extract the data from the request
@@ -433,7 +490,14 @@ router.get('/newGame', async ctx => {
 		await ctx.render('error', {message: err.message})
 	}
 })
-
+/**
+ * The new category form
+ *
+ * @name newCategory form
+ * @route {GET} /newCategory
+ * @authentication This route requires cookie-based authentication.
+ *
+ */
 router.get('/newCategory', async ctx => {
 	try {
 		if(ctx.session.authorised !== true || !ctx.session.admin)return ctx.redirect('/')
@@ -446,6 +510,14 @@ router.get('/newCategory', async ctx => {
 	}
 })
 
+/**
+ * Script to add a new category
+ *
+ * @name newCategory script
+ * @route {POST} /newCategory
+ * @authentication This route requires cookie-based authentication.
+ *
+ */
 router.post('/newCategory', async ctx => {
 	try {
 		// extract the data from the request
@@ -463,6 +535,14 @@ router.post('/newCategory', async ctx => {
 	}
 })
 
+/**
+ * The new publisher form
+ *
+ * @name newPublisher form
+ * @route {GET} /newPublisher
+ * @authentication This route requires cookie-based authentication.
+ *
+ */
 router.get('/newPublisher', async ctx => {
 	try {
 		if(ctx.session.authorised !== true || !ctx.session.admin)return ctx.redirect('/')
@@ -475,6 +555,14 @@ router.get('/newPublisher', async ctx => {
 	}
 })
 
+/**
+ * Script to add a new publisher
+ *
+ * @name newPublisher script
+ * @route {POST} /newPublisher
+ * @authentication This route requires cookie-based authentication.
+ *
+ */
 router.post('/newPublisher', async ctx => {
 	try {
 		// extract the data from the request
@@ -545,7 +633,14 @@ router.post('/addGamePhoto',koaBody, async ctx => {
 	}
 })
 
-
+/**
+ * Script to add a screenshot to a review
+ *
+ * @name addReviewScreenshot script
+ * @route {POST} /addReviewScreenshot
+ * @authentication This route requires cookie-based authentication.
+ *
+ */
 router.post('/addReviewScreenshot',koaBody, async ctx => {
 	try {
 		// extract the data from the request
