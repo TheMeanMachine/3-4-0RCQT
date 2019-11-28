@@ -30,7 +30,7 @@ beforeAll( async done => {
 })
 
 afterAll( async() => {
-	browser.close()
+	//browser.close()
 	await shell.exec('acceptanceTests/scripts/afterAll.sh')
 })
 
