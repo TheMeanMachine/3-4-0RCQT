@@ -3,6 +3,7 @@ image: node:latest
 stages:
   - code-testing
   - staging-server
+  - acceptance-testing
   - integration-testing
   
 
@@ -35,6 +36,12 @@ integration-testing:
   script:
    - npm install
    - npm run integration
+
+acceptance-test:
+  stage: acceptance-testing
+  script:
+    - npm install
+    - npm run acceptance
 
 coverage-report:
   stage: staging-server

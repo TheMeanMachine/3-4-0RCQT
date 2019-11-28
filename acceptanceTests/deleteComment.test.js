@@ -21,7 +21,8 @@ const toMatchImageSnapshot = configureToMatchImageSnapshot({
 expect.extend({ toMatchImageSnapshot })
 
 beforeAll( async done => {
-	browser = await puppeteer.launch({ headless: true, slowMo: delayMS, args: [`--window-size=${width},${height}`] })
+	browser = await puppeteer.launch({ headless: true, slowMo: delayMS,
+		args: [`--window-size=${width},${height}`,'--no-sandbox'] })
 	page = await browser.newPage()
 	har = new PuppeteerHar(page)
 	await page.setViewport({ width, height })
