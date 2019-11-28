@@ -12,6 +12,8 @@ beforeAll( async() => {
 afterAll( async() => {
 	app.close()
 	await shell.exec('integrationTests/scripts/afterAll.sh')
+	await new Promise(resolve => setTimeout(() => resolve(), 500)) // avoid jest open handle error
+
 
 })
 

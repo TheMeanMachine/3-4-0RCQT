@@ -8,7 +8,7 @@ const mime = require('mime-types')
 
 describe('getPicturesByGameID()', () => {
 	beforeEach(() => {
-		console.log('')
+		//console.log('')
 		mock({
 			public: {
 				game: {
@@ -69,7 +69,7 @@ describe('getPicturesByGameID()', () => {
 
 describe('getPicturesByReviewID()', () => {
 	beforeEach(() => {
-		console.log('')
+		//console.log('')
 		mock({
 			public: {
 				game: {
@@ -131,7 +131,7 @@ describe('getPicturesByReviewID()', () => {
 
 describe('uploadPictureToGame()', () => {
 	beforeEach(() => {
-		console.log('')
+		//console.log('')
 		mock({
 			public: {
 				game: {
@@ -146,7 +146,7 @@ describe('uploadPictureToGame()', () => {
 	afterEach(mock.restore)
 
 	test('Valid game', async done => {
-		expect.assertions(1)
+		expect.assertions(2)
 
 		const image = await new Image()
 		const path = 'user/images/pictureUpload.png'
@@ -154,7 +154,7 @@ describe('uploadPictureToGame()', () => {
 
 
 		expect(await image.uploadPictureToGame(path,type,1)).toBe(true)
-
+		expect(fs.existsSync('public/game/1/picture_0.png')).toBe(true)
 		done()
 	})
 
@@ -245,7 +245,7 @@ describe('uploadPictureToGame()', () => {
 
 describe('uploadPictureToReview()', () => {
 	beforeEach(() => {
-		console.log('')
+		//console.log('')
 		mock({
 			public: {
 				game: {
@@ -261,14 +261,14 @@ describe('uploadPictureToReview()', () => {
 	afterEach(mock.restore)
 
 	test('Valid reviewID', async done => {
-		expect.assertions(1)
+		expect.assertions(2)
 
 		const image = await new Image()
 		const path = 'user/images/pictureUpload.png'
-		const type = 'image/jpg'
-
+		const type = 'image/png'
+		//const picPath = `review/${reviewID}/picture_${sqlReturn.records}.${extension}`
 		expect(await image.uploadPictureToReview(path,type,1)).toBe(true)
-
+		expect(fs.existsSync('public/review/1/picture_0.png')).toBe(true)
 		done()
 	})
 

@@ -58,9 +58,6 @@ describe('Adding Category', () => {
             WHERE username = 'NewUser';`
 		await db.run(sql)//Sets to admin
 
-		const sql1 = 'SELECT * FROM user;'
-		console.log(await db.all(sql1))
-
 		await page.goto('http://localhost:8080/login', { timeout: 30000, waitUntil: 'load' })
 		await page.type('input[name=user]', 'NewUser')
 		await page.type('input[name=pass]', 'password')
