@@ -2,237 +2,297 @@
 'use strict'
 
 const Games = require('../modules/game.js')
+const Category = require('../modules/category.js')
+const Publisher = require('../modules/publisher.js')
 
-const mock = require('mock-fs')
-const fs = require('fs')
-const mime = require('mime-types')
+let category
+let categorySpy
+let categoryList = {categories: []}
+let categoryGameAssoc = {assocs: []}
+let publisher
+let publisherSpy
+let publisherList = {publishers: []}
+let publisherGameAssoc = {assocs: []}
 
+beforeEach(async() => {
 
-describe('getPictures()', () => {
-	beforeEach(() => {
-		//console.log("");
-		mock({
-			public: {
-				game: {
+	//Mock category
+	categoryGameAssoc = {assocs: []}
+	categoryList = {categories: []}
+	category = await new Category()
 
-				}
-
-			},
-			'user/images/pictureUpload.png': Buffer.from([8, 6, 7, 5, 3, 0, 9]),
-			'user/images/pictureUpload2.png': Buffer.from([8, 6, 7, 5, 3, 0, 9]),
-			'user/text/test.txt': 'This is a text file'
-		})
-	})
-	afterEach(mock.restore)
-
-	test('Valid game', async done => {
-		expect.assertions(1)
-
-		const game = await new Games()
-
-		await game.addNewGame(
-			'title',
-			'summary',
-			'desc')
-		const retreiveGame = await game.getGameByTitle('title')
-		const gameID = retreiveGame.ID
-
-		await game.uploadPicture('user/images/pictureUpload.png','image/png',gameID)
-		await game.uploadPicture('user/images/pictureUpload2.png','image/png',gameID)
-
-		const extension = await mime.extension('image/png')
-		expect(await game.getPictures(gameID)).toMatchObject(
+	categorySpy = jest.spyOn(category, 'addCategory').mockImplementation((a) => {
+		const newID = categoryList.categories.length+1
+		categoryList.categories.push(
 			{
-				pictures: [
-					`game/${gameID}/picture_0.${extension}`,
-					`game/${gameID}/picture_1.${extension}`
-				]
+				ID: newID,
+				title: a,
 			}
 		)
 
-		done()
+		return newID
 	})
-
-	test('Error if invalid file', async done => {
-		expect.assertions(1)
-
-		const game = await new Games()
-
-		await game.addNewGame(
-			'title',
-			'summary',
-			'desc')
-		const retreiveGame = await game.getGameByTitle('title')
-		const gameID = retreiveGame.ID
-
-		await expect( game.uploadPicture('user/text/test.txt','text/plain',gameID))
-			.rejects.toEqual(Error('Not an image'))
-		done()
-	})
-
-	test('Error if game does not exist', async done => {
-		expect.assertions(1)
-
-		const game = await new Games()
-
-		await expect(game.getPictures(1))
-			.rejects.toEqual(Error('Game not found'))
-
-		done()
-	})
-
-	test('Error if gameID is null', async done => {
-		expect.assertions(1)
-
-		const game = await new Games()
-
-		await expect(game.getPictures(null))
-			.rejects.toEqual(Error('Must supply gameID'))
-
-		done()
-	})
-
-	test('Error if gameID is NaN', async done => {
-		expect.assertions(1)
-
-		const game = await new Games()
-
-		await expect(game.getPictures('Not a number'))
-			.rejects.toEqual(Error('Must supply gameID'))
-
-		done()
-	})
-})
-
-describe('uploadPicture()', () => {
-	beforeEach(() => {
-		//console.log("");
-		mock({
-			public: {
-				game: {
-
-				}
-
-			},
-			'user/images/pictureUpload.png': Buffer.from([8, 6, 7, 5, 3, 0, 9])
+	categorySpy = jest.spyOn(category, 'associateToCategory').mockImplementation((game, cat) => {
+		categoryGameAssoc.assocs.push({
+			catID: cat,
+			gameID: game,
+			ID: categoryGameAssoc.assocs.length +1
 		})
 	})
+	categorySpy = jest.spyOn(Category.prototype, 'getGamesOfCategory').mockImplementation((ID) => {
+		const result = {gameID: []}
+		for(let i = 0; i < categoryGameAssoc.assocs.length; i++) {
+			if(categoryGameAssoc.assocs[i].catID === ID) result.gameID.push(categoryGameAssoc.assocs[i].gameID)
 
-	afterEach(mock.restore)
-
-	test('Valid game', async done => {
-		expect.assertions(2)
-
-		const game = await new Games()
-
-		const path = 'user/images/pictureUpload.png'
-		const type = 'image/png'
-		await game.addNewGame(
-			'title',
-			'summary',
-			'desc')
-		const retreiveGame = await game.getGameByTitle('title')
-		const gameID = retreiveGame.ID
-
-		expect(await game.uploadPicture(path,type,gameID)).toBe(true)
-		const extension = await mime.extension(type)
-
-		expect( await fs.existsSync(`public/game/${gameID}/picture_0.${extension}`)).toBe(true)
-
-
-		done()
+		}
+		return result
 	})
 
-	test('Error if game does not exist', async done => {
+	//Mock publisher
+	publisherGameAssoc = {assocs: []}
+	publisherList = {publishers: []}
+	publisher = await new Publisher()
+
+	publisherSpy = jest.spyOn(publisher, 'addPublisher').mockImplementation((a) => {
+		const newID = publisherList.publishers.length+1
+		publisherList.publishers.push(
+			{
+				ID: newID,
+				name: a,
+			}
+		)
+
+		return newID
+	})
+	publisherSpy = jest.spyOn(publisher, 'associateToPublisher').mockImplementation((game, pub) => {
+		publisherGameAssoc.assocs.push({
+			pubID: pub,
+			gameID: game,
+			ID: publisherGameAssoc.assocs.length +1
+		})
+	})
+	publisherSpy = jest.spyOn(Publisher.prototype, 'getGamesOfPublisher').mockImplementation((ID) => {
+		const result = {gameID: []}
+		for(let i = 0; i < publisherGameAssoc.assocs.length; i++) {
+			if(publisherGameAssoc.assocs[i].pubID === ID) result.gameID.push(publisherGameAssoc.assocs[i].gameID)
+
+		}
+		return result
+	})
+})
+
+afterEach(async() => {
+	categorySpy.mockRestore()
+	publisherSpy.mockRestore()
+})
+
+describe('searchGame()', () => {
+	test('Search with keyword in summary', async done => {
 		expect.assertions(1)
 
 		const game = await new Games()
 
-		const path = 'user/images/pictureUpload.png'
-		const type = '.png'
 
-		const gameID = 2
+		await game.addNewGame('Title', 'Summary', 'Description')
 
-		await expect(game.uploadPicture(path,type,gameID))
-			.rejects.toEqual(Error('Game not found'))
+		const result = await game.searchGame('ummar')
+
+		expect(result).toMatchObject({games: [
+			{title: 'Title'}
+		]
+		})
+
 		done()
 	})
 
-	test('Error if gameID is null', async done => {
+	test('Search with keyword in description', async done => {
 		expect.assertions(1)
 
 		const game = await new Games()
 
-		const path = 'user/images/pictureUpload.png'
-		const type = '.png'
 
-		await expect(game.uploadPicture(path,type,null))
-			.rejects.toEqual(Error('Must supply gameID'))
+		await game.addNewGame('Title', 'Summary', 'Description')
+
+		const result = await game.searchGame('esc')
+
+		expect(result).toMatchObject({games: [
+			{title: 'Title'}
+		]
+		})
+
 		done()
 	})
 
-	test('Error if gameID is NaN', async done => {
+	test('Search with keyword in title', async done => {
 		expect.assertions(1)
 
 		const game = await new Games()
 
-		const path = 'user/images/pictureUpload.png'
-		const type = '.png'
 
-		await expect(game.uploadPicture(path,type,'Not a Number'))
-			.rejects.toEqual(Error('Must supply gameID'))
+		await game.addNewGame('Title', 'Summary', 'Description')
+
+		const result = await game.searchGame('itl')
+
+		expect(result).toMatchObject({games: [
+			{title: 'Title'}
+		]
+		})
+
 		done()
 	})
 
-	test('Error if path is null', async done => {
+})
+
+describe('getGamesOfCategory()', () => {
+	test('Valid categoryID', async done => {
 		expect.assertions(1)
 
 		const game = await new Games()
 
-		const type = '.png'
+		const catID = await category.addCategory('Horror')
+		await category.addCategory('Cats')
+		await category.addCategory('Comedy')
+		await game.addNewGame('Green', 'Summary', 'Description')
+		await game.addNewGame('Red', 'Summary', 'Description')
+		const retGame = await game.getGameByTitle('Red')
+		await category.associateToCategory(retGame.ID, catID)
 
-		await expect(game.uploadPicture(null,type,1))
-			.rejects.toEqual(Error('Must supply path'))
+		const result = await game.getGamesOfCategory(catID)
+
+		expect(result).toMatchObject(
+			{
+				games: [
+					{
+						title: 'Red',
+						summary: 'Summary',
+						desc: 'Description'
+					}
+				]
+			}
+		)
 		done()
 	})
 
-	test('Error if path is empty', async done => {
+
+	test('Error if catID is null', async done => {
+		expect.assertions(1)
+		const game = await new Games()
+
+		await expect(game.getGamesOfCategory(null))
+			.rejects.toEqual(Error('Must supply catID'))
+		done()
+	})
+
+	test('Error if catID is NaN', async done => {
 		expect.assertions(1)
 
 		const game = await new Games()
 
-		const type = '.png'
 
-		await expect(game.uploadPicture('',type,1))
-			.rejects.toEqual(Error('Must supply path'))
+		await expect(game.getGamesOfCategory('not a number'))
+			.rejects.toEqual(Error('Must supply catID'))
 		done()
 	})
 
-	test('Error if type is null', async done => {
+	test('Error if catID is undefined', async done => {
 		expect.assertions(1)
 
 		const game = await new Games()
 
-		const path = 'user/images/pictureUpload.png'
 
-		await expect(game.uploadPicture(path,null,1))
-			.rejects.toEqual(Error('Must supply type'))
-		done()
-	})
-
-	test('Error if type is empty', async done => {
-		expect.assertions(1)
-
-		const game = await new Games()
-
-		const path = 'user/images/pictureUpload.png'
-
-		await expect(game.uploadPicture(path,'',1))
-			.rejects.toEqual(Error('Must supply type'))
+		await expect(game.getGamesOfCategory(undefined))
+			.rejects.toEqual(Error('Must supply catID'))
 		done()
 	})
 })
 
+
+describe('getGamesOfPublisher()', () => {
+	test('Valid ID', async done => {
+		expect.assertions(1)
+
+		const game = await new Games()
+
+		const pubID = await publisher.addPublisher('Rockstar Games')
+		await publisher.addPublisher('Pop Star Games')
+
+		await game.addNewGame('Green', 'Summary', 'Description')
+		await game.addNewGame('Red', 'Summary', 'Description')
+		const retGame = await game.getGameByTitle('Red')
+		await publisher.associateToPublisher(retGame.ID, pubID)
+
+		const result = await game.getGamesOfPublisher(pubID)
+
+		expect(result).toMatchObject(
+			{
+				games: [
+					{
+						title: 'Red',
+						summary: 'Summary',
+						desc: 'Description'
+					}
+				]
+			}
+		)
+		done()
+	})
+
+
+	test('Error if pubID is null', async done => {
+		expect.assertions(1)
+		const game = await new Games()
+
+		await expect(game.getGamesOfPublisher(null))
+			.rejects.toEqual(Error('Must supply pubID'))
+		done()
+	})
+
+	test('Error if pubID is NaN', async done => {
+		expect.assertions(1)
+
+		const game = await new Games()
+
+
+		await expect(game.getGamesOfPublisher('not a number'))
+			.rejects.toEqual(Error('Must supply pubID'))
+		done()
+	})
+
+	test('Error if pubID is undefined', async done => {
+		expect.assertions(1)
+
+		const game = await new Games()
+
+
+		await expect(game.getGamesOfPublisher(undefined))
+			.rejects.toEqual(Error('Must supply pubID'))
+		done()
+	})
+})
+
+describe('game - review intergration', () => {
+	test('Retrieve average rating ', async done => {
+		expect.assertions(1)
+
+		const game = await new Games()
+		const review = game.review
+
+		const titleToTest = 'Red'
+		const summary = 'A simple summary'
+		const desc = 'Lorem Ipsum and as such this is a game'
+
+		await game.addNewGame(titleToTest, summary, desc)
+		const retreiveGame = await game.getGameByTitle(titleToTest)
+		await review.addReview(retreiveGame.ID, {fullText: 'sometext', rating: 4},1)
+		await review.addReview(retreiveGame.ID, {fullText: 'sometext', rating: 1},1)
+		await review.addReview(retreiveGame.ID, {fullText: 'sometext', rating: 3},1)
+		const expectedAvg = (1 + 4 + 3) /3
+		const averageRating = await review.getAverageRating(retreiveGame.ID)
+		expect(averageRating).toEqual(expectedAvg)
+
+		done()
+	})
+})
 
 describe('checkGameFields()', () => {
 	test('Valid fields', async done => {
@@ -279,208 +339,6 @@ describe('checkGameFields()', () => {
 		done()
 	})
 
-})
-
-describe('associateToPublisher()', () => {
-	test('Valid publisher and game', async done => {
-		expect.assertions(2)
-
-		const game = await new Games()
-		const publisher = await game.publisher
-
-		await game.addNewGame(
-			'title',
-			'summary',
-			'desc')
-		const retreiveGame = await game.getGameByTitle('title')
-
-		const publisherID = await publisher.addPublisher('Rockstar Games')
-
-		expect(await game.associateToPublisher(retreiveGame.ID, publisherID))
-			.toBe(true)
-
-		expect(await game.getPublishers(retreiveGame.ID)).toMatchObject(
-			{
-				publishers: [1]
-			}
-		)
-
-		done()
-	})
-	test('Error if gameID null', async done => {
-		expect.assertions(1)
-
-		const game = await new Games()
-		const publisher = await game.publisher
-
-		await game.addNewGame(
-			'title',
-			'summary',
-			'desc')
-		await game.getGameByTitle('title')
-
-		const publisherID = await publisher.addPublisher('Rockstar Games')
-
-		await expect(game.associateToPublisher(null, publisherID))
-			.rejects.toEqual(Error('Must supply gameID'))
-		done()
-	})
-
-	test('Error if gameID NaN', async done => {
-		expect.assertions(1)
-
-		const game = await new Games()
-		const publisher = await game.publisher
-
-		await game.addNewGame(
-			'title',
-			'summary',
-			'desc')
-		await game.getGameByTitle('title')
-
-		const publisherID = await publisher.addPublisher('Rockstar Games')
-
-		await expect(game.associateToPublisher('Not a number', publisherID))
-			.rejects.toEqual(Error('Must supply gameID'))
-		done()
-	})
-
-	test('Error if publisherID null', async done => {
-		expect.assertions(1)
-
-		const game = await new Games()
-		const publisher = await game.publisher
-
-		await game.addNewGame(
-			'title',
-			'summary',
-			'desc')
-		const retreiveGame = await game.getGameByTitle('title')
-
-		await publisher.addPublisher('Rockstar Games')
-
-		await expect(game.associateToPublisher(retreiveGame.ID, null))
-			.rejects.toEqual(Error('Must supply publisherID'))
-		done()
-	})
-
-	test('Error if publisherID NaN', async done => {
-		expect.assertions(1)
-
-		const game = await new Games()
-		const publisher = await game.publisher
-
-		await game.addNewGame(
-			'title',
-			'summary',
-			'desc')
-		const retreiveGame = await game.getGameByTitle('title')
-
-		await publisher.addPublisher('Rockstar Games')
-
-		await expect(game.associateToPublisher(retreiveGame.ID, 'Not a number'))
-			.rejects.toEqual(Error('Must supply publisherID'))
-		done()
-	})
-
-	test('Error if publisher does not exist', async done => {
-		expect.assertions(1)
-
-		const game = await new Games()
-		const publisher = await game.publisher
-
-		await game.addNewGame(
-			'title',
-			'summary',
-			'desc')
-		const retreiveGame = await game.getGameByTitle('title')
-
-		await publisher.addPublisher('Rockstar Games')
-
-		await expect(game.associateToPublisher(retreiveGame.ID, 3))
-			.rejects.toEqual(Error('Publisher not found'))
-		done()
-	})
-
-	test('Error if game does not exist', async done => {
-		expect.assertions(1)
-
-		const game = await new Games()
-		const publisher = await game.publisher
-
-		await game.addNewGame(
-			'title',
-			'summary',
-			'desc')
-		await game.getGameByTitle('title')
-
-		const publisherID = await publisher.addPublisher('Rockstar Games')
-
-		await expect(game.associateToPublisher(4, publisherID))
-			.rejects.toEqual(Error('Game not found'))
-		done()
-	})
-})
-
-describe('getPublishers()', () => {
-	test('Valid gameID', async done => {
-		expect.assertions(1)
-
-		const game = await new Games()
-		const publisher = await game.publisher
-
-		await game.addNewGame(
-			'title',
-			'summary',
-			'desc')
-		const retreiveGame = await game.getGameByTitle('title')
-		const publisherID = await publisher.addPublisher('Rockstar Games')
-		const publisherIDSecond = await publisher.addPublisher('Microsoft')
-		await game.associateToPublisher(retreiveGame.ID, publisherID)
-		await game.associateToPublisher(retreiveGame.ID, publisherIDSecond)
-
-		expect(await game.getPublishers(retreiveGame.ID)).toMatchObject(
-			{
-				publishers: [1,2]
-			}
-		)
-
-
-		done()
-	})
-
-	test('Error if gameID NaN', async done => {
-		expect.assertions(1)
-
-		const game = await new Games()
-
-
-		await expect(game.getPublishers('Not a number'))
-			.rejects.toEqual(Error('Must supply gameID'))
-		done()
-	})
-
-	test('Error if gameID null', async done => {
-		expect.assertions(1)
-
-		const game = await new Games()
-
-
-		await expect(game.getPublishers(null))
-			.rejects.toEqual(Error('Must supply gameID'))
-		done()
-	})
-
-	test('Error if game does not exist', async done => {
-		expect.assertions(1)
-
-		const game = await new Games()
-
-
-		await expect(game.getPublishers(4))
-			.rejects.toEqual(Error('Game not found'))
-		done()
-	})
 })
 
 
@@ -689,15 +547,6 @@ describe('getGameByID()', () => {
 			}
 		)
 
-		done()
-	})
-
-	test('Error if game does not exist', async done => {
-		expect.assertions(1)
-		const game = await new Games()
-
-		await expect(game.getGameByID(0))
-			.rejects.toEqual(Error('Game not found'))
 		done()
 	})
 

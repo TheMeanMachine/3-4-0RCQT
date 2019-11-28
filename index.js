@@ -18,6 +18,9 @@ const User = require('./modules/user')
 const Review = require('./modules/review')
 const Games = require('./modules/game')
 const Category = require('./modules/category')
+const Publisher = require('./modules/publisher')
+const Image = require('./modules/image')
+const Comment = require('./modules/comment')
 const app = new Koa()
 const router = new Router()
 
@@ -55,6 +58,8 @@ const helpers ={
 	}
 }
 
+let user
+
 /**
  * The secure home page.
  *
@@ -68,24 +73,80 @@ router.get('/', async ctx => {
 
 		const games = await new Games(dbName)
 
-		const review = await new Review(dbName)
 		const category = await new Category(dbName)
-		let gamesList = (await games.getGames()).games
+		const publisher = await new Publisher(dbName)
+		const gamesList = (await games.getGames()).games
 
-		if(ctx.request.query.category) gamesList = (await category.getGamesOfCategory(ctx.request.query.category)).games
 		const categories = (await category.getAllCategories()).categories
+		const publishers = (await publisher.getAllPublishers()).publishers
 
-		for(let i = 0; i < gamesList.length; i++) {//Set the list of games with their pictures
-			gamesList[i].pictures = (await games.getPictures(gamesList[i].ID)).pictures
-			gamesList[i].avgRating = Math.round(await review.getAverageRating(gamesList[i].ID))
-			gamesList[i].category = (await category.getCategories(gamesList[i].ID)).categories//Get all other categories
-		}
 		//Render the home page
-		await ctx.render('index', {games: gamesList,categories: categories,
-			selectedCat: ctx.request.query.category,helpers})
+		await ctx.render('index', {games: gamesList,categories: categories,publishers: publishers,
+			selectedCat: ctx.request.query.category,selectedPub: ctx.request.query.publisher,
+			helpers, admin: ctx.session.admin})
 	} catch(err) {
 		await ctx.render('error', {message: err.message})
 	}
+})
+
+/**
+ * The game search based on a query string
+ *
+ * @name gameSearch page - displays results
+ * @route {GET} /gameSearch
+ * @authentication This route requires cookie-based authentication.
+ */
+router.get('/gameSearch', async ctx => {
+	const category = await new Category(dbName)
+	const publisher = await new Publisher(dbName)
+	const games = await new Games(dbName)
+	if(!ctx.request.query.gameSearch) return ctx.redirect('/')
+	const gamesList = (await games.searchGame(ctx.request.query.gameSearch)).games
+	const categories = (await category.getAllCategories()).categories
+	const publishers = (await publisher.getAllPublishers()).publishers
+
+	await ctx.render('index', {games: gamesList,categories: categories,publishers: publishers,
+		selectedCat: ctx.request.query.category,search: ctx.request.query.gameSearch,
+		selectedPub: ctx.request.query.publisher,helpers, admin: ctx.session.admin})
+})
+/**
+ * The categorySearch based on a query string
+ *
+ * @name categorySearch page - displays results
+ * @route {GET} /categorySearch
+ * @authentication This route requires cookie-based authentication.
+ */
+router.get('/categorySearch', async ctx => {
+	const games = await new Games(dbName)
+	const category = await new Category(dbName)
+	const publisher = await new Publisher(dbName)
+	if(!ctx.request.query.category) return ctx.redirect('/')
+	const gamesList = (await games.getGamesOfCategory(ctx.request.query.category)).games
+	const categories = (await category.getAllCategories()).categories
+	const publishers = (await publisher.getAllPublishers()).publishers
+
+	await ctx.render('index', {games: gamesList,categories: categories,publishers: publishers,
+		selectedCat: ctx.request.query.category,
+		selectedPub: ctx.request.query.publisher,helpers, admin: ctx.session.admin})
+})
+/**
+ * The publisherSearch based on a query string
+ *
+ * @name publisherSearch page - displays results
+ * @route {GET} /publisherSearch
+ * @authentication This route requires cookie-based authentication.
+ */
+router.get('/publisherSearch', async ctx => {
+	const games = await new Games(dbName)
+	const category = await new Category(dbName)
+	const publisher = await new Publisher(dbName)
+	if(!ctx.request.query.publisher) return ctx.redirect('/')
+	const gamesList = (await games.getGamesOfPublisher(ctx.request.query.publisher)).games
+	const categories = (await category.getAllCategories()).categories
+	const publishers = (await publisher.getAllPublishers()).publishers
+	await ctx.render('index', {games: gamesList,categories: categories,publishers: publishers,
+		selectedCat: ctx.request.query.category,
+		selectedPub: ctx.request.query.publisher,helpers, admin: ctx.session.admin})
 })
 
 
@@ -97,30 +158,65 @@ router.get('/', async ctx => {
  * @authentication This route requires cookie-based authentication.
  *
  */
+// eslint-disable-next-line max-lines-per-function
 router.get('/game', async ctx => {
 	try {
 		if(ctx.session.authorised !== true || !ctx.query.gameID)return ctx.redirect('/')
 		const games = await new Games(dbName)
 		const review = await new Review(dbName)
 		const category = await new Category(dbName)
-
+		const publishers = await new Publisher(dbName)
 
 		const gameID = ctx.query.gameID
 		const thisGame = await games.getGameByID(gameID)
 
-		thisGame.pictures = (await games.getPictures(gameID)).pictures//Get pictures for the game
-
 		const reviews = await review.getReviewsByGameID(gameID, ctx.session.admin, ctx.session.userID)//Get all reviews
-
 
 		thisGame.category = (await category.getCategories(gameID)).categories//get all categories
 		thisGame.otherCategories = (await category.getOtherCategories(gameID)).categories//Get all other categories
-
+		thisGame.publishers = (await publishers.getPublishers(gameID)).publishers
+		thisGame.otherPublishers = (await publishers.getAllPublishers()).publishers
 		const ratingsReviews = [{value: 1},{value: 2},{value: 3},{value: 4},{value: 5}]//Set ratings
-		const avgRating = await review.getAverageRating(gameID)
 		//Render game main page
 		await ctx.render('game', {game: thisGame,admin: ctx.session.admin,ratingsReview: ratingsReviews,
-			allReview: reviews.reviews,userReview: reviews.userReview,averageRating: Math.round(avgRating),helpers})
+			allReview: reviews.reviews,userReview: reviews.userReview, userID: ctx.session.userID,
+			averageRating: Math.round(thisGame.avgRating),helpers})
+	} catch(err) {
+		await ctx.render('error', {message: err.message})
+	}
+})
+
+/**
+ * The searchReview based on a gameID & query string
+ *
+ * @name searchReview page - displays results
+ * @route {GET} /game/searchReview
+ * @authentication This route requires cookie-based authentication.
+ */
+// eslint-disable-next-line max-lines-per-function
+router.get('/game/searchReview', async ctx => {
+	try {
+		if(ctx.session.authorised !== true || !ctx.query.gameID)return ctx.redirect('/')
+		const games = await new Games(dbName)
+		const review = await new Review(dbName)
+		const category = await new Category(dbName)
+		const publishers = await new Publisher(dbName)
+
+		const gameID = ctx.query.gameID
+		if(!ctx.request.query.search) return ctx.redirect(`/game?gameID=${gameID}`)
+		const thisGame = await games.getGameByID(gameID)
+
+		const reviews = await review.searchReview(gameID, ctx.session.userID, ctx.request.query.search, ctx.session.admin)//Get all reviews
+
+		thisGame.category = (await category.getCategories(gameID)).categories//get all categories
+		thisGame.otherCategories = (await category.getOtherCategories(gameID)).categories//Get all other categories
+		thisGame.publishers = (await publishers.getPublishers(gameID)).publishers
+		thisGame.otherPublishers = (await publishers.getAllPublishers()).publishers
+		const ratingsReviews = [{value: 1},{value: 2},{value: 3},{value: 4},{value: 5}]//Set ratings
+		//Render game main page
+		await ctx.render('game', {game: thisGame,admin: ctx.session.admin,ratingsReview: ratingsReviews,
+			allReview: reviews.reviews,userReview: reviews.userReview,search: ctx.request.query.search,
+			averageRating: Math.round(thisGame.avgRating),helpers})
 	} catch(err) {
 		await ctx.render('error', {message: err.message})
 	}
@@ -158,6 +254,33 @@ router.post('/reviewAdminUpdate', async ctx => {
 	}
 })
 
+/**
+ * Script to add a comment to a review
+ *
+ * @name addComment script
+ * @route {POST} /addComment
+ * @authentication This route requires cookie-based authentication.
+ */
+router.post('/addComment', async ctx => {
+	try{
+		// extract the data from the request
+		const body = ctx.request.body
+		if(ctx.session.authorised !== true)return ctx.redirect('/login?msg=you need to log in')
+		// call the functions in the module
+		const comment = await new Comment(dbName)
+
+		const gameID = body.gameID
+		const reviewID = body.reviewID
+
+		await comment.addComment(reviewID,ctx.session.userID, body.fullText)
+
+
+		ctx.redirect(`game?gameID=${gameID}`)
+	} catch(err) {
+		await ctx.render('error', {message: err.message})
+	}
+})
+
 
 /**
  * Script to delete a game
@@ -180,6 +303,32 @@ router.post('/deleteGame', async ctx => {
 		if(body.delete) await game.deleteGameByID(gameID)
 
 		ctx.redirect('/')
+	} catch(err) {
+		await ctx.render('error', {message: err.message})
+	}
+})
+
+/**
+ * Script to remove a comment to a review
+ *
+ * @name commentDelete script
+ * @route {POST} /commentDelete
+ * @authentication This route requires cookie-based authentication.
+ */
+router.post('/commentDelete', async ctx => {
+	try{
+		// extract the data from the request
+		const body = ctx.request.body
+		if(ctx.session.authorised !== true)return ctx.redirect('/login?msg=you need to log in')
+		// call the functions in the module
+		const comment = await new Comment(dbName)
+
+		const gameID = body.gameID
+
+		if(body.delete) await comment.deleteCommentByID(body.commentID)
+
+		//refresh
+		ctx.redirect(`game?gameID=${gameID}`)
 	} catch(err) {
 		await ctx.render('error', {message: err.message})
 	}
@@ -215,6 +364,32 @@ router.post('/removeCategoryFromGame', async ctx => {
 })
 
 /**
+ * Script to remove a Publisher to a game
+ *
+ * @name removePublisherFromGame script
+ * @route {POST} /removePublisherFromGame
+ * @authentication This route requires cookie-based authentication.
+ *
+ */
+router.post('/removePublisherFromGame', async ctx => {
+	try{
+		const body = ctx.request.body
+		if(ctx.session.authorised !== true || !ctx.session.admin)return ctx.redirect('/')
+		const publisher = await new Publisher(dbName)
+
+		const gameID = body.gameID
+		const pubID = body.publisherID
+
+		await publisher.unassociateToPublisher(gameID, pubID)
+
+		//refresh
+		ctx.redirect(`game?gameID=${gameID}`)
+	} catch(err) {
+		await ctx.render('error', {message: err.message})
+	}
+})
+
+/**
  * Script to add a category to a game
  *
  * @name addCategoryToGame script
@@ -234,6 +409,31 @@ router.post('/addCategoryToGame', async ctx => {
 		const gameID = body.gameID
 
 		await category.associateToCategory(gameID, body.category)
+		//refresh
+		ctx.redirect(`game?gameID=${gameID}`)
+	} catch(err) {
+		await ctx.render('error', {message: err.message})
+	}
+})
+
+/**
+ * Script to add a Publisher to a game
+ *
+ * @name addPublisherToGame script
+ * @route {POST} /addPublisherToGame
+ * @authentication This route requires cookie-based authentication.
+ *
+ */
+router.post('/addPublisherToGame', async ctx => {
+	try {
+		// extract the data from the request
+		const body = ctx.request.body
+		if(ctx.session.authorised !== true || !ctx.session.admin)return ctx.redirect('/')
+
+		const publisher = await new Publisher(dbName)
+		const gameID = body.gameID
+
+		await publisher.associateToPublisher(gameID, body.publisher)
 		//refresh
 		ctx.redirect(`game?gameID=${gameID}`)
 	} catch(err) {
@@ -290,6 +490,95 @@ router.get('/newGame', async ctx => {
 		await ctx.render('error', {message: err.message})
 	}
 })
+/**
+ * The new category form
+ *
+ * @name newCategory form
+ * @route {GET} /newCategory
+ * @authentication This route requires cookie-based authentication.
+ *
+ */
+router.get('/newCategory', async ctx => {
+	try {
+		if(ctx.session.authorised !== true || !ctx.session.admin)return ctx.redirect('/')
+
+		await ctx.render('addCategory', {
+			helpers
+		})
+	} catch(err) {
+		await ctx.render('error', {message: err.message})
+	}
+})
+
+/**
+ * Script to add a new category
+ *
+ * @name newCategory script
+ * @route {POST} /newCategory
+ * @authentication This route requires cookie-based authentication.
+ *
+ */
+router.post('/newCategory', async ctx => {
+	try {
+		// extract the data from the request
+		const body = ctx.request.body
+		if(ctx.session.authorised !== true || !ctx.session.admin)return ctx.redirect('/')
+		const category = await new Category(dbName)
+
+		//Add the new game
+		await category.addCategory(body.title)
+
+		//Go back to home
+		ctx.redirect('/')
+	} catch(err) {
+		await ctx.render('error', {message: err.message})
+	}
+})
+
+/**
+ * The new publisher form
+ *
+ * @name newPublisher form
+ * @route {GET} /newPublisher
+ * @authentication This route requires cookie-based authentication.
+ *
+ */
+router.get('/newPublisher', async ctx => {
+	try {
+		if(ctx.session.authorised !== true || !ctx.session.admin)return ctx.redirect('/')
+
+		await ctx.render('addPublisher', {
+			helpers
+		})
+	} catch(err) {
+		await ctx.render('error', {message: err.message})
+	}
+})
+
+/**
+ * Script to add a new publisher
+ *
+ * @name newPublisher script
+ * @route {POST} /newPublisher
+ * @authentication This route requires cookie-based authentication.
+ *
+ */
+router.post('/newPublisher', async ctx => {
+	try {
+		// extract the data from the request
+		const body = ctx.request.body
+		if(ctx.session.authorised !== true || !ctx.session.admin)return ctx.redirect('/')
+		const publisher = await new Publisher(dbName)
+
+		//Add the new game
+		await publisher.addPublisher(body.name)
+
+		//Go back to home
+		ctx.redirect('/')
+	} catch(err) {
+		await ctx.render('error', {message: err.message})
+	}
+})
 
 /**
  * Script to add a new game
@@ -330,13 +619,13 @@ router.post('/addGamePhoto',koaBody, async ctx => {
 		const body = ctx.request.body
 		if(ctx.session.authorised !== true || !ctx.session.admin)return ctx.redirect('/login?msg=you need to log in')
 
-		const game = await new Games(dbName)
+		const image = await new Image(dbName)
 
 		const gameID = body.gameID
 		//Destructure to retrieve path and type
 		const {path, type} = ctx.request.files.pic1
 		//Upload picture
-		await game.uploadPicture(path, type, gameID)
+		await image.uploadPictureToGame(path, type, gameID)
 		//Refresh
 		ctx.redirect(`/game?gameID=${gameID}`)
 	} catch(err) {
@@ -344,6 +633,33 @@ router.post('/addGamePhoto',koaBody, async ctx => {
 	}
 })
 
+/**
+ * Script to add a screenshot to a review
+ *
+ * @name addReviewScreenshot script
+ * @route {POST} /addReviewScreenshot
+ * @authentication This route requires cookie-based authentication.
+ *
+ */
+router.post('/addReviewScreenshot',koaBody, async ctx => {
+	try {
+		// extract the data from the request
+		const body = ctx.request.body
+		if(ctx.session.authorised !== true)return ctx.redirect('/login?msg=you need to log in')
+
+		const image = await new Image(dbName)
+		const gameID = body.gameID
+		const reviewID = body.reviewID
+		//Destructure to retrieve path and type
+		const {path, type} = ctx.request.files.pic1
+		//Upload picture
+		await image.uploadPictureToReview(path, type, reviewID)
+		//Refresh
+		ctx.redirect(`/game?gameID=${gameID}`)
+	} catch(err) {
+		await ctx.render('error', {message: err.message})
+	}
+})
 /**
  * Script to update reviews where users have had a review before
  *
@@ -393,7 +709,7 @@ router.post('/register', koaBody, async ctx => {
 		const body = ctx.request.body
 		console.log(body)
 		// call the functions in the module
-		const user = await new User(dbName)
+		user = await new User(dbName)
 		await user.register(body.user, body.pass)
 
 		// await user.uploadPicture(path, type)

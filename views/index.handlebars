@@ -10,11 +10,11 @@
 		<link href="style.css" type="text/css" rel="stylesheet" />
 	</head>
 	<body>
-		
+		<h1>Home</h1>
 		<div class="cards">
 			{{#if categories}}
 				
-				<form action="/" method="GET">
+				<form action="/categorySearch" method="GET">
 					<br>
 					<p></p>
 					<select name="category">
@@ -32,9 +32,38 @@
 				</form>
 				
 			{{/if}}
+			{{#if publishers}}
+				
+				<form action="/publisherSearch" method="GET">
+					<br>
+					<p></p>
+					<select name="publisher">
+						<option value="">Select a publisher</option>
+						{{#each publishers}}
+							<option value="{{this.ID}}"
+							{{#if_eq this.ID @root.selectedPub}}
+							selected="selected"
+							{{/if_eq}}>{{this.name}}</option>
+						{{/each}}
+					</select>
+					<button type="submit">
+						Sort by Publisher
+					</button>
+				</form>
+				
+			{{/if}}
 
+			<form action="/gameSearch" method="GET">
+				<br>
+				<p></p>
+				<input type="text" name="gameSearch" placeholder="Search a game..." value="{{@root.search}}">
+				<button type="submit" id="submitSearch">
+					Search
+				</button>
+			</form>
+			<div id="games">
 			{{#each games}}
-				<div class="cardOuter">
+				<div class="cardOuter" id="game{{this.ID}}">
 					<a href="/game?gameID={{this.ID}}">
 					<div class="cardImg">
 						{{#if this.pictures}}
@@ -45,8 +74,20 @@
 					</div>
 					
 					<div class="card">
-						
-						<h2>{{this.title}}</h2>
+						{{#if this.publishers}}
+						<p>Publishers</p>
+						<div class="bubbles">
+							{{#each this.publishers}}
+								<div class="bubble_long">
+									<div class="bubble_longInner">
+										{{this.name}}
+									</div>
+								</div>
+							
+							{{/each}}
+						</div>
+						{{/if}}
+						<h2 id="gameTitle{{this.ID}}">{{this.title}}</h2>
 						<p>{{this.summary}}</p>
 						<p>Rating: {{this.avgRating}} / 5</p>
 
@@ -67,6 +108,8 @@
 				</div>
 				
 			{{/each}}
+			</div>
+
 			<br>
 			<div class="optionsContainer">
 				<div class="optionsOuter">
@@ -83,6 +126,38 @@
 					</div>
 					
 				</div>
+				{{#if @root.admin}}
+				<div class="optionsOuter">
+					
+					<div class="options">
+							
+						<a href="/newCategory/">
+						<div class="card">
+							
+							<h2>Add a new category</h2>
+							
+						</div>
+						</a>
+					</div>
+					
+				</div>
+				{{/if}}
+				{{#if @root.admin}}
+				<div class="optionsOuter">
+					
+					<div class="options">
+							
+						<a href="/newPublisher/">
+						<div class="card">
+							
+							<h2>Add a new publisher</h2>
+							
+						</div>
+						</a>
+					</div>
+					
+				</div>
+				{{/if}}
 				
 				<div class="optionsOuter">
 					<div class="options">

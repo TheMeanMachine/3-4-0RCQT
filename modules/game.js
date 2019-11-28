@@ -1,22 +1,23 @@
 
 'use strict'
 
-const mime = require('mime-types')
 const sqlite = require('sqlite-async')
-const fs = require('fs-extra')
-//const sharp = require('sharp')
 //Custom modules
 const valid = require('./validator')
+const Image = require('./image')
+const Review = require('./review')
 const Publishers = require('./publisher')
-
-
+const Category = require('./category')
 module.exports = class Game {
+	// eslint-disable-next-line max-lines-per-function
 	constructor(dbName) {
 		this.validator = new valid()
 
 		return (async() => {
 			this.dbName = dbName || ':memory:'
-			this.publisher = await new Publishers(this.dbName)
+			this.image = await new Image(this.dbName)
+			this.review = await new Review(this.dbName)
+
 			this.db = await sqlite.open(this.dbName)
 
 			const sql =[`CREATE TABLE IF NOT EXISTS game(ID INTEGER PRIMARY KEY AUTOINCREMENT,
@@ -37,136 +38,29 @@ module.exports = class Game {
 
 	}
 
-
 	/**
-     * Function to associate a publisher to a game
-     *
-     * @name associateToPublisher
-     * @param gameID gameID refers to the ID in the database
-     * @param publisherID publisherID refers to the publisher being associated to the game
-     * @throws if params not supplied
-     * @returns true if successful
-     */
-	async associateToPublisher(gameID, publisherID) {
-		try{
-			this.validator.checkID(gameID, 'gameID')
-			this.validator.checkID(publisherID, 'publisherID')
+	 * Function to search games based on a string
+	 * @param {string} toSearch
+	 *
+	 * @returns array of games
+	 */
+	async searchGame(toSearch) {
+		this.validator.checkStringExists(toSearch, 'toSearch')
 
-			await this.getGameByID(gameID)
-			await this.publisher.getPublisherByID(publisherID)
-
-			const sql = `INSERT INTO game_publisher (gameID, publisherID)
-            VALUES(
-                ${gameID},
-                ${publisherID}
-            );`
-			await this.db.run(sql)
-			return true
-		}catch(e) {
-			throw e
+		const sql = `
+        SELECT * FROM game
+		WHERE (summary LIKE "%${toSearch}%") OR
+		(desc LIKE "%${toSearch}%") OR
+		(title LIKE "%${toSearch}%");`
+		const data = await this.db.all(sql)
+		const result = { games: [] }
+		for(let i = 0; i < Object.keys(data).length; i++) {
+			data[i] = await this.getGameByID(data[i].ID)
+			result.games.push(data[i])
 		}
-	}
-	/**
-     * Function to get publishers associated to a game
-     *
-     * @name getPublishers
-     * @param gameID gameID refers to the ID in the database
-     * @throws if gameID not supplied
-     * @returns object containing publishers of game
-     */
-	async getPublishers(gameID) {
-		try {
-			if(gameID === null || isNaN(gameID)) {
-				throw new Error('Must supply gameID')
-			}
-			await this.getGameByID(gameID)//Make sure game exists
-			const sql = `SELECT * FROM game_publisher 
-            WHERE gameID = ${gameID};`
-
-			const data = await this.db.all(sql)
-			const result = { publishers: [] }
-			for(let i = 0; i < Object.keys(data).length; i++) {
-				result.publishers.push(data[i].ID)
-			}
-
-			return result
-		} catch(e) {
-			throw e
-		}
+		return result
 	}
 
-	/**
-     * Function to upload a picture and associate it to a game
-     *
-     * @name uploadPicture
-     * @param path path is the input path
-     * @param mimeType is the type of the picture
-     * @param gameID gameID refers to the ID in the database
-     * @throws error if params are not given
-     * @returns true if no problems
-     *
-     */
-	async uploadPicture(path, mimeType, gameID) {
-		try{
-			this.validator.checkID(gameID, 'gameID')
-
-			this.validator.checkStringExists(path, 'path')
-			this.validator.checkStringExists(mimeType, 'type')
-			if(!mimeType.match(/.(jpg|jpeg|png|gif)$/i)) throw new Error('Not an image')
-
-			const extension = mime.extension(mimeType)
-
-			await this.getGameByID(gameID)
-
-			let sql = `SELECT COUNT(id) as records FROM gamePhoto WHERE gameID="${gameID}";`
-			const data = await this.db.get(sql)//Set to the amount of pictures saved
-
-			const picPath = `game/${gameID}/picture_${data.records}.${extension}`
-
-			await fs.copy(path, `public/${ picPath}`)
-
-			sql = `INSERT INTO gamePhoto (gameID, picture) VALUES(
-                ${gameID},"${picPath}")`
-			await this.db.run(sql)
-
-			return true
-
-		}catch(e) {
-			throw e
-		}
-	}
-
-	/**
-     * Function to get pictures associated with a game
-     *
-     * @name getPictures
-     * @param gameID gameID refers to the ID in the database
-     * @throws error if gameID is not supplied
-     * @returns object containing picture urls
-     */
-	async getPictures(gameID) {
-		try{
-			if(gameID === null || isNaN(gameID)) {
-				throw new Error('Must supply gameID')
-			}
-
-			await this.getGameByID(gameID)
-
-			const sql = `
-            SELECT * FROM gamePhoto
-            WHERE gameID = ${gameID};
-            `
-			const data = await this.db.all(sql)
-			const result = { pictures: [] }
-			for(let i = 0; i < Object.keys(data).length; i++) {
-				result.pictures.push(data[i].picture)
-			}
-			return result
-
-		}catch(e) {
-			throw e
-		}
-	}
 
 	/**
      * Function to add a new game
@@ -242,28 +136,72 @@ module.exports = class Game {
      * @returns object containing game information
      */
 	async getGameByID(ID) {
-		try {
-			this.validator.checkID(ID, 'ID')
-			let sql = `SELECT count(ID) AS count FROM game WHERE ID = ${ID};`
-			let records = await this.db.get(sql)
-			if(records.count === 0) throw new Error('Game not found')
 
-			sql = `SELECT * FROM game WHERE ID = ${ID};`
+		this.validator.checkID(ID, 'ID')
 
-			records = await this.db.get(sql)
-
-			const data = {
-				ID: ID,
-				title: records.title,
-				summary: records.summary,
-				desc: records.desc
-			}
-
-			return data
-		} catch(err) {
-			throw err
+		const sql = `SELECT * FROM game WHERE ID = ${ID};`
+		const records = await this.db.get(sql)
+		const publisher = await new Publishers(this.dbName)
+		const category = await new Category(this.dbName)
+		const data = {
+			ID: ID,
+			title: records.title,
+			summary: records.summary,
+			desc: records.desc,
+			pictures: (await this.image.getPicturesByGameID(ID)).pictures,
+			avgRating: Math.round(await this.review.getAverageRating(ID)),
+			publishers: (await publisher.getPublishers(ID)).publishers,
+			category: (await category.getCategories(ID)).categories
 		}
+		return data
+
 	}
+
+
+	/**
+	 * Function to get all games based on a category
+	 * @param {Int} catID
+	 * @return array of games
+	 */
+	async getGamesOfCategory(catID) {
+		this.validator.checkID(catID, 'catID')
+
+		const category = await new Category(this.dbName)
+		const gameIDs = (await category.getGamesOfCategory(catID)).gameID
+		const result = { games: []}
+
+		for(let i = 0; i < gameIDs.length; i++) {
+
+			const gameData = await this.getGameByID(gameIDs[i])
+			result.games.push(gameData)
+
+		}
+
+		return result
+	}
+	/**
+	 * Function to get all games based on a publisher
+	 * @param {Int} pubID
+	 * @return array of games
+	 */
+	async getGamesOfPublisher(pubID) {
+		this.validator.checkID(pubID, 'pubID')
+
+		const publisher = await new Publishers(this.dbName)
+		const gameIDs = (await publisher.getGamesOfPublisher(pubID)).gameID
+		const result = { games: []}
+
+		for(let i = 0; i < gameIDs.length; i++) {
+
+			const gameData = await this.getGameByID(gameIDs[i])
+			result.games.push(gameData)
+
+		}
+
+		return result
+	}
+
+
 	/**
      * Function to get all games
      *
@@ -275,7 +213,13 @@ module.exports = class Game {
         SELECT * FROM game;`
 		const data = await this.db.all(sql)
 		const result = { games: [] }
+		const publisher = await new Publishers(this.dbName)
+		const category = await new Category(this.dbName)
 		for(let i = 0; i < Object.keys(data).length; i++) {
+			data[i].pictures =(await this.image.getPicturesByGameID(data[i].ID)).pictures//Get pictures for the game
+			data[i].avgRating = Math.round(await this.review.getAverageRating(data[i].ID))
+			data[i].publishers = (await publisher.getPublishers(data[i].ID)).publishers,
+			data[i].category = (await category.getCategories(data[i].ID)).categories
 			result.games.push(data[i])
 		}
 
@@ -291,29 +235,31 @@ module.exports = class Game {
      * @returns object containing game information
      */
 	async getGameByTitle(title) {
-		try {
-			if(!this.validator.checkMultipleWordsOnlyAlphaNumberic(title)) throw new Error('Must supply a valid title')
 
-			let sql = `SELECT count(ID) AS count FROM game WHERE title = "${title}";`
-			let records = await this.db.get(sql)
-			if(records.count === 0) throw new Error(`Game: "${title}" not found`)
+		if(!this.validator.checkMultipleWordsOnlyAlphaNumberic(title)) throw new Error('Must supply a valid title')
+
+		let sql = `SELECT count(ID) AS count FROM game WHERE title = "${title}";`
+		let records = await this.db.get(sql)
+		if(records.count === 0) throw new Error(`Game: "${title}" not found`)
 
 
-			sql = `SELECT * FROM game WHERE title = "${title}";`
+		sql = `SELECT * FROM game WHERE title = "${title}";`
 
-			records = await this.db.get(sql)
-
-			const data = {
-				ID: records.ID,
-				title: title,
-				summary: records.summary,
-				desc: records.desc
-			}
-
-			return data
-		} catch(err) {
-			throw err
+		records = await this.db.get(sql)
+		const publisher = await new Publishers(this.dbName)
+		const category = await new Category(this.dbName)
+		const data = {
+			ID: records.ID, title: title,
+			summary: records.summary,
+			desc: records.desc,
+			pictures: (await this.image.getPicturesByGameID(records.ID)).pictures,
+			avgRating: Math.round(await this.review.getAverageRating(records.ID)),
+			publishers: (await publisher.getPublishers(records.ID)).publishers,
+			category: (await category.getCategories(records.ID)).categories
 		}
+
+		return data
+
 	}
 	/**
      * Function to get update game information based on an ID

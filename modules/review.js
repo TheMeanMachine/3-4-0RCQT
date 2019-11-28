@@ -3,8 +3,9 @@
 const sqlite = require('sqlite-async')
 //Custom modules
 const valid = require('./validator')
-const Games = require('./game')
+const Comments = require('./comment')
 const Users = require('./user')
+const Image = require('./image')
 
 module.exports = class Review {
 	constructor(dbName) {
@@ -14,15 +15,15 @@ module.exports = class Review {
 
 			this.dbName = dbName || ':memory:'
 			this.db = await sqlite.open(this.dbName)
-			this.games = await new Games(this.dbName)
 			this.users = await new Users(this.dbName)
+			this.image = await new Image(this.dbName)
+			this.comments = await new Comments(this.dbName)
 			const sql =
 			[`CREATE TABLE IF NOT EXISTS reviewScreenshot(ID INTEGER PRIMARY KEY AUTOINCREMENT,
 				reviewID INTEGER,picture TEXT, FOREIGN KEY (reviewID) REFERENCES review(ID));`,`
 			CREATE TABLE IF NOT EXISTS review(ID INTEGER PRIMARY KEY AUTOINCREMENT,
 				gameID INTEGER,userID INTEGER,fullText TEXT,rating INTEGER,flag INTEGER,
-            	FOREIGN KEY (gameID) REFERENCES game(ID),
-				FOREIGN KEY (userID) REFERENCES user(ID));`]
+            	FOREIGN KEY (gameID) REFERENCES game(ID),FOREIGN KEY (userID) REFERENCES user(ID));`]
 
 			for(let i = 0; i < sql.length; i++) {
 				await this.db.run(sql[i])
@@ -84,6 +85,40 @@ module.exports = class Review {
 	}
 
 	/**
+	 * Searches reviews and comments based on toSearch string
+	 * @param {int} gameID
+	 * @param {int} userID
+	 * @param {string} toSearch
+	 * @param {boolean} admin
+	 * @returns object of reviews matching query
+	 */
+	// eslint-disable-next-line max-lines-per-function
+	async searchReview(gameID, userID, toSearch, admin) {
+		this.validator.checkID(gameID, 'gameID')
+		this.validator.checkID(userID, 'userID')
+		this.validator.checkStringExists(toSearch, 'query')
+
+		const sql = `SELECT DISTINCT review.* FROM review
+		LEFT JOIN comments ON
+		review.ID = comments.reviewID
+		WHERE (review.fullText LIKE "%${toSearch}%")
+		OR (comments.fullText LIKE "%${toSearch}%");`
+
+		const data = await this.db.all(sql)
+		const amtReviews = Object.keys(data).length
+		const result = {reviews: [], count: amtReviews, reviewIDs: []}
+		for(let i = 0; i < amtReviews; i++) {
+			result.reviewIDs.push(data[i].ID)
+			data[i].pictures = (await this.image.getPicturesByReviewID(data[i].ID)).pictures
+			data[i].comments = (await this.comments.getCommentsByReviewID(data[i].ID)).comments
+			if(admin || data[i].flag === 1) result.reviews.push(data[i])//Remove unchecked reviews, unless admin
+		}
+		result.userReview = (await this.getReviewsByGameID(gameID,admin, userID)).userReview
+
+		return result
+	}
+
+	/**
      * Function to publish or unpublish a review
      *
      * @name publishReview
@@ -101,7 +136,6 @@ module.exports = class Review {
 		UPDATE review 
 		SET flag = ${publish}
 		WHERE ID = ${reviewID};`
-		console.log(sql)
 		await this.db.run(sql)
 
 		return true
@@ -168,7 +202,6 @@ module.exports = class Review {
 		if(!this.validator.checkMultipleWordsOnlyAlphaNumberic(fullText)) throw new Error('Must supply fulltext')
 		this.validator.checkID(gameID, 'gameID')
 
-		await this.games.getGameByID(gameID)//Checks if game exists
 
 		this.validator.checkID(userID, 'userID')
 
@@ -195,14 +228,15 @@ module.exports = class Review {
 		this.validator.checkID(gameID, 'gameID')
 		this.validator.checkID(userID, 'userID')
 
-		const sql = `
-		SELECT * FROM review
-		WHERE gameID = ${gameID};`
+		const sql = `SELECT * FROM review WHERE gameID = ${gameID};`
 
 		const data = await this.db.all(sql)
-		const amtReviews = Object.keys(data).length
-		const result = {reviews: [], count: amtReviews}
-		for(let i = 0; i < amtReviews; i++) {
+
+		const result = {reviews: [], count: Object.keys(data).length, reviewIDs: []}
+		for(let i = 0; i < Object.keys(data).length; i++) {
+			result.reviewIDs.push(data[i].ID)
+			data[i].comments = (await this.comments.getCommentsByReviewID(data[i].ID)).comments
+			data[i].pictures = (await this.image.getPicturesByReviewID(data[i].ID)).pictures
 			if(userID === data[i].userID) {
 				result.userReview = data[i]
 				continue
@@ -228,8 +262,6 @@ module.exports = class Review {
 	async getAverageRating(gameID) {
 
 		this.validator.checkID(gameID, 'gameID')
-
-		await this.games.getGameByID(gameID)//Checks if game exists
 
 		const sql = `
 		SELECT AVG(rating) as average FROM review

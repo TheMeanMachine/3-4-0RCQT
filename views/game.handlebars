@@ -7,14 +7,14 @@
 		<title>Home Page</title>
 		<meta name="description" content="form to add new books">
 		<meta name="author" content="Aaron Machin">
-		<link href="style.css" type="text/css" rel="stylesheet" />
+		<link href="/style.css" type="text/css" rel="stylesheet" />
 	</head>
 	<body>
 		<div class="mainGamePageOuter">
             <div class="cardImg">
                 {{#if game.pictures}}
                     {{#each game.pictures}}
-                        <img class="cardImgInner" src="{{this}}">
+                        <img class="cardImgInner" src="/{{this}}">
                     {{/each}}
                 {{else}}
                     <p>No pictures found</p>
@@ -57,11 +57,53 @@
                 {{/if}}
             </div>
             <div class="card">
+                <div id="publishersContent">
+                {{#if game.publishers}}
+                <p>Publishers</p>
+                    <div class="bubbles">
+                    {{#each game.publishers}}
+                        <div class="bubble_long">
+                            <div class="bubble_longInner" id="publisherOnGame{{this.ID}}">
+                                <span id="publisherOnGameName{{this.ID}}">{{this.name}}</span>
+                            </div>
+                            {{#if @root.admin}}
+                            <form action="/removePublisherFromGame" method="POST" class="actionForm">
+                                <input type="text" name="gameID" value="{{@root.game.ID}}" style="display:none">
+                                <input type="text" name="publisherID" value="{{this.publisherID}}" style="display:none">
+                                <button type="submit" class="bubbleAction" id="removePublisherSubmit">X</button>  
+                            </form>
+                            {{/if}}
+                        </div>
+                    
+                    {{/each}}
+                    </div>
+                {{/if}}
+                </div>
+                
+                {{#if game.otherPublishers}}
+                    {{#if @root.admin}}
+                    <form action="addPublisherToGame" method="POST">
+                        <br>
+                        <p></p>
+                        <select name="publisher">
+                            {{#each game.otherPublishers}}
+                                <option value="{{this.ID}}">{{this.name}}</option>
+                            {{/each}}
+                        </select>
+                        <input type="text" name="gameID" value="{{game.ID}}" style="display:none">
+                        
+                        <button type="submit" class="" id="addPublisherSubmit">
+                            Add publisher
+                        </button>
+                    </form>
+                    {{/if}}
+                {{/if}}
                 <h2>{{game.title}}</h2>
                 <p>{{game.summary}}</p>
                 
                 <p>{{game.desc}}</p>
                 <p>Average rating: {{averageRating}} / 5</p>
+                <div id="categoryContent">
                 {{#if game.category}}
                     <div class="bubbles">
                     {{#each game.category}}
@@ -73,7 +115,7 @@
                             <form action="/removeCategoryFromGame" method="POST" class="actionForm">
                                 <input type="text" name="gameID" value="{{@root.game.ID}}" style="display:none">
                                 <input type="text" name="categoryID" value="{{this.categoryID}}" style="display:none">
-                                <button type="submit" class="bubbleAction">X</button>  
+                                <button type="submit" class="bubbleAction" id="removeCategoryButton">X</button>  
                             </form>
                             {{/if}}
                         </div>
@@ -81,7 +123,7 @@
                     {{/each}}
                     </div>
                 {{/if}}
-                
+                </div>
                 {{#if game.otherCategories}}
                     {{#if @root.admin}}
                     <form action="addCategoryToGame" method="POST">
@@ -94,7 +136,7 @@
                         </select>
                         <input type="text" name="gameID" value="{{game.ID}}" style="display:none">
                         
-                        <button type="submit" class="">
+                        <button type="submit" id="addCategorySubmit" class="">
                             Add category
                         </button>
                     </form>
@@ -104,7 +146,22 @@
             </div>
             
             <div class="content">
+                
+                
                 {{#if userReview}}
+
+                    {{#if userReview.pictures}}
+                            {{#each userReview.pictures}}
+                                <img class="cardImgInner" src="/{{this}}">
+                            {{/each}}
+                                
+                    {{/if}}
+                <form action="addReviewScreenshot" method="POST" enctype="multipart/form-data">
+                    <input type="text" name="gameID" value="{{game.ID}}" style="display:none">
+                    <input type="text" name="reviewID" value="{{userReview.ID}}" style="display:none">
+                    <input type="file" name="pic1"> <br> 
+                    <button type="submit">Upload Screenshot</button> 
+                </form>
                 <form action="/updateReview" method="post" id="review"> 
                     <h4>Your review</h4>
                     {{#if_eq userReview.flag 0}}
@@ -116,18 +173,34 @@
                         Rating<br>
                         {{#each ratingsReview}}
                         <label>
-                            <input type="radio" name="rating" value="{{this.value}}"
+                            <input type="radio" id="rating{{this.value}}" name="rating" value="{{this.value}}"
                                 {{#if_eq this.value @root.userReview.rating}} checked="checked" {{/if_eq}}
                             > {{this.value}}
                         </label>
                         {{/each}}
                         <br>
-                        <input type="text" name="gameID" value="{{game.ID}}" style="display:none">
+                        <input type="text" name="gameID" value="{{@root.game.ID}}" style="display:none">
 
                     </div>  
                     <br>
-                    <button type="submit" class="">
+                    <button type="submit" class="" id="reviewSubmit">
                         UPDATE REVIEW
+                    </button>
+
+                    
+                </form>
+                <form action="/addComment" method="post" id="userComment"> 
+                    <h4>Add comment</h4>
+                    <textarea rows="2" cols="50" name="fullText" form="userComment" placeholder="Write your review"></textarea>
+                    <br>
+                    
+                    <input type="text" name="gameID" value="{{@root.game.ID}}" style="display:none">
+                    <input type="text" name="reviewID" value="{{@root.userReview.ID}}" style="display:none">
+
+                    
+                    <br>
+                    <button type="submit" class="" id="commentSubmit"> 
+                        SUBMIT COMMENT
                     </button>
 
 
@@ -179,7 +252,7 @@
                         Rating<br>
                         {{#each ratingsReview}}
                         <label>
-                            <input type="radio" name="rating" value="{{this.value}}"
+                            <input type="radio" name="rating" id="rating{{this.value}}" value="{{this.value}}"
                                 {{#if_eq this.value 1}} checked="checked" {{/if_eq}}> {{this.value}}
                         </label>
                         {{/each}}
@@ -188,7 +261,7 @@
 
                     </div>  
                     <br>
-                    <button type="submit" class="">
+                    <button type="submit" class="" id="reviewSubmit">
                         SUBMIT REVIEW
                     </button>
 
@@ -197,10 +270,50 @@
                 {{/if}}
                 
                 
+                {{#each userReview.comments}}
+                    <div class="reviewCard">
+                        <div class="reviewCardInner" >
+                            <p>User: {{this.userID}}</p>
+                            <p id="comment{{this.ID}}">{{this.fullText}}</p>
+
+                            {{#if_EqOREq @root.admin @root.userID this.userID}}
+                                <form action="/commentDelete" method="POST">
+                                    <table class="userAdminPanel">
+                                        <tr>
+                                            <th>Delete?</th>
+                                        </tr>
+                                        <tr>
+                                            <th>
+                                                <input type="text" name="gameID" value="{{@root.game.ID}}" style="display:none">
+                                                <input type="text" name="commentID" value="{{this.ID}}" style="display:none">
+                                                <input type="checkbox" name="delete" value="true" id="commentDelete{{this.ID}}">
+                                            </th>
+                                        </tr>
+                                        <tr>
+                                            <th colspan="2">
+                                                <button type="submit" id="commentDelete{{this.ID}}">SUBMIT</button>
+                                            </th>
+                                        </tr>
+                                    
+                                    </table>
+                                </form>
+                            {{/if_EqOREq}}
+                        </div>
+                    </div>
+                {{/each}}
+                
                 <hr>
 
                 
-
+                <form action="/game/searchReview" method="GET">
+                    <br>
+                    <p></p>
+                    <input type="text" name="gameID" value="{{game.ID}}" style="display:none">
+                    <input type="text" name="search" placeholder="Search a review..." value="{{@root.search}}">
+                    <button type="submit">
+                        Search
+                    </button>
+                </form>
                 {{#if allReview}}
                 {{#each allReview}}
                     {{#if_EqOREq @root.admin this.flag 1}}
@@ -209,12 +322,34 @@
                     <div class="reviewCard">
                         <div class="reviewCardInner">
                             <div class="images">
-
+                                
+                                {{#if this.pictures}}
+                                    {{#each this.pictures}}
+                                        <img class="cardImgInner" src="/{{this}}">
+                                    {{/each}}
+                                
+                                {{/if}}
+                                
                             </div>
                             <p>User: {{this.userID}}</p>
                             <p>Rating: {{this.rating}}</p>
                             <p>Review: {{this.fullText}}</p>
-                            
+                            <form action="/addComment" method="post" id="commentReview{{this.ID}}"> 
+                                <h4>Add comment</h4>
+                                <textarea rows="2" cols="50" name="fullText" form="commentReview{{this.ID}}" placeholder="Write your comment"></textarea>
+                                <br>
+                                
+                                <input type="text" name="gameID" value="{{@root.game.ID}}" style="display:none">
+                                <input type="text" name="reviewID" value="{{this.ID}}" style="display:none">
+
+                                
+                                <br>
+                                <button type="submit" class="" id="commentSubmit{{this.ID}}"> 
+                                    SUBMIT COMMENT
+                                </button>
+
+
+                            </form>
                             {{#if @root.admin}}
                                 <form action="/reviewAdminUpdate" method="POST">
 
@@ -253,6 +388,37 @@
                                     </table>
                                 </form>
                             {{/if}}
+                           {{#each this.comments}}
+                                <div class="reviewCard">
+                                    <div class="reviewCardInner" >
+                                        <p>User: {{this.userID}}</p>
+                                        <p id="comment{{this.ID}}">{{this.fullText}}</p>
+    
+                                        {{#if_EqOREq @root.admin @root.userID this.userID}}
+                                        <form action="/commentDelete" method="POST">
+                                            <table class="userAdminPanel">
+                                                <tr>
+                                                    <th>Delete?</th>
+                                                </tr>
+                                                <tr>
+                                                    <th>
+                                                        <input type="text" name="gameID" value="{{@root.game.ID}}" style="display:none">
+                                                        <input type="text" name="commentID" value="{{this.ID}}" style="display:none">
+                                                        <input type="checkbox" name="delete" value="true" id="commentDelete{{this.ID}}">
+                                                    </th>
+                                                </tr>
+                                                <tr>
+                                                    <th colspan="2">
+                                                        <button type="submit" id="commentDelete{{this.ID}}">SUBMIT</button>
+                                                    </th>
+                                                </tr>
+                                            
+                                            </table>
+                                        </form>
+                                        {{/if_EqOREq}}
+                                    </div>
+                                </div>
+                            {{/each}}
                         </div>
                     </div>
                     {{/if_EqOREq}}

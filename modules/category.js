@@ -4,8 +4,6 @@ const sqlite = require('sqlite-async')
 
 //Custom modules
 const valid = require('./validator')
-const Games = require('./game')
-
 
 module.exports = class Category {
 	constructor(dbName) {
@@ -14,7 +12,7 @@ module.exports = class Category {
 		return (async() => {
 			this.dbName = dbName || ':memory:'
 			this.db = await sqlite.open(this.dbName)
-			this.game = await new Games(this.dbName)
+
 			const sql =
 			[`CREATE TABLE IF NOT EXISTS game_category
 			(ID INTEGER PRIMARY KEY AUTOINCREMENT,gameID INTEGER,categoryID INTEGER,
@@ -30,6 +28,33 @@ module.exports = class Category {
 
 	}
 
+
+	/**
+	 * Function to search all categories for associated games
+	 *
+	 * @name searchCategories
+	 * @param {String} toSearch
+	 * @returns games based on the category
+	 */
+	async searchCategories(toSearch) {
+		this.validator.checkStringExists(toSearch, 'toSearch')
+
+		const sql = `
+        SELECT * FROM category
+		WHERE (title LIKE "%${toSearch}%");`
+		const data = await this.db.all(sql)
+		const result = { categories: []}
+		for(let i = 0; i < Object.keys(data).length; i++) {
+			const curCat = await this.getCategoryByID(data[i].ID)//Retrieve full information
+			data[i].title = curCat.title//Add title to data
+			data[i].games = (await this.getGamesOfCategory(data[i].ID)).games
+			result.categories.push(data[i])
+		}
+
+
+		return result
+	}
+
 	/**
      * Function to associate a game with a category
      *
@@ -43,10 +68,6 @@ module.exports = class Category {
 
 		this.validator.checkID(gameID, 'gameID')
 		this.validator.checkID(categoryID, 'categoryID')
-
-		await this.game.getGameByID(gameID)
-
-		await this.getCategoryByID(categoryID)
 
 		const sql = `INSERT INTO game_category (gameID, categoryID)
 		VALUES(
@@ -92,18 +113,17 @@ module.exports = class Category {
 		try{
 			this.validator.checkID(gameID, 'gameID')//Check gameID is valid
 
-			await this.game.getGameByID(gameID)//Check game exists
-
 			const sql = `
 			SELECT * FROM game_category
 			WHERE gameID = ${gameID};`
 
 			const data = await this.db.all(sql)
-			const result = { categories: [] }
+			const result = { categories: []}
 			for(let i = 0; i < Object.keys(data).length; i++) {
 
 				const curCat = await this.getCategoryByID(data[i].categoryID)//Retrieve full information
 				data[i].title = curCat.title//Add title to data
+
 				result.categories.push(data[i])
 			}
 
@@ -152,9 +172,7 @@ module.exports = class Category {
      */
 	async getCategoryByID(catID) {
 
-		if(catID === null || isNaN(catID)) {
-			throw new Error('Must supply catID')
-		}
+		this.validator.checkID(catID, 'catID')
 
 		let sql = `SELECT count(ID) AS count FROM category WHERE ID = ${catID};`
 		let records = await this.db.get(sql)
@@ -180,7 +198,6 @@ module.exports = class Category {
 			SELECT * FROM category;`
 
 		const data = await this.db.all(sql)
-		if(Object.keys(data).length === 0) throw new Error('No categories found')
 		const result = { categories: [] }
 		for(let i = 0; i < Object.keys(data).length; i++) {
 			const curCat = await this.getCategoryByID(data[i].ID)//Retrieve full information
@@ -229,7 +246,7 @@ module.exports = class Category {
      * @name getGamesOfCategory
      * @param catID the category ID to get games based on
 	 * @throws If catID not supplied
-     * @returns games associated with a category
+     * @returns gameIDs associated with a category
      */
 	async getGamesOfCategory(catID) {
 		this.validator.checkID(catID, 'catID')
@@ -240,11 +257,10 @@ module.exports = class Category {
 
 		const categories = await this.db.all(sql)
 
-		const result = { games: []}
+		const result = { gameID: []}
 		for(let i = 0; i < Object.keys(categories).length; i++) {
 
-			const gameData = await this.game.getGameByID(categories[i].gameID)
-			result.games.push(gameData)
+			result.gameID.push(categories[i].gameID)
 
 		}
 

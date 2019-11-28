@@ -2,6 +2,120 @@
 
 const Category = require('../modules/category.js')
 
+const Games = require('../modules/game')
+
+let game
+let gameSpy
+let gamesList = {games: []}
+
+beforeEach(async() => {
+
+	//Mock Games
+	gamesList = {games: []}
+	game = await new Games()
+	gamesList.games.push()
+
+	gameSpy = jest.spyOn(game, 'addNewGame').mockImplementation((a,b,c) => {
+		gamesList.games.push(
+			{
+				ID: gamesList.games.length+1,
+				title: a,
+				summary: b,
+				desc: c
+			}
+		)
+
+		return true
+	})
+	gameSpy = jest.spyOn(game, 'getGameByTitle').mockImplementation((title) => {
+		for(let i = 0; i < gamesList.games.length; i++) {
+			if(gamesList.games[i].title === title) return gamesList.games[i]
+
+		}
+	})
+	gameSpy = jest.spyOn(Games.prototype, 'getGameByID').mockImplementation((ID) => {
+		for(let i = 0; i < gamesList.games.length; i++) {
+			if(gamesList.games[i].ID === ID) return gamesList.games[i]
+
+		}
+	})
+})
+
+afterAll(async() => {
+	gameSpy.mockRestore()
+})
+
+describe('game - category intergration', () => {
+
+	test('New games, adding into game_category', async done => {
+		expect.assertions(1)
+
+		const category = await new Category()
+
+		const catID = await category.addCategory('Runner')
+
+		await game.addNewGame('Green', 'Summary', 'Description')
+		await game.addNewGame('Red', 'Summary', 'Description')
+		const retGame = await game.getGameByTitle('Red')
+
+		await category.associateToCategory(retGame.ID, catID)
+
+		const result = await category.getGamesOfCategory(catID)
+		expect(result).toMatchObject(
+			{
+				gameID: [2]
+			}
+		)
+		done()
+	})
+
+	test('New games, removing into game_category', async done => {
+		expect.assertions(1)
+
+		const category = await new Category()
+
+
+		const catID = await category.addCategory('Horror')
+
+		await game.addNewGame('Red', 'Summary', 'Description')
+		const retGame = await game.getGameByTitle('Red')
+
+		await category.associateToCategory(retGame.ID, catID)
+
+		const result = await category.unassociateToCategory(retGame.ID, catID)
+
+		expect(result)
+			.toBe(true)
+
+		done()
+	})
+
+})
+
+describe('searchCategories()', () => {
+	test('Valid category', async done => {
+		expect.assertions(1)
+
+		const category = await new Category()
+
+		await category.addCategory('Comedy')
+		await category.addCategory('Horror')
+		await category.addCategory('Needy')
+
+		const result = await category.searchCategories('edy')
+
+		expect(result).toMatchObject({
+			categories: [
+				{title: 'Comedy'},
+				{title: 'Needy'}
+			]
+		})
+
+		done()
+	})
+})
+
+
 describe('getAllCategories()', () => {
 	test('Gets all categories', async done => {
 		expect.assertions(1)
@@ -24,18 +138,6 @@ describe('getAllCategories()', () => {
 
 		done()
 	})
-
-	test('Error if no categories', async done => {
-		expect.assertions(1)
-
-		const category = await new Category()
-
-		await expect( category.getAllCategories() )
-			.rejects.toEqual(Error('No categories found'))
-
-
-		done()
-	})
 })
 
 describe('getGamesOfCategory()', () => {
@@ -43,7 +145,7 @@ describe('getGamesOfCategory()', () => {
 		expect.assertions(1)
 
 		const category = await new Category()
-		const game = category.game
+
 
 		const catID = await category.addCategory('Horror')
 		await category.addCategory('Cats')
@@ -57,13 +159,7 @@ describe('getGamesOfCategory()', () => {
 
 		expect(result).toMatchObject(
 			{
-				games: [
-					{
-						title: 'Red',
-						summary: 'Summary',
-						desc: 'Description'
-					}
-				]
+				gameID: [2]
 			}
 		)
 		done()
@@ -109,7 +205,7 @@ describe('getOtherCategories()', () => {
 		expect.assertions(1)
 
 		const category = await new Category()
-		const game = category.game
+
 
 		const catID = await category.addCategory('Horror')
 		await category.addCategory('Cats')
@@ -137,7 +233,7 @@ describe('unassociateToCategory', () => {
 		expect.assertions(1)
 
 		const category = await new Category()
-		const game = category.game
+
 
 		const catID = await category.addCategory('Horror')
 
@@ -204,7 +300,7 @@ describe('associateToCategory', () => {
 		expect.assertions(1)
 
 		const category = await new Category()
-		const game = category.game
+
 
 		const catID = await category.addCategory('Horror')
 
@@ -217,33 +313,6 @@ describe('associateToCategory', () => {
 		done()
 	})
 
-	test('Error if game does not exist', async done => {
-		expect.assertions(1)
-
-		const category = await new Category()
-
-		const catID = await category.addCategory('Horror')
-
-		await expect( category.associateToCategory(1, catID))
-			.rejects.toEqual(Error('Game not found'))
-
-		done()
-	})
-
-	test('Error if category does not exist', async done => {
-		expect.assertions(1)
-
-		const category = await new Category()
-		const game = category.game
-
-		await game.addNewGame('Red', 'Summary', 'Description')
-		const retGame = await game.getGameByTitle('Red')
-
-		await expect( category.associateToCategory(retGame.ID, 1))
-			.rejects.toEqual(Error('Category not found'))
-
-		done()
-	})
 
 	test('Error if gameID null', async done => {
 		expect.assertions(1)
@@ -295,7 +364,7 @@ describe('getCategories()', () => {
 		expect.assertions(1)
 
 		const category = await new Category()
-		const game = category.game
+
 
 		const catID1 = await category.addCategory('Cats')
 		const catID2 = await category.addCategory('Runner')
@@ -351,15 +420,6 @@ describe('getCategories()', () => {
 		done()
 	})
 
-	test('Error if game does not exist', async done => {
-		expect.assertions(1)
-
-		const category = await new Category()
-
-		await expect(category.getCategories(1))
-			.rejects.toEqual(Error('Game not found'))
-		done()
-	})
 
 })
 
