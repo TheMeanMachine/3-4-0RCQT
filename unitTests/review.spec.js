@@ -2,13 +2,117 @@
 const Reviews = require('../modules/review.js')
 const Games = require('../modules/game.js')
 const Users = require('../modules/user.js')
+const sqlite = require('sqlite-async')
 describe('searchReview()', () => {
-	test('valid gameID, userID - does not show user review, admin', async done => {
+	test('valid gameID, userID -  admin', async done => {
 		expect.assertions(1)
-
+		const db = await sqlite.open(':memory:')
+		const spy = jest.spyOn(sqlite, 'open').mockImplementation(() => db)
 		const review = await new Reviews()
 		const game = await new Games()
 		const user = await new Users()
+		const comment = review.comments
+		spy.mockRestore()
+		const userSpy = jest.spyOn(user, 'register').mockImplementation(() => 1)
+		const gameSpy = jest.spyOn(game, 'getGameByTitle').mockImplementation(() => ({ID: 1}))
+
+		const userID = await user.register('Samson', 'Password')
+
+
+		const retreiveGame = await game.getGameByTitle('title')
+		await review.addReview(retreiveGame.ID,
+			{
+				fullText: 'What is this game',
+				rating: 1
+			}, userID
+		)
+
+		await review.addReview(retreiveGame.ID,
+			{
+				fullText: 'This is a review',
+				rating: 3
+			}, 2
+		)
+		comment.addComment(2,2,'This is fulltext')
+		const result = await review.searchReview(retreiveGame.ID, userID, 'is', true)
+
+		expect(result).toMatchObject(
+			{ reviews:
+                [
+                	{
+                		ID: 1
+                	},
+                	{
+                		userID: 2,
+                		fullText: 'This is a review',
+                		rating: 3,
+                		flag: 0,
+                		comments: [{ID: 1}]
+                	}
+                ]
+			}
+
+		)
+		gameSpy.mockRestore()
+		userSpy.mockRestore()
+		done()
+	})
+
+	test('no duplicate reviews', async done => {
+		expect.assertions(1)
+		const db = await sqlite.open(':memory:')
+		const spy = jest.spyOn(sqlite, 'open').mockImplementation(() => db)
+		const review = await new Reviews()
+		const game = await new Games()
+		const user = await new Users()
+		const comment = review.comments
+		spy.mockRestore()
+		const userSpy = jest.spyOn(user, 'register').mockImplementation(() => 1)
+		const gameSpy = jest.spyOn(game, 'getGameByTitle').mockImplementation(() => ({ID: 1}))
+
+		const userID = await user.register('Samson', 'Password')
+
+
+		const retreiveGame = await game.getGameByTitle('title')
+		await review.addReview(retreiveGame.ID,
+			{
+				fullText: 'What is this game',
+				rating: 1
+			}, userID
+		)
+		await review.addReview(retreiveGame.ID,
+			{
+				fullText: 'Hello',
+				rating: 3
+			}, 2
+		)
+
+		await review.addReview(retreiveGame.ID,
+			{
+				fullText: 'This is a review',
+				rating: 3
+			}, 2
+		)
+		comment.addComment(2,2,'1')
+		comment.addComment(2,2,'assda')
+		const result = await review.searchReview(retreiveGame.ID, userID, 'Hello', true)
+
+		expect(result.reviews.length).toBe(1)
+
+		gameSpy.mockRestore()
+		userSpy.mockRestore()
+		done()
+	})
+
+	test('valid gameID, userID -  admin', async done => {
+		expect.assertions(1)
+		const db = await sqlite.open(':memory:')
+		const spy = jest.spyOn(sqlite, 'open').mockImplementation(() => db)
+		const review = await new Reviews()
+		const game = await new Games()
+		const user = await new Users()
+		const comment = review.comments
+		spy.mockRestore()
 		const userSpy = jest.spyOn(user, 'register').mockImplementation(() => 1)
 		const gameSpy = jest.spyOn(game, 'getGameByTitle').mockImplementation(() => ({ID: 1}))
 
@@ -30,16 +134,23 @@ describe('searchReview()', () => {
 			}, 2
 		)
 
+		comment.addComment(2,2,'This is fulltext')
 		const result = await review.searchReview(retreiveGame.ID, userID, 'is', true)
 
 		expect(result).toMatchObject(
 			{ reviews:
                 [
                 	{
-                	userID: 2,
-                	fullText: 'This is a review',
-                	rating: 3,
-                	flag: 0 }
+                		ID: 1
+                	},
+                	{
+                		ID: 2,
+                		userID: 2,
+                		fullText: 'This is a review',
+                		rating: 3,
+                		flag: 0,
+                		comments: [{ID: 1}]
+                	}
                 ]
 			}
 
@@ -52,9 +163,13 @@ describe('searchReview()', () => {
 	test('valid gameID, userID not admin', async done => {
 		expect.assertions(1)
 
+		const db = await sqlite.open(':memory:')
+		const spy = jest.spyOn(sqlite, 'open').mockImplementation(() => db)
 		const review = await new Reviews()
 		const game = await new Games()
 		const user = await new Users()
+		const comment = review.comments
+		spy.mockRestore()
 		const userSpy = jest.spyOn(user, 'register').mockImplementation(() => 1)
 		const gameSpy = jest.spyOn(game, 'getGameByTitle').mockImplementation(() => ({ID: 1}))
 

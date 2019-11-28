@@ -90,16 +90,20 @@ module.exports = class Review {
 		this.validator.checkID(userID, 'userID')
 		this.validator.checkStringExists(toSearch, 'query')
 
-		const sql = `
-        SELECT * FROM review
-		WHERE (fullText LIKE "%${toSearch}%")
-		AND (gameID = ${gameID}) AND (userID != ${userID});`
+		const sql = `SELECT DISTINCT review.* FROM review
+		LEFT JOIN comments ON
+		review.ID = comments.reviewID
+		WHERE (review.fullText LIKE "%${toSearch}%")
+		OR (comments.fullText LIKE "%${toSearch}%");`
+
 		const data = await this.db.all(sql)
+		console.log(data)
 		const amtReviews = Object.keys(data).length
 		const result = {reviews: [], count: amtReviews, reviewIDs: []}
 		for(let i = 0; i < amtReviews; i++) {
 			result.reviewIDs.push(data[i].ID)
 			data[i].pictures = (await this.image.getPicturesByReviewID(data[i].ID)).pictures
+			data[i].comments = (await this.comments.getCommentsByReviewID(data[i].ID)).comments
 			if(admin || data[i].flag === 1) result.reviews.push(data[i])//Remove unchecked reviews, unless admin
 		}
 		result.userReview = (await this.getReviewsByGameID(gameID,admin, userID)).userReview
